@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+python-dotenv
+alembic
+python-jose
+email-validator
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+python-multipart
+stripe
+razorpay==1.4.2
+reportlab
+matplotlib
+openai>=1.0.0
+
