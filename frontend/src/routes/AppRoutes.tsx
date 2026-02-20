@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import DashboardPage from "../pages/dashboard/DashboardPage";
 import UpgradePage from "../pages/upgrade/UpgradePage";
 import LoginPage from "../pages/auth/LoginPage";
@@ -7,12 +7,16 @@ import ProtectedRoute from "../components/ProtectedRoute";
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Public */}
+
+      {/* Public Routes */}
       <Route path="/login" element={<LoginPage />} />
 
-      {/* Protected */}
+      {/* Redirect root to dashboard */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+      {/* Protected Dashboard */}
       <Route
-        path="/"
+        path="/dashboard"
         element={
           <ProtectedRoute>
             <DashboardPage />
@@ -20,6 +24,7 @@ export default function AppRoutes() {
         }
       />
 
+      {/* Protected Upgrade */}
       <Route
         path="/upgrade"
         element={
@@ -28,6 +33,10 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Fallback Route */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
     </Routes>
   );
 }

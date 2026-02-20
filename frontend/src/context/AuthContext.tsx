@@ -1,26 +1,32 @@
-import { createContext, useContext, useState } from "react"
-import api from "../api/axios"
+import { createContext, useContext, useState, useEffect } from "react"
+import API from "../services/api"
 
 const AuthContext = createContext<any>(null)
 
 export const AuthProvider = ({ children }: any) => {
   const [user, setUser] = useState<any>(null)
 
+  const fetchUser = async () => {
+    try {
+      const res = await API.get("/users/me")
+      setUser(res.data)
+    } catch {
+      setUser(null)
+    }
+  }
+
   const login = async (email: string, password: string) => {
     const formData = new URLSearchParams()
     formData.append("username", email)
     formData.append("password", password)
 
-    const response = await api.post("/users/login", formData, {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      }
+    const response = await API.post("/users/login", formData, {
+      headers: { "Content-Type": "application/x-www-form-urlencoded" }
     })
 
     localStorage.setItem("access_token", response.data.access_token)
 
-    const userRes = await api.get("/users/me")
-    setUser(userRes.data)
+    await fetchUser()
   }
 
   const logout = () => {
@@ -28,18 +34,21 @@ export const AuthProvider = ({ children }: any) => {
     setUser(null)
   }
 
+  useEffect(() => {
+    if (localStorage.getItem("access_token")) {
+      fetchUser()
+    }
+  }, [])
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, fetchUser }}>
       {children}
     </AuthContext.Provider>
   )
 }
 
-// 🚨 THIS MUST EXIST
 export const useAuth = () => {
   const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error("useAuth must be used inside AuthProvider")
-  }
+  if (!context) throw new Error("useAuth must be used inside AuthProvider")
   return context
 }
