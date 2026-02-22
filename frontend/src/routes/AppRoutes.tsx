@@ -24,7 +24,16 @@ import AdminRoute from "./AdminRoute";
 import PlanRoute from "./PlanRoute";
 
 export default function AppRoutes() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // ✅ Prevent flash during auth loading
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <Routes>
@@ -53,7 +62,6 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       >
-
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="reports" element={<ReportsListPage />} />
         <Route path="reports/:id" element={<ReportDetailPage />} />
@@ -88,7 +96,6 @@ export default function AppRoutes() {
             </AdminRoute>
           }
         />
-
       </Route>
 
       {/* ERROR ROUTES */}

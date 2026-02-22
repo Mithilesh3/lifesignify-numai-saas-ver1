@@ -1,15 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const LoginPage = () => {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // ✅ Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,8 +34,11 @@ const LoginPage = () => {
       await login(email, password);
       toast.success("Welcome back 🚀");
       navigate("/dashboard");
-    } catch (error) {
-      toast.error("Invalid credentials");
+    } catch (error: any) {
+      // ✅ Dynamic backend error
+      toast.error(
+        error?.response?.data?.detail || "Invalid credentials"
+      );
     } finally {
       setLoading(false);
     }
@@ -53,6 +63,7 @@ const LoginPage = () => {
           <label className="text-sm text-gray-400">Email</label>
           <input
             type="email"
+            autoFocus
             className="w-full mt-1 p-3 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
