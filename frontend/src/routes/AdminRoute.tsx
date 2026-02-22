@@ -8,7 +8,6 @@ interface AdminRouteProps {
 export default function AdminRoute({ children }: AdminRouteProps) {
   const { user, loading } = useAuth();
 
-  // Wait for auth resolution
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -17,13 +16,12 @@ export default function AdminRoute({ children }: AdminRouteProps) {
     );
   }
 
-  // Not logged in
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Not admin
-  if (user.role !== "admin") {
+  // Allow both admin and super_admin
+  if (user.role !== "admin" && user.role !== "super_admin") {
     return <Navigate to="/forbidden" replace />;
   }
 

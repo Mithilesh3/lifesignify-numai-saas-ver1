@@ -22,8 +22,53 @@ from app.core.security import decode_access_token
 
 
 router = APIRouter(tags=["Users"])
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/login")
+
+
+# =====================================================
+# AUTH DEPENDENCY
+# =====================================================
+def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    payload = decode_access_token(token)
+
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user_id = payload.get("sub")
+    tenant_id = payload.get("tenant_id")
+
+    user = (
+        db.query(User)
+        .filter(
+            User.id == int(user_id),
+            User.tenant_id == int(tenant_id),
+            User.is_deleted == False
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    return user
+
+
+# =====================================================
+# ROLE GUARDS
+# =====================================================
+def super_admin_required(current_user: User = Depends(get_current_user)):
+    if current_user.role != "super_admin":
+        raise HTTPException(status_code=403, detail="Super admin access required")
+    return current_user
+
+
+def admin_required(current_user: User = Depends(get_current_user)):
+    if current_user.role not in ["admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
 
 
 # =====================================================
@@ -31,7 +76,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/login")
 # =====================================================
 @router.post("/register", response_model=UserResponse)
 def register(user: UserCreate, db: Session = Depends(get_db)):
-
     new_user = create_user(
         db,
         user.email,
@@ -65,76 +109,6 @@ def login(
 
 
 # =====================================================
-# AUTH DEPENDENCY
-# =====================================================
-def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db)
-):
-    payload = decode_access_token(token)
-
-    if payload is None:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-    user_id = payload.get("sub")
-    tenant_id = payload.get("tenant_id")
-
-    if not user_id or not tenant_id:
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-
-    user = (
-        db.query(User)
-        .filter(
-            User.id == int(user_id),
-            User.tenant_id == int(tenant_id)
-        )
-        .first()
-    )
-
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-
-    return user
-
-
-# =====================================================
-# ADMIN GUARD  ✅ ADDED BACK
-# =====================================================
-def admin_required(current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return current_user
-
-
-# =====================================================
-# PRO PLAN GUARD  ✅ SAFE VERSION
-# =====================================================
-def pro_plan_required(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    organization = (
-        db.query(Organization)
-        .filter(
-            Organization.id == current_user.tenant_id,
-            Organization.is_deleted == False
-        )
-        .first()
-    )
-
-    if not organization:
-        raise HTTPException(status_code=404, detail="Organization not found")
-
-    if organization.plan not in ["pro", "enterprise"]:
-        raise HTTPException(
-            status_code=403,
-            detail="Upgrade to Pro plan required"
-        )
-
-    return current_user
-
-
-# =====================================================
 # CURRENT USER DETAILS
 # =====================================================
 @router.get("/me")
@@ -142,7 +116,6 @@ def read_me(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-
     subscription = (
         db.query(Subscription)
         .filter(
@@ -171,32 +144,87 @@ def read_me(
 
 
 # =====================================================
-# ADMIN UPDATE PLAN
+# ORG USER MANAGEMENT
 # =====================================================
-@router.put("/update-plan")
-def update_plan(
-    plan_data: PlanUpdate,
+@router.get("/org-users")
+def list_org_users(
     current_user: User = Depends(admin_required),
     db: Session = Depends(get_db)
 ):
-    organization = update_organization_plan(
-        db=db,
-        current_user=current_user,
-        new_plan=plan_data.plan
+    users = (
+        db.query(User)
+        .filter(
+            User.tenant_id == current_user.tenant_id,
+            User.is_deleted == False
+        )
+        .all()
     )
 
-    return {
-        "message": "Plan updated successfully",
-        "new_plan": organization.plan
-    }
+    return [
+        {
+            "id": u.id,
+            "email": u.email,
+            "role": u.role,
+            "created_at": u.created_at
+        }
+        for u in users
+    ]
 
 
-# =====================================================
-# ADMIN TEST
-# =====================================================
-@router.get("/admin-test")
-def admin_test(current_user: User = Depends(admin_required)):
-    return {
-        "message": "You are an admin",
-        "email": current_user.email
-    }
+@router.delete("/delete-user/{user_id}")
+def delete_user(
+    user_id: int,
+    current_user: User = Depends(admin_required),
+    db: Session = Depends(get_db)
+):
+    user = (
+        db.query(User)
+        .filter(
+            User.id == user_id,
+            User.tenant_id == current_user.tenant_id,
+            User.is_deleted == False
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user.id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot delete yourself")
+
+    user.is_deleted = True
+    db.commit()
+
+    return {"message": "User deleted successfully"}
+
+
+@router.put("/update-user-role/{user_id}")
+def update_user_role(
+    user_id: int,
+    new_role: str,
+    current_user: User = Depends(admin_required),
+    db: Session = Depends(get_db)
+):
+    allowed_roles = ["admin", "manager", "user"]
+
+    if new_role not in allowed_roles:
+        raise HTTPException(status_code=400, detail="Invalid role")
+
+    user = (
+        db.query(User)
+        .filter(
+            User.id == user_id,
+            User.tenant_id == current_user.tenant_id,
+            User.is_deleted == False
+        )
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.role = new_role
+    db.commit()
+
+    return {"message": "Role updated successfully"}

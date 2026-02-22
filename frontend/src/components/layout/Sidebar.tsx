@@ -1,21 +1,44 @@
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+
 const Sidebar = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+
+  const linkClass = (path: string) =>
+    `block px-3 py-2 rounded transition ${
+      location.pathname.startsWith(path)
+        ? "bg-gray-800 text-white"
+        : "text-gray-400 hover:text-indigo-400"
+    }`;
+
   return (
     <div className="w-64 bg-gray-900 text-white min-h-screen p-4">
       <h2 className="text-xl font-bold mb-6">LifeSignify</h2>
 
-      <nav className="space-y-3">
-        <a href="/dashboard" className="block hover:text-indigo-400">
+      <nav className="space-y-2">
+        <Link to="/dashboard" className={linkClass("/dashboard")}>
           Dashboard
-        </a>
-        <a href="/reports" className="block hover:text-indigo-400">
+        </Link>
+
+        <Link to="/reports" className={linkClass("/reports")}>
           Reports
-        </a>
-        <a href="/billing" className="block hover:text-indigo-400">
+        </Link>
+
+        <Link to="/billing" className={linkClass("/billing")}>
           Billing
-        </a>
-        <a href="/settings" className="block hover:text-indigo-400">
+        </Link>
+
+        <Link to="/settings" className={linkClass("/settings")}>
           Settings
-        </a>
+        </Link>
+
+        {/* 🔥 ADMIN LINK (only visible to admins) */}
+        {user?.role === "admin" && (
+          <Link to="/admin/users" className={linkClass("/admin")}>
+            Admin
+          </Link>
+        )}
       </nav>
     </div>
   );

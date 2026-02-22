@@ -25,26 +25,30 @@ app = FastAPI(title="Life Signify NumAI SaaS")
 
 
 # =====================================================
-# CORS (Strict + Production Ready)
+# CORS CONFIG (DEV SAFE VERSION)
 # =====================================================
-
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:5174",
-]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# 🚀 If you still face issues in development,
+# temporarily replace allow_origins with:
+# allow_origins=["*"]
+# (Do NOT use "*" in production)
+
 
 # =====================================================
-# GLOBAL EXCEPTION HANDLER (CRITICAL FIX)
+# GLOBAL EXCEPTION HANDLER
 # =====================================================
 
 @app.exception_handler(Exception)
@@ -87,9 +91,9 @@ def startup_event():
 # ROUTERS
 # =====================================================
 
-app.include_router(users_router, prefix="/api/users", tags=["Users"])
-app.include_router(reports_router, prefix="/api/reports", tags=["Reports"])
-app.include_router(payments_router, prefix="/api/payments", tags=["Payments"])
+app.include_router(users_router, prefix="/api/users")
+app.include_router(reports_router, prefix="/api/reports")
+app.include_router(payments_router, prefix="/api/payments")
 app.include_router(admin_router)
 
 
@@ -106,7 +110,7 @@ def root():
 
 
 # =====================================================
-# HEALTH CHECK (Production-Ready)
+# HEALTH CHECK
 # =====================================================
 
 @app.get("/health", tags=["System"])
