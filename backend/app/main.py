@@ -1,8 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError, OperationalError
 import time
+import traceback
 
 from app.db.session import engine, Base
 from app.db import models  # ensures models are registered
@@ -23,19 +25,41 @@ app = FastAPI(title="Life Signify NumAI SaaS")
 
 
 # =====================================================
-# CORS (Frontend: Vite Dev Servers)
+# CORS (Strict + Production Ready)
 # =====================================================
+
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# =====================================================
+# GLOBAL EXCEPTION HANDLER (CRITICAL FIX)
+# =====================================================
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print("🔥 Unhandled Exception:")
+    traceback.print_exc()
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "message": "Internal Server Error",
+            "detail": str(exc),
+        },
+    )
 
 
 # =====================================================

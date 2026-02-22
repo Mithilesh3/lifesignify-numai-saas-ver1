@@ -1,10 +1,21 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime
 
 from app.db.models import Report, User, Subscription
 from app.core.audit import log_action
 from app.core.engine_config import ENGINE_VERSION
+
+
+# =====================================================
+# PLAN LIMITS
+# =====================================================
+PLAN_LIMITS = {
+    "basic": 10,
+    "pro": 50,
+    "enterprise": 999999
+}
 
 
 # =====================================================
@@ -35,24 +46,21 @@ def create_report(
             user_id=current_user.id,
             tenant_id=current_user.tenant_id,
             action="REPORT_CREATED",
-            details={
-                "report_id": report.id,
-                "engine_version": "manual"
-            }
+            details={"report_id": report.id}
         )
 
         return report
 
-    except SQLAlchemyError as e:
+    except SQLAlchemyError:
         db.rollback()
         raise HTTPException(
             status_code=500,
-            detail=f"Manual report creation failed: {str(e)}"
+            detail="Manual report creation failed"
         )
 
 
 # =====================================================
-# 🔥 CREATE AI REPORT (SUBSCRIPTION PROTECTED)
+# CREATE AI REPORT
 # =====================================================
 def create_ai_report(
     db: Session,
@@ -60,11 +68,10 @@ def create_ai_report(
     intake_data: dict
 ):
     try:
-        # 🔐 Check active subscription
         subscription = (
             db.query(Subscription)
             .filter(
-                Subscription.user_id == current_user.id,
+                Subscription.tenant_id == current_user.tenant_id,
                 Subscription.is_active == True
             )
             .first()
@@ -73,10 +80,28 @@ def create_ai_report(
         if not subscription:
             raise HTTPException(
                 status_code=403,
-                detail="Active subscription required to generate AI report"
+                detail="Active subscription required"
             )
 
-        # Import inside function to avoid circular import
+        # Expiry check
+        if hasattr(subscription, "end_date") and subscription.end_date:
+            if subscription.end_date < datetime.utcnow():
+                subscription.is_active = False
+                db.commit()
+                raise HTTPException(
+                    status_code=403,
+                    detail="Subscription expired"
+                )
+
+        limit = PLAN_LIMITS.get(subscription.plan_name, 10)
+
+        if hasattr(subscription, "reports_used"):
+            if subscription.reports_used >= limit:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Report limit reached"
+                )
+
         from app.modules.reports.ai_engine import generate_life_signify_report
 
         ai_output = generate_life_signify_report(intake_data)
@@ -91,6 +116,10 @@ def create_ai_report(
         )
 
         db.add(report)
+
+        if hasattr(subscription, "reports_used"):
+            subscription.reports_used += 1
+
         db.commit()
         db.refresh(report)
 
@@ -99,10 +128,7 @@ def create_ai_report(
             user_id=current_user.id,
             tenant_id=current_user.tenant_id,
             action="AI_REPORT_GENERATED",
-            details={
-                "report_id": report.id,
-                "engine_version": ENGINE_VERSION
-            }
+            details={"report_id": report.id}
         )
 
         return report
@@ -114,17 +140,14 @@ def create_ai_report(
         db.rollback()
         raise HTTPException(
             status_code=500,
-            detail=f"AI report generation failed: {str(e)}"
+            detail=f"AI report failed: {str(e)}"
         )
 
 
 # =====================================================
 # GET ALL REPORTS
 # =====================================================
-def get_reports(
-    db: Session,
-    current_user: User
-):
+def get_reports(db: Session, current_user: User):
     return (
         db.query(Report)
         .filter(
@@ -139,11 +162,7 @@ def get_reports(
 # =====================================================
 # GET SINGLE REPORT
 # =====================================================
-def get_report(
-    db: Session,
-    current_user: User,
-    report_id: int
-):
+def get_report(db: Session, current_user: User, report_id: int):
     report = (
         db.query(Report)
         .filter(
@@ -161,7 +180,7 @@ def get_report(
 
 
 # =====================================================
-# 🟣 GET RADAR DATA ONLY
+# GET RADAR DATA
 # =====================================================
 def get_radar_data(
     db: Session,
@@ -173,7 +192,10 @@ def get_radar_data(
     radar_data = report.content.get("radar_chart_data")
 
     if not radar_data:
-        raise HTTPException(status_code=404, detail="Radar data not available")
+        raise HTTPException(
+            status_code=404,
+            detail="Radar data not available"
+        )
 
     return radar_data
 
@@ -196,55 +218,23 @@ def update_report(
     db.commit()
     db.refresh(report)
 
-    log_action(
-        db=db,
-        user_id=current_user.id,
-        tenant_id=current_user.tenant_id,
-        action="REPORT_UPDATED",
-        details={
-            "report_id": report_id,
-            "engine_version": report.engine_version
-        }
-    )
-
     return report
 
 
 # =====================================================
-# SOFT DELETE
+# SOFT DELETE REPORT
 # =====================================================
-def soft_delete_report(
-    db: Session,
-    current_user: User,
-    report_id: int
-):
+def soft_delete_report(db: Session, current_user: User, report_id: int):
     report = get_report(db, current_user, report_id)
-
     report.is_deleted = True
     db.commit()
-
-    log_action(
-        db=db,
-        user_id=current_user.id,
-        tenant_id=current_user.tenant_id,
-        action="REPORT_SOFT_DELETED",
-        details={
-            "report_id": report_id,
-            "engine_version": report.engine_version
-        }
-    )
-
     return {"message": "Report soft deleted"}
 
 
 # =====================================================
 # RESTORE REPORT
 # =====================================================
-def restore_report(
-    db: Session,
-    current_user: User,
-    report_id: int
-):
+def restore_report(db: Session, current_user: User, report_id: int):
     report = (
         db.query(Report)
         .filter(
@@ -261,54 +251,16 @@ def restore_report(
     report.is_deleted = False
     db.commit()
 
-    log_action(
-        db=db,
-        user_id=current_user.id,
-        tenant_id=current_user.tenant_id,
-        action="REPORT_RESTORED",
-        details={
-            "report_id": report_id,
-            "engine_version": report.engine_version
-        }
-    )
-
-    return {"message": "Report restored successfully"}
+    return {"message": "Report restored"}
 
 
 # =====================================================
-# HARD DELETE
+# HARD DELETE REPORT
 # =====================================================
-def hard_delete_report(
-    db: Session,
-    current_user: User,
-    report_id: int
-):
-    report = (
-        db.query(Report)
-        .filter(
-            Report.id == report_id,
-            Report.tenant_id == current_user.tenant_id
-        )
-        .first()
-    )
-
-    if not report:
-        raise HTTPException(status_code=404, detail="Report not found")
-
+def hard_delete_report(db: Session, current_user: User, report_id: int):
+    report = get_report(db, current_user, report_id)
     db.delete(report)
     db.commit()
-
-    log_action(
-        db=db,
-        user_id=current_user.id,
-        tenant_id=current_user.tenant_id,
-        action="REPORT_HARD_DELETED",
-        details={
-            "report_id": report_id,
-            "engine_version": report.engine_version
-        }
-    )
-
     return {"message": "Report permanently deleted"}
 
 
@@ -316,6 +268,9 @@ from fastapi.responses import StreamingResponse
 from app.modules.reports.pdf_engine import generate_report_pdf
 
 
+# =====================================================
+# EXPORT REPORT PDF
+# =====================================================
 def export_report_pdf(
     db: Session,
     current_user: User,

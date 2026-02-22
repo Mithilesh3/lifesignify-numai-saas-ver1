@@ -3,6 +3,14 @@ import { useAuth } from "../../context/AuthContext";
 export default function SettingsPage() {
   const { user } = useAuth();
 
+  // 🔥 Proper plan resolution (subscription first, then org fallback)
+  const plan =
+    user?.subscription?.plan_name ||
+    user?.organization?.plan ||
+    "FREE";
+
+  const isActive = user?.subscription?.is_active;
+
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8 space-y-8">
       
@@ -22,10 +30,27 @@ export default function SettingsPage() {
           <p>
             <span className="text-gray-400">Email:</span> {user?.email}
           </p>
+
           <p>
             <span className="text-gray-400">Plan:</span>{" "}
-            {user?.plan?.toUpperCase() || "FREE"}
+            <span
+              className={`font-semibold ml-1 ${
+                plan.toLowerCase() === "pro"
+                  ? "text-emerald-400"
+                  : plan.toLowerCase() === "enterprise"
+                  ? "text-purple-400"
+                  : "text-gray-300"
+              }`}
+            >
+              {plan.toUpperCase()}
+            </span>
           </p>
+
+          {isActive && (
+            <p className="text-sm text-green-400">
+              Active Subscription
+            </p>
+          )}
         </div>
       </div>
 
@@ -39,7 +64,6 @@ export default function SettingsPage() {
           will be available here.
         </p>
       </div>
-
     </div>
   );
 }

@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 interface Plan {
   name: string;
   price: number;
-  features: string[];
+  reports_limit: number | string;
 }
 
 interface PaymentHistory {
@@ -29,16 +29,20 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
 
+  const currentPlan = user?.organization?.plan?.toLowerCase() || "free";
+
   useEffect(() => {
     const loadBillingData = async () => {
       try {
         const plansRes = await billingService.getPlans();
         const paymentRes = await billingService.getPaymentHistory();
 
-        setPlans(plansRes);
-        setPayments(paymentRes);
+        setPlans(plansRes || []);
+        setPayments(paymentRes || []);
       } catch {
         toast.error("Failed to load billing data");
+        setPlans([]);
+        setPayments([]);
       } finally {
         setLoading(false);
       }
@@ -48,12 +52,11 @@ export default function BillingPage() {
   }, []);
 
   const handleUpgrade = async (planName: string) => {
-    if (upgrading) return;
+    if (upgrading || currentPlan === planName.toLowerCase()) return;
 
     setUpgrading(true);
 
     try {
-      // 1️⃣ Create Razorpay order from backend
       const order = await billingService.createOrder(planName);
 
       const options = {
@@ -65,16 +68,17 @@ export default function BillingPage() {
         description: `${planName} Subscription`,
         handler: async function (response: any) {
           try {
-            // 2️⃣ Verify payment
             await billingService.verifyPayment(response);
-
-            // 3️⃣ Refresh user plan
             await refreshUser();
-
             toast.success("Subscription upgraded successfully 🚀");
           } catch {
             toast.error("Payment verification failed");
           }
+        },
+        modal: {
+          ondismiss: function () {
+            setUpgrading(false);
+          },
         },
         theme: {
           color: "#6366f1",
@@ -83,10 +87,8 @@ export default function BillingPage() {
 
       const razor = new window.Razorpay(options);
       razor.open();
-
     } catch (error: any) {
       toast.error(error?.response?.data?.detail || "Payment failed");
-    } finally {
       setUpgrading(false);
     }
   };
@@ -114,42 +116,54 @@ export default function BillingPage() {
       <div className="bg-gray-900 p-6 rounded-xl shadow-md">
         <p className="text-gray-400 text-sm">Current Plan</p>
         <p className="text-2xl font-bold mt-2">
-          {user?.plan?.toUpperCase() || "FREE"}
+          {currentPlan.toUpperCase()}
         </p>
       </div>
 
       {/* Plans */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {plans.map((plan) => (
-          <div
-            key={plan.name}
-            className="bg-gray-900 p-6 rounded-xl shadow-md flex flex-col justify-between"
-          >
-            <div>
-              <h2 className="text-xl font-semibold">{plan.name}</h2>
-              <p className="text-3xl font-bold mt-2">
-                ₹{plan.price}
-                <span className="text-sm text-gray-400"> / month</span>
-              </p>
+        {plans.map((plan) => {
+          const isCurrent = currentPlan === plan.name.toLowerCase();
 
-              <ul className="mt-4 space-y-2 text-gray-300 text-sm">
-                {plan.features.map((feature, index) => (
-                  <li key={index}>• {feature}</li>
-                ))}
-              </ul>
+          return (
+            <div
+              key={plan.name}
+              className="bg-gray-900 p-6 rounded-xl shadow-md flex flex-col justify-between"
+            >
+              <div>
+                <h2 className="text-xl font-semibold">{plan.name}</h2>
+                <p className="text-3xl font-bold mt-2">
+                  ₹{plan.price}
+                  <span className="text-sm text-gray-400"> / month</span>
+                </p>
+
+                <ul className="mt-4 space-y-2 text-gray-300 text-sm">
+                  <li>
+                    • {plan.reports_limit === "Unlimited"
+                      ? "Unlimited Reports"
+                      : `${plan.reports_limit} Reports per month`}
+                  </li>
+                  <li>• Priority Support</li>
+                  <li>• Advanced Analytics</li>
+                </ul>
+              </div>
+
+              {isCurrent ? (
+                <div className="mt-6 text-emerald-400 font-semibold text-center">
+                  Current Plan
+                </div>
+              ) : (
+                <button
+                  onClick={() => handleUpgrade(plan.name)}
+                  disabled={upgrading}
+                  className="mt-6 bg-indigo-600 hover:bg-indigo-500 p-3 rounded-lg font-semibold transition disabled:opacity-50"
+                >
+                  {upgrading ? "Processing..." : "Upgrade"}
+                </button>
+              )}
             </div>
-
-            {user?.plan !== plan.name.toLowerCase() && (
-              <button
-                onClick={() => handleUpgrade(plan.name)}
-                disabled={upgrading}
-                className="mt-6 bg-indigo-600 hover:bg-indigo-500 p-3 rounded-lg font-semibold transition disabled:opacity-50"
-              >
-                Upgrade
-              </button>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Payment History */}

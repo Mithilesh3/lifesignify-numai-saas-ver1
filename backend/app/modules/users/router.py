@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from app.db.dependencies import get_db
-from app.db.models import User, Organization
+from app.db.models import User, Organization, Subscription
 
 from app.modules.users.schemas import (
     UserCreate,
@@ -15,7 +15,7 @@ from app.modules.users.schemas import (
 from app.modules.users.service import (
     create_user,
     login_user,
-    update_organization_plan,   # ✅ Service layer update
+    update_organization_plan,
 )
 
 from app.core.security import decode_access_token
@@ -65,7 +65,7 @@ def login(
 
 
 # =====================================================
-# AUTH DEPENDENCY (Tenant + Soft Delete Safe)
+# AUTH DEPENDENCY
 # =====================================================
 def get_current_user(
     token: str = Depends(oauth2_scheme),
@@ -86,20 +86,19 @@ def get_current_user(
         db.query(User)
         .filter(
             User.id == int(user_id),
-            User.tenant_id == int(tenant_id),
-            User.is_deleted == False
+            User.tenant_id == int(tenant_id)
         )
         .first()
     )
 
     if not user:
-        raise HTTPException(status_code=401, detail="User not found or deleted")
+        raise HTTPException(status_code=401, detail="User not found")
 
     return user
 
 
 # =====================================================
-# ROLE GUARD
+# ADMIN GUARD  ✅ ADDED BACK
 # =====================================================
 def admin_required(current_user: User = Depends(get_current_user)):
     if current_user.role != "admin":
@@ -108,7 +107,7 @@ def admin_required(current_user: User = Depends(get_current_user)):
 
 
 # =====================================================
-# PLAN GUARD (Soft Delete Safe)
+# PRO PLAN GUARD  ✅ SAFE VERSION
 # =====================================================
 def pro_plan_required(
     current_user: User = Depends(get_current_user),
@@ -136,35 +135,43 @@ def pro_plan_required(
 
 
 # =====================================================
-# PROTECTED ROUTE
+# CURRENT USER DETAILS
 # =====================================================
-@router.get("/me", response_model=UserResponse)
-def read_me(current_user: User = Depends(get_current_user)):
+@router.get("/me")
+def read_me(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
 
-    return UserResponse(
-        id=current_user.id,
-        email=current_user.email,
-        tenant_id=current_user.tenant_id,
-        role=current_user.role,
-        plan=current_user.organization.plan
+    subscription = (
+        db.query(Subscription)
+        .filter(
+            Subscription.tenant_id == current_user.tenant_id,
+            Subscription.is_active == True
+        )
+        .first()
     )
 
-
-# =====================================================
-# ADMIN ONLY ROUTE
-# =====================================================
-@router.get("/admin-test")
-def admin_test(current_user: User = Depends(admin_required)):
     return {
-        "message": "You are an admin",
+        "id": current_user.id,
         "email": current_user.email,
-        "tenant_id": current_user.tenant_id,
-        "role": current_user.role
+        "role": current_user.role,
+        "organization": {
+            "id": current_user.organization.id,
+            "name": current_user.organization.name,
+            "plan": current_user.organization.plan,
+        },
+        "subscription": {
+            "plan_name": subscription.plan_name if subscription else "basic",
+            "is_active": subscription.is_active if subscription else False,
+            "end_date": subscription.end_date if subscription else None,
+            "reports_used": subscription.reports_used if subscription else 0,
+        }
     }
 
 
 # =====================================================
-# ADMIN UPDATE PLAN ROUTE (SERVICE LAYER SAFE)
+# ADMIN UPDATE PLAN
 # =====================================================
 @router.put("/update-plan")
 def update_plan(
@@ -185,11 +192,11 @@ def update_plan(
 
 
 # =====================================================
-# PRO PLAN ONLY ROUTE
+# ADMIN TEST
 # =====================================================
-@router.get("/pro-feature")
-def pro_feature(current_user: User = Depends(pro_plan_required)):
+@router.get("/admin-test")
+def admin_test(current_user: User = Depends(admin_required)):
     return {
-        "message": "You are using a Pro feature 🚀",
-        "tenant_id": current_user.tenant_id
+        "message": "You are an admin",
+        "email": current_user.email
     }

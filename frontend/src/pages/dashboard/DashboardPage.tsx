@@ -13,20 +13,50 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+/* ============================
+   UPDATED INTERFACES
+============================ */
+
+interface RiskAnalysis {
+  burnout_risk?: number;
+  overall_risk_level?: string;
+  karma_pressure_level?: string;
+  financial_stress_probability?: number;
+}
+
 interface Report {
   id: number;
   created_at: string;
-  executive_dashboard?: {
-    life_stability_index?: number;
+  content: {
+    executive_dashboard?: {
+      life_stability_index?: number;
+    };
+    risk_analysis?: RiskAnalysis;
   };
-  risk_analysis?: string;
 }
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth(); // ✅ added logout
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+
+  /* ============================
+     PLAN LOGIC
+  ============================ */
+
+  const currentPlan = user?.organization?.plan?.toLowerCase() || "basic";
+
+  const limit =
+    currentPlan === "pro"
+      ? 50
+      : currentPlan === "enterprise"
+      ? 999999
+      : 10;
+
+  const used = user?.subscription?.reports_used || 0;
+  const remaining = Math.max(limit - used, 0);
+  const usagePercent = Math.min((used / limit) * 100, 100);
 
   const fetchReports = async () => {
     try {
@@ -45,6 +75,11 @@ export default function DashboardPage() {
 
   const handleGenerateReport = async () => {
     if (generating) return;
+
+    if (remaining <= 0) {
+      toast.error("Report limit reached. Please upgrade your plan.");
+      return;
+    }
 
     setGenerating(true);
     const loadingToast = toast.loading("Generating AI report...");
@@ -85,21 +120,27 @@ export default function DashboardPage() {
 
   const latestReport = reports[0];
 
-  // 📊 Chart Data (Reports over time)
+  /* ============================
+     CHART DATA
+  ============================ */
+
   const chartData = useMemo(() => {
     return reports
       .slice()
       .reverse()
       .map((r, index) => ({
         name: `R${index + 1}`,
-        stability: r.executive_dashboard?.life_stability_index || 0,
+        stability:
+          r.content?.executive_dashboard?.life_stability_index || 0,
       }));
   }, [reports]);
+
+  const risk = latestReport?.content?.risk_analysis;
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8 space-y-10">
 
-      {/* 🔹 Header */}
+      {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">
@@ -110,25 +151,86 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <PlanBadge isPro={user?.plan === "pro"} />
+        {/* ✅ Plan + Logout */}
+        <div className="flex items-center gap-4">
+          <PlanBadge plan={currentPlan} />
+
+          <button
+            onClick={logout}
+            className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg text-sm font-semibold transition"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
-      {/* 🔹 KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <MetricCard label="Total Reports" value={loading ? "..." : reports.length} />
+      {/* KPI CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <MetricCard
+          label="Total Reports"
+          value={loading ? "..." : reports.length}
+        />
+
         <MetricCard
           label="Latest Stability Score"
           value={
-            latestReport?.executive_dashboard?.life_stability_index ?? "--"
+            latestReport?.content?.executive_dashboard?.life_stability_index ?? "--"
           }
         />
+
         <MetricCard
-          label="Latest Risk Level"
-          value={latestReport?.risk_analysis ?? "--"}
+          label="Overall Risk Level"
+          value={risk?.overall_risk_level ?? "--"}
+        />
+
+        <MetricCard
+          label="Burnout Risk"
+          value={
+            risk?.burnout_risk !== undefined
+              ? `${risk.burnout_risk}%`
+              : "--"
+          }
         />
       </div>
 
-      {/* 🔹 Chart Section */}
+      {/* RISK BREAKDOWN */}
+      {risk && (
+        <div className="bg-gray-900 p-6 rounded-2xl shadow-xl">
+          <h2 className="text-lg font-semibold mb-4">
+            Risk Breakdown
+          </h2>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <p className="text-gray-400">Burnout</p>
+              <p className="text-xl font-bold">{risk.burnout_risk}%</p>
+            </div>
+
+            <div>
+              <p className="text-gray-400">Karma Pressure</p>
+              <p className="text-xl font-bold">
+                {risk.karma_pressure_level}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-gray-400">Financial Stress</p>
+              <p className="text-xl font-bold">
+                {risk.financial_stress_probability}%
+              </p>
+            </div>
+
+            <div>
+              <p className="text-gray-400">Overall Risk</p>
+              <p className="text-xl font-bold">
+                {risk.overall_risk_level}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CHART */}
       {reports.length > 0 && (
         <div className="bg-gray-900 p-6 rounded-2xl shadow-xl">
           <h2 className="text-lg font-semibold mb-4">
@@ -151,16 +253,19 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 🔹 Actions */}
+      {/* ACTIONS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
         <motion.button
           whileHover={{ scale: 1.03 }}
           onClick={handleGenerateReport}
-          disabled={generating}
+          disabled={generating || remaining <= 0}
           className="bg-indigo-600 hover:bg-indigo-500 p-6 rounded-xl font-semibold transition disabled:opacity-50"
         >
-          {generating ? "Generating..." : "Generate AI Report"}
+          {remaining <= 0
+            ? "Limit Reached"
+            : generating
+            ? "Generating..."
+            : "Generate AI Report"}
         </motion.button>
 
         <Link
@@ -170,7 +275,7 @@ export default function DashboardPage() {
           View All Reports
         </Link>
 
-        {user?.plan !== "pro" && (
+        {currentPlan !== "pro" && (
           <Link
             to="/upgrade"
             className="bg-emerald-600 hover:bg-emerald-500 p-6 rounded-xl font-semibold text-center"
@@ -179,35 +284,13 @@ export default function DashboardPage() {
           </Link>
         )}
       </div>
-
-      {/* 🔹 Recent Reports */}
-      <div className="bg-gray-900 p-6 rounded-2xl shadow-xl">
-        <h2 className="text-lg font-semibold mb-4">
-          Recent Reports
-        </h2>
-
-        {reports.length === 0 ? (
-          <p className="text-gray-400">No reports generated yet.</p>
-        ) : (
-          <ul className="space-y-3">
-            {reports.slice(0, 5).map((r) => (
-              <li
-                key={r.id}
-                className="flex justify-between border-b border-gray-800 pb-2"
-              >
-                <span>Report #{r.id}</span>
-                <span className="text-gray-400 text-sm">
-                  {new Date(r.created_at).toLocaleDateString()}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
     </div>
   );
 }
+
+/* ============================
+   COMPONENTS
+============================ */
 
 function MetricCard({ label, value }: { label: string; value: any }) {
   return (
@@ -221,14 +304,18 @@ function MetricCard({ label, value }: { label: string; value: any }) {
   );
 }
 
-function PlanBadge({ isPro }: { isPro?: boolean }) {
+function PlanBadge({ plan }: { plan: string }) {
   return (
     <div
       className={`px-4 py-2 rounded-full text-sm font-semibold ${
-        isPro ? "bg-emerald-600" : "bg-gray-700"
+        plan === "pro"
+          ? "bg-emerald-600"
+          : plan === "enterprise"
+          ? "bg-purple-600"
+          : "bg-gray-700"
       }`}
     >
-      {isPro ? "PRO PLAN" : "FREE PLAN"}
+      {plan.toUpperCase()} PLAN
     </div>
   );
 }

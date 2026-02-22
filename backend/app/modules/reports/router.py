@@ -46,7 +46,7 @@ def create_new_report(
 
 
 # =====================================================
-# 🔥 GENERATE AI REPORT (PRO USERS ONLY)
+# 🔥 GENERATE AI REPORT (PRO USERS ONLY - ORG LEVEL)
 # =====================================================
 @router.post("/generate-ai-report", response_model=ReportResponse)
 def generate_ai_report(
@@ -54,17 +54,25 @@ def generate_ai_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # 🔐 Check Subscription
+    """
+    Validates subscription at ORGANIZATION (tenant) level.
+    Subscription is not user-based in this SaaS architecture.
+    """
+
+    # 🔐 Check active subscription at ORG level
     subscription = (
         db.query(Subscription)
-        .filter(Subscription.user_id == current_user.id)
+        .filter(
+            Subscription.tenant_id == current_user.tenant_id,
+            Subscription.is_active == True
+        )
         .first()
     )
 
-    if not subscription or not subscription.is_active:
+    if not subscription:
         raise HTTPException(
             status_code=403,
-            detail="Upgrade to Pro to generate AI reports."
+            detail="Upgrade your organization plan to generate AI reports."
         )
 
     return create_ai_report(
@@ -188,7 +196,7 @@ def permanently_delete_report(
 
 
 # =====================================================
-# EXPORT PDF (PRO ONLY OPTIONAL)
+# EXPORT PDF (OPTIONAL PRO FEATURE)
 # =====================================================
 @router.get("/{report_id}/export-pdf")
 def export_pdf(

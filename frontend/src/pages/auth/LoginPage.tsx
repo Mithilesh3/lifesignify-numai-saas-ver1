@@ -1,16 +1,21 @@
-import { useState } from "react"
-import { useAuth } from "../../context/AuthContext"
+import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 const LoginPage = () => {
-  const { login } = useAuth()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = async (e: any) => {
-    e.preventDefault()
-    await login(email, password)
-    window.location.href = "/"
-  }
+    e.preventDefault();
+
+    try {
+      await login(email, password);
+      window.location.href = "/dashboard";
+    } catch (error) {
+      alert("Invalid credentials");
+    }
+  };
 
   return (
     <div className="h-screen flex items-center justify-center bg-black text-white">
@@ -44,7 +49,7 @@ const LoginPage = () => {
         </button>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export default LoginPage
+export default LoginPage;
