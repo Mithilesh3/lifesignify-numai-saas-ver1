@@ -1,24 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel
+import secrets
 
 from app.db.dependencies import get_db
 from app.db.models import User, Organization, Subscription
-
 from app.modules.users.schemas import (
     UserCreate,
     UserResponse,
     TokenResponse,
     PlanUpdate,
 )
-
 from app.modules.users.service import (
     create_user,
     login_user,
     update_organization_plan,
 )
-
-from app.core.security import decode_access_token
+from app.core.security import decode_access_token, hash_password
 
 
 router = APIRouter(tags=["Users"])
@@ -144,7 +143,7 @@ def read_me(
 
 
 # =====================================================
-# ORG USER MANAGEMENT
+# LIST ORG USERS
 # =====================================================
 @router.get("/org-users")
 def list_org_users(
@@ -171,6 +170,9 @@ def list_org_users(
     ]
 
 
+# =====================================================
+# DELETE USER (SAFE)
+# =====================================================
 @router.delete("/delete-user/{user_id}")
 def delete_user(
     user_id: int,
@@ -199,6 +201,9 @@ def delete_user(
     return {"message": "User deleted successfully"}
 
 
+# =====================================================
+# UPDATE ROLE
+# =====================================================
 @router.put("/update-user-role/{user_id}")
 def update_user_role(
     user_id: int,
@@ -228,3 +233,40 @@ def update_user_role(
     db.commit()
 
     return {"message": "Role updated successfully"}
+
+
+# =====================================================
+# INVITE USER
+# =====================================================
+class InviteUserRequest(BaseModel):
+    email: str
+    role: str = "user"
+
+
+@router.post("/invite")
+def invite_user(
+    payload: InviteUserRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(admin_required)
+):
+    existing = db.query(User).filter(User.email == payload.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="User already exists")
+
+    temp_password = secrets.token_hex(4)
+
+    new_user = User(
+        email=payload.email,
+        password=hash_password(temp_password),
+        tenant_id=current_user.tenant_id,
+        role=payload.role,
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {
+        "message": "User invited successfully",
+        "temporary_password": temp_password
+    }

@@ -1,21 +1,10 @@
 import { useEffect, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import API from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
+import { useUsage } from "../../context/UsageContext";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-
-/* ============================
-   UPDATED INTERFACES
-============================ */
 
 interface RiskAnalysis {
   burnout_risk?: number;
@@ -36,27 +25,24 @@ interface Report {
 }
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth(); // ✅ added logout
+  const { user, logout } = useAuth();
+  const { usage } = useUsage();
+  const navigate = useNavigate();
+
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
 
-  /* ============================
-     PLAN LOGIC
-  ============================ */
+  const currentPlan =
+    user?.subscription?.plan_name?.toLowerCase() || "none";
 
-  const currentPlan = user?.organization?.plan?.toLowerCase() || "basic";
+  const isActive = user?.subscription?.is_active ?? false;
 
-  const limit =
-    currentPlan === "pro"
-      ? 50
-      : currentPlan === "enterprise"
-      ? 999999
-      : 10;
-
-  const used = user?.subscription?.reports_used || 0;
+  const used = usage?.reports_used || 0;
+  const limit = usage?.reports_limit || 0;
   const remaining = Math.max(limit - used, 0);
-  const usagePercent = Math.min((used / limit) * 100, 100);
+
+  const usagePercent =
+    limit > 0 ? Math.min((used / limit) * 100, 100) : 0;
 
   const fetchReports = async () => {
     try {
@@ -73,68 +59,7 @@ export default function DashboardPage() {
     fetchReports();
   }, []);
 
-  const handleGenerateReport = async () => {
-    if (generating) return;
-
-    if (remaining <= 0) {
-      toast.error("Report limit reached. Please upgrade your plan.");
-      return;
-    }
-
-    setGenerating(true);
-    const loadingToast = toast.loading("Generating AI report...");
-
-    try {
-      await API.post("/reports/generate-ai-report", {
-        identity: {
-          full_name: user?.email || "Test User",
-          date_of_birth: "01/01/1990",
-          gender: "male",
-          country_of_residence: "India",
-        },
-        birth_details: {
-          date_of_birth: "01/01/1990",
-          time_of_birth: "10:30 AM",
-          birthplace_city: "Mumbai",
-          birthplace_country: "India",
-        },
-        focus: {
-          life_focus: "general_alignment",
-        },
-      });
-
-      toast.success("Report generated successfully 🚀", {
-        id: loadingToast,
-      });
-
-      await fetchReports();
-    } catch (error: any) {
-      toast.error(
-        error?.response?.data?.detail || "Report generation failed",
-        { id: loadingToast }
-      );
-    } finally {
-      setGenerating(false);
-    }
-  };
-
   const latestReport = reports[0];
-
-  /* ============================
-     CHART DATA
-  ============================ */
-
-  const chartData = useMemo(() => {
-    return reports
-      .slice()
-      .reverse()
-      .map((r, index) => ({
-        name: `R${index + 1}`,
-        stability:
-          r.content?.executive_dashboard?.life_stability_index || 0,
-      }));
-  }, [reports]);
-
   const risk = latestReport?.content?.risk_analysis;
 
   return (
@@ -151,16 +76,37 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* ✅ Plan + Logout */}
         <div className="flex items-center gap-4">
           <PlanBadge plan={currentPlan} />
-
           <button
             onClick={logout}
             className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg text-sm font-semibold transition"
           >
             Logout
           </button>
+        </div>
+      </div>
+
+      {/* USAGE BAR */}
+      <div className="bg-gray-900 p-6 rounded-2xl shadow-lg">
+        <div className="flex justify-between text-sm mb-2">
+          <span>
+            Reports Used: {used} / {limit}
+          </span>
+          <span>{remaining} remaining</span>
+        </div>
+
+        <div className="w-full bg-gray-800 rounded-full h-3">
+          <div
+            className={`h-3 rounded-full transition-all ${
+              usagePercent > 80
+                ? "bg-red-500"
+                : usagePercent > 50
+                ? "bg-yellow-500"
+                : "bg-emerald-500"
+            }`}
+            style={{ width: `${usagePercent}%` }}
+          />
         </div>
       </div>
 
@@ -174,7 +120,8 @@ export default function DashboardPage() {
         <MetricCard
           label="Latest Stability Score"
           value={
-            latestReport?.content?.executive_dashboard?.life_stability_index ?? "--"
+            latestReport?.content?.executive_dashboard
+              ?.life_stability_index ?? "--"
           }
         />
 
@@ -193,78 +140,20 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* RISK BREAKDOWN */}
-      {risk && (
-        <div className="bg-gray-900 p-6 rounded-2xl shadow-xl">
-          <h2 className="text-lg font-semibold mb-4">
-            Risk Breakdown
-          </h2>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <p className="text-gray-400">Burnout</p>
-              <p className="text-xl font-bold">{risk.burnout_risk}%</p>
-            </div>
-
-            <div>
-              <p className="text-gray-400">Karma Pressure</p>
-              <p className="text-xl font-bold">
-                {risk.karma_pressure_level}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-gray-400">Financial Stress</p>
-              <p className="text-xl font-bold">
-                {risk.financial_stress_probability}%
-              </p>
-            </div>
-
-            <div>
-              <p className="text-gray-400">Overall Risk</p>
-              <p className="text-xl font-bold">
-                {risk.overall_risk_level}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* CHART */}
-      {reports.length > 0 && (
-        <div className="bg-gray-900 p-6 rounded-2xl shadow-xl">
-          <h2 className="text-lg font-semibold mb-4">
-            Stability Trend Analysis
-          </h2>
-
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
-              <XAxis dataKey="name" stroke="#9ca3af" />
-              <YAxis stroke="#9ca3af" />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="stability"
-                stroke="#6366f1"
-                strokeWidth={3}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
       {/* ACTIONS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        {/* 🔥 Now only navigation — NOT API call */}
         <motion.button
           whileHover={{ scale: 1.03 }}
-          onClick={handleGenerateReport}
-          disabled={generating || remaining <= 0}
+          onClick={() => navigate("/generate-report")}
+          disabled={!isActive || limit <= 0 || used >= limit}
           className="bg-indigo-600 hover:bg-indigo-500 p-6 rounded-xl font-semibold transition disabled:opacity-50"
         >
-          {remaining <= 0
+          {!isActive || limit <= 0
+            ? "No Active Plan"
+            : used >= limit
             ? "Limit Reached"
-            : generating
-            ? "Generating..."
             : "Generate AI Report"}
         </motion.button>
 
@@ -275,22 +164,18 @@ export default function DashboardPage() {
           View All Reports
         </Link>
 
-        {currentPlan !== "pro" && (
+        {(!isActive || used >= limit) && (
           <Link
-            to="/upgrade"
+            to="/billing"
             className="bg-emerald-600 hover:bg-emerald-500 p-6 rounded-xl font-semibold text-center"
           >
-            Upgrade to Pro
+            Upgrade Plan
           </Link>
         )}
       </div>
     </div>
   );
 }
-
-/* ============================
-   COMPONENTS
-============================ */
 
 function MetricCard({ label, value }: { label: string; value: any }) {
   return (
@@ -308,10 +193,10 @@ function PlanBadge({ plan }: { plan: string }) {
   return (
     <div
       className={`px-4 py-2 rounded-full text-sm font-semibold ${
-        plan === "pro"
-          ? "bg-emerald-600"
-          : plan === "enterprise"
+        plan === "premium"
           ? "bg-purple-600"
+          : plan === "pro"
+          ? "bg-emerald-600"
           : "bg-gray-700"
       }`}
     >

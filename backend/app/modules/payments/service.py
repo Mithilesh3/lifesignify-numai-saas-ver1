@@ -7,10 +7,13 @@ import hmac
 import hashlib
 
 
+# =====================================================
+# UPDATED PLAN PRICING (IN PAISE)
+# =====================================================
 PLAN_PRICING = {
-    "basic": 49900,
-    "pro": 99900,
-    "enterprise": 199900
+    "basic": 251,      # ₹251
+    "pro": 1100,       # ₹1100
+    "premium": 210000   # ₹21000
 }
 
 
@@ -91,7 +94,9 @@ def verify_payment_signature(
     payment.razorpay_payment_id = razorpay_payment_id
     payment.razorpay_signature = razorpay_signature
 
-    # 🔥 Activate org subscription
+    # =====================================================
+    # ACTIVATE / UPDATE SUBSCRIPTION
+    # =====================================================
     subscription = (
         db.query(Subscription)
         .filter(Subscription.tenant_id == current_user.tenant_id)
@@ -108,6 +113,8 @@ def verify_payment_signature(
     subscription.is_active = True
     subscription.start_date = datetime.utcnow()
     subscription.end_date = datetime.utcnow() + timedelta(days=30)
+
+    # 🔥 Reset usage on new subscription
     subscription.reports_used = 0
 
     organization = (

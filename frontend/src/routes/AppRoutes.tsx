@@ -6,6 +6,8 @@ import AppLayout from "../components/layout/AppLayout";
 import DashboardPage from "../pages/dashboard/DashboardPage";
 import ReportsListPage from "../pages/reports/ReportsListPage";
 import ReportDetailPage from "../pages/reports/ReportDetailPage";
+import GenerateReportPage from "../pages/reports/GenerateReportPage"; // ✅ NEW
+
 import UpgradePage from "../pages/upgrade/UpgradePage";
 import BillingPage from "../pages/billing/BillingPage";
 import SettingsPage from "../pages/settings/SettingsPage";
@@ -26,7 +28,6 @@ import PlanRoute from "./PlanRoute";
 export default function AppRoutes() {
   const { user, loading } = useAuth();
 
-  // ✅ Prevent flash during auth loading
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
@@ -37,20 +38,15 @@ export default function AppRoutes() {
 
   return (
     <Routes>
-
       {/* PUBLIC ROUTES */}
       <Route
         path="/login"
-        element={
-          user ? <Navigate to="/dashboard" replace /> : <LoginPage />
-        }
+        element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
       />
 
       <Route
         path="/register"
-        element={
-          user ? <Navigate to="/dashboard" replace /> : <RegisterPage />
-        }
+        element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
       />
 
       {/* PROTECTED ROUTES WITH LAYOUT */}
@@ -65,10 +61,14 @@ export default function AppRoutes() {
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="reports" element={<ReportsListPage />} />
         <Route path="reports/:id" element={<ReportDetailPage />} />
+        
+        {/* ✅ NEW ROUTE ADDED HERE */}
+        <Route path="generate-report" element={<GenerateReportPage />} />
+
         <Route path="settings" element={<SettingsPage />} />
         <Route path="upgrade" element={<UpgradePage />} />
 
-        {/* PRO PLAN */}
+        {/* BILLING (Plan Protected) */}
         <Route
           path="billing"
           element={
@@ -78,7 +78,7 @@ export default function AppRoutes() {
           }
         />
 
-        {/* ADMIN */}
+        {/* ADMIN ROUTES */}
         <Route
           path="admin"
           element={
@@ -101,7 +101,6 @@ export default function AppRoutes() {
       {/* ERROR ROUTES */}
       <Route path="/forbidden" element={<ForbiddenPage />} />
       <Route path="*" element={<NotFoundPage />} />
-
     </Routes>
   );
 }

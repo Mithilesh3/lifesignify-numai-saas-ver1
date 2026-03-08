@@ -3,16 +3,11 @@ import { useAuth } from "../context/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requirePro?: boolean;
 }
 
-const ProtectedRoute = ({
-  children,
-  requirePro = false,
-}: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
 
-  // Wait for auth resolution
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -21,14 +16,8 @@ const ProtectedRoute = ({
     );
   }
 
-  // Not logged in
   if (!user) {
     return <Navigate to="/login" replace />;
-  }
-
-  // Pro feature guard
-  if (requirePro && user.plan !== "pro") {
-    return <Navigate to="/upgrade" replace />;
   }
 
   return <>{children}</>;

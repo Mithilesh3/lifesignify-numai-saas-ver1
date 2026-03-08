@@ -43,21 +43,20 @@ def get_plans():
     return [
         {
             "name": "Basic",
-            "price": 499,
-            "reports_limit": 10
+            "price": 251,
+            "reports_limit": 1
         },
         {
             "name": "Pro",
-            "price": 999,
-            "reports_limit": 50
+            "price": 1100,
+            "reports_limit": 5
         },
         {
-            "name": "Enterprise",
-            "price": 1999,
-            "reports_limit": "Unlimited"
+            "name": "Premium",
+            "price": 21000,
+            "reports_limit": 50
         }
     ]
-
 
 # =====================================================
 # GET PAYMENT HISTORY

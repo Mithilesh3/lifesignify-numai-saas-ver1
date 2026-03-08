@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 interface Plan {
   name: string;
   price: number;
-  reports_limit: number | string;
+  reports_limit: number;
 }
 
 interface PaymentHistory {
@@ -29,7 +29,8 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
 
-  const currentPlan = user?.organization?.plan?.toLowerCase() || "free";
+  const currentPlan =
+    user?.subscription?.plan_name?.toLowerCase() || "basic";
 
   useEffect(() => {
     const loadBillingData = async () => {
@@ -73,6 +74,8 @@ export default function BillingPage() {
             toast.success("Subscription upgraded successfully 🚀");
           } catch {
             toast.error("Payment verification failed");
+          } finally {
+            setUpgrading(false);
           }
         },
         modal: {
@@ -103,7 +106,6 @@ export default function BillingPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8 space-y-10">
-
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Subscription & Billing</h1>
@@ -123,7 +125,8 @@ export default function BillingPage() {
       {/* Plans */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((plan) => {
-          const isCurrent = currentPlan === plan.name.toLowerCase();
+          const isCurrent =
+            currentPlan === plan.name.toLowerCase();
 
           return (
             <div
@@ -131,20 +134,23 @@ export default function BillingPage() {
               className="bg-gray-900 p-6 rounded-xl shadow-md flex flex-col justify-between"
             >
               <div>
-                <h2 className="text-xl font-semibold">{plan.name}</h2>
+                <h2 className="text-xl font-semibold">
+                  {plan.name}
+                </h2>
+
                 <p className="text-3xl font-bold mt-2">
                   ₹{plan.price}
-                  <span className="text-sm text-gray-400"> / month</span>
+                  <span className="text-sm text-gray-400">
+                    {" "}
+                    / month
+                  </span>
                 </p>
 
                 <ul className="mt-4 space-y-2 text-gray-300 text-sm">
                   <li>
-                    • {plan.reports_limit === "Unlimited"
-                      ? "Unlimited Reports"
-                      : `${plan.reports_limit} Reports per month`}
+                    • {plan.reports_limit} AI Report
+                    {plan.reports_limit > 1 ? "s" : ""} per month
                   </li>
-                  <li>• Priority Support</li>
-                  <li>• Advanced Analytics</li>
                 </ul>
               </div>
 
@@ -185,11 +191,18 @@ export default function BillingPage() {
             </thead>
             <tbody>
               {payments.map((payment) => (
-                <tr key={payment.id} className="border-b border-gray-800">
+                <tr
+                  key={payment.id}
+                  className="border-b border-gray-800"
+                >
                   <td className="py-2">
-                    {new Date(payment.created_at).toLocaleDateString()}
+                    {new Date(
+                      payment.created_at
+                    ).toLocaleDateString()}
                   </td>
-                  <td className="py-2">₹{payment.amount}</td>
+                  <td className="py-2">
+                    ₹{payment.amount}
+                  </td>
                   <td
                     className={`py-2 ${
                       payment.status === "success"

@@ -1,20 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.db.dependencies import get_db
-from app.db.models import User, Subscription
+from app.db.models import User
 
 from app.modules.users.router import get_current_user, admin_required
 from app.modules.reports.schemas import (
     ReportCreate,
     ReportUpdate,
-    ReportResponse
+    ReportResponse,
 )
 from app.modules.reports.intake_schema import LifeSignifyRequest
 
 from app.modules.reports.service import (
     create_report,
-    create_ai_report,
+    generate_ai_report_service,
     get_reports,
     get_report,
     get_radar_data,
@@ -22,7 +22,7 @@ from app.modules.reports.service import (
     soft_delete_report,
     restore_report,
     hard_delete_report,
-    export_report_pdf
+    export_report_pdf,
 )
 
 router = APIRouter(tags=["Reports"])
@@ -41,12 +41,12 @@ def create_new_report(
         db=db,
         current_user=current_user,
         title=report.title,
-        content=report.content
+        content=report.content,
     )
 
 
 # =====================================================
-# 🔥 GENERATE AI REPORT (PRO USERS ONLY - ORG LEVEL)
+# GENERATE AI REPORT (PLAN-AWARE)
 # =====================================================
 @router.post("/generate-ai-report", response_model=ReportResponse)
 def generate_ai_report(
@@ -54,31 +54,10 @@ def generate_ai_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Validates subscription at ORGANIZATION (tenant) level.
-    Subscription is not user-based in this SaaS architecture.
-    """
-
-    # 🔐 Check active subscription at ORG level
-    subscription = (
-        db.query(Subscription)
-        .filter(
-            Subscription.tenant_id == current_user.tenant_id,
-            Subscription.is_active == True
-        )
-        .first()
-    )
-
-    if not subscription:
-        raise HTTPException(
-            status_code=403,
-            detail="Upgrade your organization plan to generate AI reports."
-        )
-
-    return create_ai_report(
+    return generate_ai_report_service(
         db=db,
         current_user=current_user,
-        intake_data=request.model_dump()
+        intake_data=request.model_dump(),
     )
 
 
@@ -90,10 +69,7 @@ def list_reports(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return get_reports(
-        db=db,
-        current_user=current_user
-    )
+    return get_reports(db=db, current_user=current_user)
 
 
 # =====================================================
@@ -105,11 +81,7 @@ def get_single_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return get_report(
-        db=db,
-        current_user=current_user,
-        report_id=report_id
-    )
+    return get_report(db=db, current_user=current_user, report_id=report_id)
 
 
 # =====================================================
@@ -121,11 +93,7 @@ def fetch_radar_data(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return get_radar_data(
-        db=db,
-        current_user=current_user,
-        report_id=report_id
-    )
+    return get_radar_data(db=db, current_user=current_user, report_id=report_id)
 
 
 # =====================================================
@@ -143,7 +111,7 @@ def update_existing_report(
         current_user=current_user,
         report_id=report_id,
         title=report.title,
-        content=report.content
+        content=report.content,
     )
 
 
@@ -159,7 +127,7 @@ def delete_report(
     return soft_delete_report(
         db=db,
         current_user=current_user,
-        report_id=report_id
+        report_id=report_id,
     )
 
 
@@ -175,7 +143,7 @@ def restore_deleted_report(
     return restore_report(
         db=db,
         current_user=current_user,
-        report_id=report_id
+        report_id=report_id,
     )
 
 
@@ -191,12 +159,12 @@ def permanently_delete_report(
     return hard_delete_report(
         db=db,
         current_user=current_user,
-        report_id=report_id
+        report_id=report_id,
     )
 
 
 # =====================================================
-# EXPORT PDF (OPTIONAL PRO FEATURE)
+# EXPORT PDF
 # =====================================================
 @router.get("/{report_id}/export-pdf")
 def export_pdf(
@@ -207,5 +175,5 @@ def export_pdf(
     return export_report_pdf(
         db=db,
         current_user=current_user,
-        report_id=report_id
+        report_id=report_id,
     )

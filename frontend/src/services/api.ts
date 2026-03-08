@@ -1,13 +1,13 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:8000/api",
+  baseURL: import.meta.env.VITE_API_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// ✅ Attach JWT automatically
+// Attach JWT automatically
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("access_token");
 
@@ -18,14 +18,13 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-// ✅ Handle 401 globally (production safe)
+// Handle 401 globally
 API.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("access_token");
 
-      // Prevent redirect loop
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }

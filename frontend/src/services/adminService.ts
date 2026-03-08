@@ -17,6 +17,20 @@ export const fetchOrgUsers = async () => {
 };
 
 /* ==============================
+   INVITE USER
+============================== */
+export const inviteUser = async (
+  email: string,
+  role: string
+) => {
+  const res = await API.post("/users/invite", {
+    email,
+    role,
+  });
+  return res.data;
+};
+
+/* ==============================
    DELETE USER
 ============================== */
 export const deleteUser = async (userId: number) => {

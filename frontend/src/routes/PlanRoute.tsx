@@ -8,23 +8,21 @@ interface PlanRouteProps {
 export default function PlanRoute({ children }: PlanRouteProps) {
   const { user, loading } = useAuth();
 
-  // Wait until auth state resolves
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen text-white">
         Loading...
       </div>
     );
   }
 
-  // Not logged in
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Not Pro user
-  if (user.plan !== "pro") {
-    return <Navigate to="/upgrade" replace />;
+  // If subscription inactive → send to billing
+  if (!user.subscription?.is_active) {
+    return <Navigate to="/billing" replace />;
   }
 
   return <>{children}</>;

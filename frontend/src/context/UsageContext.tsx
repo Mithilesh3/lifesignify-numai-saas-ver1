@@ -7,6 +7,12 @@ interface Usage {
   reports_limit: number;
 }
 
+const PLAN_LIMITS: Record<string, number> = {
+  free: 0,
+  pro: 5,
+  premium: 25,
+};
+
 const UsageContext = createContext<{
   usage: Usage | null;
   refreshUsage: () => void;
@@ -17,20 +23,17 @@ export const UsageProvider = ({ children }: any) => {
   const [usage, setUsage] = useState<Usage | null>(null);
 
   const loadUsage = async () => {
-    if (!user) return; // 🔥 Prevent 401 when not logged in
+    if (!user) return;
 
     try {
       const data = await getUsage();
       setUsage(data);
     } catch {
-      // ✅ Fallback to subscription data if API fails
       if (user.subscription) {
         setUsage({
           reports_used: user.subscription.reports_used,
           reports_limit:
-            user.subscription.plan_name === "pro"
-              ? 999999
-              : 5,
+            PLAN_LIMITS[user.subscription.plan_name?.toLowerCase()] ?? 0,
         });
       }
     }
