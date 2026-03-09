@@ -56,7 +56,6 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={
             "success": False,
-            "error": str(exc),  # <-- important for debugging
             "message": "Internal Server Error"
         },
     )
@@ -74,8 +73,11 @@ def startup_event():
         # CREATE TABLES
         Base.metadata.create_all(bind=engine)
 
-        # VERIFY DB
-        with engine.connect() as connection:
+        # Ensure backward-compatible schema for existing deployments.
+        with engine.begin() as connection:
+            connection.execute(
+                text("ALTER TABLE reports ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ")
+            )
             connection.execute(text("SELECT 1"))
 
         logger.info("✅ Database connected.")

@@ -8,9 +8,9 @@ interface Usage {
 }
 
 const PLAN_LIMITS: Record<string, number> = {
-  free: 0,
+  basic: 1,
   pro: 5,
-  premium: 25,
+  premium: 50,
 };
 
 const UsageContext = createContext<{

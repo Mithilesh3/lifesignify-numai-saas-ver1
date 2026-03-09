@@ -269,4 +269,4 @@ def invite_user(
     return {
         "message": "User invited successfully",
         "temporary_password": temp_password
-    }
+    }   

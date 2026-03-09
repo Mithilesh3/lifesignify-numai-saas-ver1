@@ -2,11 +2,7 @@
 
 from typing import Dict
 
-
-# =====================================================
-# CHALDEAN LETTER MAP (Commercial Indian Standard)
-# =====================================================
-
+# Commercial Chaldean mapping (Indian market standard)
 CHALDEAN_MAP = {
     1: "AIJQY",
     2: "BKR",
@@ -19,10 +15,6 @@ CHALDEAN_MAP = {
 }
 
 
-# =====================================================
-# INTERNAL LETTER VALUE
-# =====================================================
-
 def _letter_value(letter: str) -> int:
     letter = letter.upper()
     for number, letters in CHALDEAN_MAP.items():
@@ -30,10 +22,6 @@ def _letter_value(letter: str) -> int:
             return number
     return 0
 
-
-# =====================================================
-# NAME NUMBER
-# =====================================================
 
 def calculate_name_number(name: str) -> int:
     if not name:
@@ -46,15 +34,7 @@ def calculate_name_number(name: str) -> int:
 
     return total
 
-
-# =====================================================
-# PUBLIC CONTRACT FUNCTION
-# =====================================================
-
 def generate_chaldean_numbers(identity: dict) -> dict:
-    """
-    Standardized output for orchestration layer.
-    """
     name = identity.get("full_name", "")
     number = calculate_name_number(name)
 

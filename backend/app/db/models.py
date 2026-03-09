@@ -61,6 +61,10 @@ class User(Base):
     organization = relationship("Organization", back_populates="users")
     reports = relationship("Report", back_populates="user")
 
+    @property
+    def is_admin(self) -> bool:
+        return self.role in ["admin", "super_admin"]
+
 
 # ==========================================
 # SUBSCRIPTION (ORG LEVEL)
@@ -104,6 +108,7 @@ class Report(Base):
     is_deleted = Column(Boolean, default=False, nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), nullable=True, onupdate=func.now())
 
     organization = relationship("Organization", back_populates="reports")
     user = relationship("User", back_populates="reports")
@@ -151,3 +156,7 @@ class AuditLog(Base):
         DateTime(timezone=True),
         server_default=func.now()
     )
+
+
+
+

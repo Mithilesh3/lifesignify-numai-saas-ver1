@@ -37,6 +37,17 @@ PLAN_NAMES = {
     "enterprise": "Enterprise Edition",
 }
 
+
+def _normalize_plan_name(plan_name: Optional[str]) -> str:
+    plan = (plan_name or "").strip().lower()
+    aliases = {
+        "professional": "pro",
+        "pro": "pro",
+        "basic": "basic",
+        "premium": "premium",
+        "enterprise": "enterprise",
+    }
+    return aliases.get(plan, "basic")
 # =====================================================
 # REPORT ENRICHMENT LAYER
 # =====================================================
@@ -47,6 +58,7 @@ def enrich_report_content(report_content: dict, plan_name: str = "basic") -> dic
     Prevents null sections in API responses and PDF generation.
     """
     report_content = report_content or {}
+    plan_name = _normalize_plan_name(plan_name)
     
     # Add metadata if missing
     if "meta" not in report_content:
@@ -94,7 +106,7 @@ def enrich_report_content(report_content: dict, plan_name: str = "basic") -> dic
     )
     
     # Business Block - For professional/enterprise plans
-    if plan_name in ["professional", "premium", "enterprise"]:
+    if plan_name in ["pro", "premium", "enterprise"]:
         report_content.setdefault(
             "business_block",
             {
@@ -311,14 +323,14 @@ def _validate_and_lock_subscription(db: Session, current_user: User) -> Subscrip
 def create_report(
     db: Session, 
     current_user: User, 
-    title: str, 
+    title: str,
     content: dict,
     plan_override: Optional[str] = None
 ) -> Report:
     """
     Create a manually crafted report
     """
-    plan = plan_override or "professional"
+    plan = _normalize_plan_name(plan_override or "pro")
     
     # Enrich content with defaults
     enriched_content = enrich_report_content(content, plan)
@@ -362,8 +374,8 @@ def update_report(
     db: Session, 
     current_user: User, 
     report_id: int, 
-    title: str, 
-    content: dict
+    title: Optional[str],
+    content: Optional[dict]
 ) -> Report:
     """
     Update an existing report
@@ -371,8 +383,11 @@ def update_report(
     report = get_report(db, current_user, report_id)
 
     try:
-        report.title = title
-        report.content = content
+        if title is not None:
+            report.title = title
+        if content is not None:
+            report.content = content
+
         report.updated_at = datetime.utcnow()
 
         db.commit()
@@ -406,7 +421,6 @@ def soft_delete_report(db: Session, current_user: User, report_id: int) -> Dict[
     report = get_report(db, current_user, report_id)
 
     report.is_deleted = True
-    report.deleted_at = datetime.utcnow()
     db.commit()
     
     logger.info(f"Report soft deleted: {report_id}")
@@ -435,7 +449,6 @@ def restore_report(db: Session, current_user: User, report_id: int) -> Dict[str,
         raise HTTPException(status_code=404, detail="Deleted report not found")
 
     report.is_deleted = False
-    report.deleted_at = None
     db.commit()
     
     logger.info(f"Report restored: {report_id}")
@@ -486,11 +499,7 @@ def generate_ai_report_service(
         subscription = _validate_and_lock_subscription(db, current_user)
 
         # Determine plan (allow override for testing)
-        plan_name = (
-            intake_data.get("plan_override", "").lower()
-            or subscription.plan_name.lower()
-            or "basic"
-        )
+        plan_name = _normalize_plan_name(intake_data.get("plan_override", "") or subscription.plan_name or "basic")
 
         if plan_name not in PLAN_LIMITS:
             logger.error(f"Invalid plan name: {plan_name}")
@@ -703,7 +712,7 @@ def export_report_pdf(
     
     try:
         # Generate PDF from content
-        pdf_buffer = generate_report_pdf(report.content)
+        pdf_buffer = generate_report_pdf(report.content, watermark=watermark)
         
         # Determine filename
         plan_tier = report.content.get("meta", {}).get("plan_tier", "standard")
@@ -752,7 +761,7 @@ def get_report_metrics(
     
     if subscription:
         used = subscription.reports_used or 0
-        limit = PLAN_LIMITS.get(subscription.plan_name.lower(), 0)
+        limit = PLAN_LIMITS.get(_normalize_plan_name(subscription.plan_name), 0)
         remaining = max(0, limit - used)
     else:
         used = 0
@@ -796,10 +805,8 @@ def bulk_delete_reports(
         action = "permanently deleted"
     else:
         # Soft delete
-        now = datetime.utcnow()
         for report in reports:
             report.is_deleted = True
-            report.deleted_at = now
         action = "moved to trash"
     
     db.commit()
@@ -811,3 +818,13 @@ def bulk_delete_reports(
         "processed_ids": found_ids,
         "not_found_ids": list(not_found)
     }
+
+
+
+
+
+
+
+
+
+

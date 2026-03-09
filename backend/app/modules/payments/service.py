@@ -13,7 +13,7 @@ import hashlib
 PLAN_PRICING = {
     "basic": 251,      # ₹251
     "pro": 1100,       # ₹1100
-    "premium": 210000   # ₹21000
+    "premium": 21000   # ₹21000
 }
 
 
