@@ -26,23 +26,23 @@ PLAN_FEATURES = {
 }
 
 FOCUS_LABELS = {
-    "finance_debt": "financial pressure and debt management",
-    "career_growth": "career growth and positioning",
-    "relationship": "relationship patterns and compatibility",
-    "health_stability": "health stability and sustainable routines",
-    "emotional_confusion": "emotional clarity and inner stability",
-    "business_decision": "business direction and strategic decisions",
+    "finance_debt": "financial pressure aur debt management",
+    "career_growth": "career growth aur positioning",
+    "relationship": "relationship patterns aur compatibility",
+    "health_stability": "health stability aur sustainable routine",
+    "emotional_confusion": "emotional clarity aur inner stability",
+    "business_decision": "business direction aur strategic decisions",
     "general_alignment": "overall life alignment",
 }
 
 FOCUS_ACTIONS = {
-    "finance_debt": "stabilize cash flow, tighten debt discipline, and build a repeatable savings habit",
-    "career_growth": "choose roles and projects that compound credibility instead of scattering energy",
-    "relationship": "bring more clarity, boundaries, and communication into close relationships",
-    "health_stability": "protect energy through sleep, routine, and lower-stress decision cycles",
-    "emotional_confusion": "reduce internal noise before making major choices and build steadier routines",
-    "business_decision": "prioritize disciplined execution over reactive expansion",
-    "general_alignment": "simplify priorities and align daily action with long-term direction",
+    "finance_debt": "cash flow ko stabilize karein, debt discipline ko strong banayein, aur repeatable savings habit create karein",
+    "career_growth": "aise roles aur projects choose karein jo credibility ko compound karein, energy ko scatter na karein",
+    "relationship": "close relationships me clarity, healthy boundaries, aur communication ko better karein",
+    "health_stability": "sleep, routine, aur lower-stress decision cycles ke through energy ko protect karein",
+    "emotional_confusion": "major choices se pehle internal noise kam karein aur steadier routines build karein",
+    "business_decision": "reactive expansion ke bajay disciplined execution ko priority dein",
+    "general_alignment": "priorities ko simplify karke daily action ko long-term direction ke saath align karein",
 }
 
 METRIC_LABELS = {
@@ -54,19 +54,19 @@ METRIC_LABELS = {
 }
 
 METRIC_STRENGTHS = {
-    "life_stability_index": "a reliable ability to create structure when priorities are clear",
-    "financial_discipline_index": "an instinct for measured decisions around money and risk",
-    "emotional_regulation_index": "the capacity to stay composed and recover after pressure",
-    "dharma_alignment_score": "strong alignment between effort, timing, and purpose",
-    "confidence_score": "enough self-awareness to make grounded decisions with momentum",
+    "life_stability_index": "जब priorities clear हों तब structure create करने की reliable capacity",
+    "financial_discipline_index": "money aur risk ke around measured decisions lene ka instinct",
+    "emotional_regulation_index": "pressure ke baad composed rehne aur recover karne ki capacity",
+    "dharma_alignment_score": "effort, timing, aur purpose ke beech strong alignment",
+    "confidence_score": "grounded decisions lene ke liye kaafi self-awareness aur momentum",
 }
 
 METRIC_RISKS = {
-    "life_stability_index": "inconsistency in routines can weaken execution at important moments",
-    "financial_discipline_index": "money decisions can drift without stronger budgeting structure",
-    "emotional_regulation_index": "stress can distort judgment if recovery habits are not protected",
-    "dharma_alignment_score": "energy may be spent on paths that do not compound into long-term progress",
-    "confidence_score": "unclear inputs are reducing precision, so major decisions need more validation",
+    "life_stability_index": "routine me inconsistency important moments par execution ko weak kar sakti hai",
+    "financial_discipline_index": "strong budgeting structure ke bina money decisions drift kar sakte hain",
+    "emotional_regulation_index": "agar recovery habits protected na hon to stress judgment ko distort kar sakta hai",
+    "dharma_alignment_score": "energy un paths par spend ho sakti hai jo long-term progress me compound nahi karte",
+    "confidence_score": "inputs unclear hone se precision kam ho rahi hai, isliye major decisions ko extra validation chahiye",
 }
 
 
@@ -76,6 +76,8 @@ METRIC_RISKS = {
 
 
 def _clean_mapping(values: Dict[str, Any]) -> Dict[str, Any]:
+    if not isinstance(values, dict):
+        return {}
     return {
         key: value
         for key, value in (values or {}).items()
@@ -170,11 +172,13 @@ def _build_personalized_fallback(
     anxiety_level = emotional.get("anxiety_level")
     decision_confusion = emotional.get("decision_confusion")
     date_of_birth = birth_details.get("date_of_birth") or identity.get("date_of_birth")
+    mobile_analysis = numerology_core.get("mobile_analysis") or {}
+    mobile_vibration = mobile_analysis.get("mobile_vibration")
 
     problem_statement = current_problem or "general direction aur long-term stability"
     role_phrase = role.replace("_", " ")
     industry_phrase = f" in {industry}" if industry else ""
-    income_phrase = f" Current monthly income around {monthly_income} indicate karti hai." if monthly_income else ""
+    income_phrase = f" Monthly income around {monthly_income} ka input available hai." if monthly_income else ""
     risk_phrase = f" Risk tolerance abhi {str(risk_tolerance).lower()} side par hai." if risk_tolerance else ""
     anxiety_phrase = f" Reported anxiety level {anxiety_level}/10 hai." if anxiety_level is not None else ""
     confusion_phrase = (
@@ -183,24 +187,30 @@ def _build_personalized_fallback(
         else ""
     )
     date_phrase = f" Date of birth input {date_of_birth} se numerology core derive hua hai." if date_of_birth else ""
+    low_data_note = (
+        " Behavioral intake limited hai, isliye kuch intelligence metrics neutral baseline par aaye hain."
+        if int(scores.get("confidence_score", 0) or 0) <= 25
+        else ""
+    )
+    mobile_phrase = f" Mobile vibration {mobile_vibration} daily communication tone ko influence kar raha hai." if mobile_vibration else ""
 
     business_signals = numerology_core.get("business_analysis") or {}
     business_strength = business_signals.get(
         "business_strength",
-        f"{first_name}'s profile supports strategic work that rewards clarity, reputation, and disciplined follow-through.",
+        f"{first_name} ka profile aise strategic work ko support karta hai jahan clarity, reputation, aur disciplined follow-through reward milta hai.",
     )
     business_risk = business_signals.get(
         "risk_factor",
-        f"The main business risk is that {weakest_label.lower()} may slow execution when pressure rises.",
+        f"Main business risk yeh hai ki pressure badhne par {weakest_label.lower()} execution ko slow kar sakta hai.",
     )
     compatible_industries = business_signals.get("compatible_industries") or []
 
     compatibility = numerology_core.get("compatibility") or {}
     compatibility_guidance = (
-        f"Current compatibility signal is {compatibility.get('compatibility_level', 'Moderate')} "
-        f"with score {compatibility.get('compatibility_score', 0)}/100."
+        f"Current compatibility signal {compatibility.get('compatibility_level', 'Moderate')} hai "
+        f"jiska score {compatibility.get('compatibility_score', 0)}/100 hai."
         if compatibility
-        else f"{first_name} benefits most from relationships that reinforce {strongest_label.lower()} and reduce pressure on {weakest_label.lower()}."
+        else f"{first_name} ko aise relationships sabse zyada support karte hain jo {strongest_label.lower()} ko reinforce karein aur {weakest_label.lower()} par pressure kam karein."
     )
 
     compatible_numbers = [number for number in [life_path, destiny_number] if isinstance(number, int)]
@@ -210,45 +220,45 @@ def _build_personalized_fallback(
         "_fallback_used": True,
         "executive_brief": {
             "summary": (
-                f"{full_name}'s report is centered on {focus_label}. "
-                f"Life Path {life_path or 'N/A'} and Destiny {destiny_number or 'N/A'} suggest a profile with "
-                f"{strongest_message}, while the current pressure point is {weakest_message}. "
-                f"The immediate concern is {problem_statement}.{date_phrase}"
+                f"{full_name} ki report ka central focus {focus_label} hai. "
+                f"Life Path {life_path or 'N/A'} aur Destiny {destiny_number or 'N/A'} yeh dikhate hain ki profile me {strongest_message} present hai, "
+                f"jabki current pressure point {weakest_message} hai. "
+                f"Immediate concern {problem_statement} se juda hua hai.{date_phrase}{mobile_phrase}{low_data_note}"
             ),
-            "key_strength": f"Aapka strongest signal {strongest_label} hai. Iska matlab hai {strongest_message}.",
-            "key_risk": f"Lowest signal {weakest_label} hai, jo yeh batata hai ki {weakest_message}.",
+            "key_strength": f"Aapka strongest signal {strongest_label} hai. Iska seedha matlab hai {strongest_message}.",
+            "key_risk": f"Sabse sensitive area {weakest_label} hai, jo yeh batata hai ki {weakest_message}.",
             "strategic_focus": (
-                f"Priority now is to {focus_action}. Decisions should be filtered through stronger {weakest_label.lower()} routines."
+                f"Abhi sabse pehli priority yeh honi chahiye ki aap {focus_action}. Har major decision ko stronger {weakest_label.lower()} routine ke through filter karein."
             ),
         },
         "analysis_sections": {
             "career_analysis": (
-                f"As a {role_phrase}{industry_phrase}, {first_name} is more likely to progress through roles that reward "
-                f"{strongest_label.lower()} instead of constant reactive change. Dharma alignment is {scores.get('dharma_alignment_score', 50)}/100, "
-                f"so work choices should stay close to the stated goal of {focus_label}."
+                f"As a {role_phrase}{industry_phrase}, {first_name} un roles me better progress kar sakte hain jo "
+                f"{strongest_label.lower()} ko reward karte hain, na ki constant reactive change ko. Dharma alignment {scores.get('dharma_alignment_score', 50)}/100 hai, "
+                f"isliye work choices ko {focus_label} ke stated goal ke close rakhna better rahega."
             ),
             "decision_profile": (
-                f"Current decision confidence is {confidence}/100 and the overall risk band is {risk_band}. "
-                f"{confusion_phrase if confusion_phrase else 'Major choices will improve when decisions are slowed down enough to validate assumptions.'}"
+                f"Current decision confidence {confidence}/100 hai aur overall risk band {risk_band} hai. "
+                f"{confusion_phrase if confusion_phrase else 'Major choices tab better honge jab aap decision speed ko thoda slow karke assumptions validate karenge.'}"
             ),
             "emotional_analysis": (
-                f"Emotional regulation is {scores.get('emotional_regulation_index', 50)}/100. {anxiety_phrase}"
-                f"This suggests that recovery routines and lower-noise environments will directly improve judgment quality."
+                f"Emotional regulation {scores.get('emotional_regulation_index', 50)}/100 hai.{anxiety_phrase}"
+                f" Yeh signal karta hai ki recovery routine aur lower-noise environment judgment quality ko directly improve karenge."
             ),
             "financial_analysis": (
-                f"Financial discipline is {scores.get('financial_discipline_index', 50)}/100{income_phrase}."
-                f"{risk_phrase} The most useful shift now is to make money decisions more structured and less reactive."
+                f"Financial discipline {scores.get('financial_discipline_index', 50)}/100 hai.{income_phrase}"
+                f"{risk_phrase} Abhi sabse useful shift yeh hoga ki money decisions ko zyada structured aur kam reactive banaya jaye."
             ),
         },
         "strategic_guidance": {
             "short_term": f"Short term me pehle {weakest_label.lower()} ko stabilize karein aur focus ko {focus_label} par centered rakhein.",
             "mid_term": f"Mid term me {strongest_label.lower()} ko repeatable weekly system me convert karein, especially work aur finance decisions me.",
-            "long_term": f"Use Life Path {life_path or 'N/A'} as a guide for bigger moves and only scale once {weakest_label.lower()} is no longer a recurring bottleneck.",
+            "long_term": f"Life Path {life_path or 'N/A'} ko bigger moves ke guide ke roop me use karein aur scale tabhi karein jab {weakest_label.lower()} recurring bottleneck na rahe.",
         },
         "growth_blueprint": {
             "phase_1": f"Noise kam karke {problem_statement} ke around stable base create karein.",
-            "phase_2": f"{strongest_label.lower()} ko visible advantage banayein through consistency, better filters, aur cleaner routines.",
-            "phase_3": f"Expand into bigger opportunities once {focus_label} is supported by stronger execution discipline.",
+            "phase_2": f"{strongest_label.lower()} ko consistency, better filters, aur cleaner routines ke through visible advantage banayein.",
+            "phase_3": f"Bigger opportunities me tab expand karein jab {focus_label} stronger execution discipline se support ho.",
         },
         "business_block": {
             "business_strength": business_strength,
@@ -346,7 +356,7 @@ def safe_generate_ai_narrative(
             intake_context=intake_context,
         )
 
-        if isinstance(ai_sections, dict) and ai_sections.get("executive_brief"):
+        if isinstance(ai_sections, dict) and str(ai_sections.get("executive_brief", {}).get("summary", "")).strip():
             ai_sections["_fallback_used"] = False
             return ai_sections
 

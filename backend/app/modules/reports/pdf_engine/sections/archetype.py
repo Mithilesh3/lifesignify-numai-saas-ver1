@@ -14,21 +14,21 @@ def _shadow_traits(arch, metrics):
 
     pressure_note = ""
     if emotional < 55:
-        pressure_note += " Under stress, emotional reactivity can compress decision quality."
+        pressure_note += " Pressure में emotional reactivity decision quality को compress कर सकती है।"
     if finance < 55:
-        pressure_note += " Financial execution can drift without an explicit control rhythm."
+        pressure_note += " Explicit control rhythm के बिना financial execution drift कर सकता है।"
 
     return (
-        f"The {behavior.lower()} pattern can over-index on possibility and under-index on operating discipline."
+        f"{behavior.lower()} pattern possibility पर ज़्यादा और operating discipline पर कम ध्यान दे सकता है।"
         f"{pressure_note}"
     )
 
 
 def _growth_path(arch, strategy):
     anchor = arch.get("core_archetype", "Adaptive Explorer")
-    mid_term = strategy.get("mid_term", "Install structure before expansion.")
+    mid_term = strategy.get("mid_term", "Expansion से पहले structure install करें।")
     return (
-        f"Growth path for {anchor}: codify repeatable systems, then scale creative bets in phases. "
+        f"{anchor} के लिए growth path यह है कि पहले repeatable systems codify करें, फिर creative bets को phases में scale करें। "
         f"Execution focus: {mid_term}"
     )
 
@@ -39,14 +39,14 @@ def build_archetype(elements, renderer, styles, data):
     if not arch:
         return
 
-    elements.append(renderer.section_banner("Archetype Intelligence"))
+    elements.append(renderer.section_banner("मूल व्यक्तित्व प्रतिरूप | Archetype Intelligence"))
 
     title = arch.get("archetype_name", "Strategic Archetype")
     description = arch.get("description", "")
     elements.append(
         renderer.icon_block(
             CHAKRA_ICON,
-            "Archetype Signature",
+            "मूल प्रतिरूप | Archetype Signature",
             f"<b>{title}</b><br/>{description}",
         )
     )
@@ -56,7 +56,7 @@ def build_archetype(elements, renderer, styles, data):
         [
             f"- Core Archetype: {arch.get('core_archetype', 'Adaptive')}",
             f"- Leadership Traits: {arch.get('behavior_style', 'Strategic and adaptive')}",
-            "- Strength Pattern: Strategic direction under uncertainty",
+            "- Strength Pattern: uncertainty के बीच strategic direction",
         ]
     )
 
@@ -65,9 +65,9 @@ def build_archetype(elements, renderer, styles, data):
 
     cards = Table(
         [
-            [renderer.insight_box("Leadership Traits", leadership_traits, tone="success")],
-            [renderer.insight_box("Shadow Traits", shadow_traits, tone="risk")],
-            [renderer.insight_box("Archetype Growth Path", growth_path, tone="neutral")],
+            [renderer.insight_box("नेतृत्व संकेत | Leadership Traits", leadership_traits, tone="success")],
+            [renderer.insight_box("छाया पक्ष | Shadow Traits", shadow_traits, tone="risk")],
+            [renderer.insight_box("विकास पथ | Archetype Growth Path", growth_path, tone="neutral")],
         ],
         colWidths=[renderer.full_width],
     )

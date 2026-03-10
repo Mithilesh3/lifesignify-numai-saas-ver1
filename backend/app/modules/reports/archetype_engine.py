@@ -10,64 +10,64 @@ LIFE_PATH_ARCHETYPES = {
     1: {
         "title": "Strategic Leader",
         "description":
-            "Independent, pioneering, and naturally inclined toward leadership. "
-            "People with this energy are driven to create their own path and influence systems around them."
+            "Independent, pioneering, और leadership की तरफ naturally inclined energy। "
+            "इस archetype वाले लोग अपना रास्ता खुद बनाने और आसपास के systems पर असर डालने की strong drive रखते हैं।"
     },
 
     2: {
         "title": "Empathic Advisor",
         "description":
-            "Diplomatic, emotionally intelligent, and relationship-oriented. "
-            "This archetype thrives when helping others find balance and harmony."
+            "Diplomatic, emotionally intelligent, और relationship-oriented ऊर्जा। "
+            "यह archetype तब सबसे बेहतर करता है जब दूसरों को balance और harmony ढूंढने में मदद मिले।"
     },
 
     3: {
         "title": "Creative Communicator",
         "description":
-            "Expressive, imaginative, and charismatic. "
-            "These individuals influence the world through ideas, communication, and creativity."
+            "Expressive, imaginative, और charismatic pattern। "
+            "ऐसे लोग ideas, communication, और creativity के through दुनिया पर असर डालते हैं।"
     },
 
     4: {
         "title": "Strategic Builder",
         "description":
-            "Disciplined, practical, and system-oriented. "
-            "This archetype excels at building stable foundations and structured environments."
+            "Disciplined, practical, और system-oriented ऊर्जा। "
+            "यह archetype stable foundations और structured environments बनाने में strong रहता है।"
     },
 
     5: {
         "title": "Adaptive Explorer",
         "description":
-            "Dynamic, curious, and freedom-seeking. "
-            "These individuals evolve through new experiences and intellectual exploration."
+            "Dynamic, curious, और freedom-seeking profile। "
+            "ऐसे लोग नए experiences और intellectual exploration के through evolve करते हैं।"
     },
 
     6: {
         "title": "Responsible Guardian",
         "description":
-            "Supportive, caring, and protective. "
-            "This archetype often becomes the stabilizing force within family or community systems."
+            "Supportive, caring, और protective archetype। "
+            "यह profile family या community systems में stabilizing force बन सकता है।"
     },
 
     7: {
         "title": "Analytical Seeker",
         "description":
-            "Deep thinker, researcher, and observer of patterns. "
-            "People with this archetype often pursue knowledge, philosophy, or technical mastery."
+            "Deep thinker, researcher, और patterns को observe करने वाला archetype। "
+            "ऐसे लोग knowledge, philosophy, या technical mastery की तरफ naturally जाते हैं।"
     },
 
     8: {
         "title": "Power Architect",
         "description":
-            "Strategic, ambitious, and focused on achievement. "
-            "This archetype seeks influence, material growth, and large-scale impact."
+            "Strategic, ambitious, और achievement-focused energy। "
+            "यह archetype influence, material growth, और large-scale impact की तरफ चलता है।"
     },
 
     9: {
         "title": "Humanitarian Visionary",
         "description":
-            "Idealistic, compassionate, and globally minded. "
-            "These individuals often feel drawn to contribute to society in meaningful ways."
+            "Idealistic, compassionate, और globally minded profile। "
+            "ऐसे लोग meaningful तरीके से society में contribute करने की strong pull महसूस करते हैं।"
     }
 
 }
@@ -99,7 +99,7 @@ DESTINY_MODIFIERS = {
 def derive_behavior_modifier(scores: Dict[str, Any]) -> str:
 
     if not scores:
-        return "Balanced"
+        return "Balanced Thinker"
 
     emotional = scores.get("emotional_regulation_index", 50)
     financial = scores.get("financial_discipline_index", 50)
@@ -153,9 +153,9 @@ def generate_numerology_archetype(
         "description": base["description"],
 
         "interpretation":
-            f"This profile combines the strategic traits of a {base['title']} "
-            f"with a {destiny_modifier.lower()} expression style. "
-            f"Behavioral indicators further suggest a '{behavior_modifier}' pattern "
-            f"in decision making and life strategy."
+            f"यह profile {base['title']} की strategic traits को "
+            f"{destiny_modifier.lower()} expression style के साथ combine करता है। "
+            f"Behavioral indicators आगे यह दिखाते हैं कि decision making और life strategy में "
+            f"'{behavior_modifier}' pattern सक्रिय है।"
 
     }

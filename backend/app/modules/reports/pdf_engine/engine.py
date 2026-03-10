@@ -57,42 +57,52 @@ def _build_styles():
     gold = colors.HexColor("#c6a15b")
 
     styles["Normal"].fontName = regular_font
-    styles["Normal"].fontSize = 10
-    styles["Normal"].leading = 14
+    styles["Normal"].fontSize = 10.5
+    styles["Normal"].leading = 15
     styles["Normal"].textColor = slate
-    styles["Normal"].alignment = TA_CENTER
+    styles["Normal"].alignment = TA_LEFT
 
     styles["BodyText"].fontName = regular_font
-    styles["BodyText"].fontSize = 10
-    styles["BodyText"].leading = 14
+    styles["BodyText"].fontSize = 10.5
+    styles["BodyText"].leading = 15.5
     styles["BodyText"].textColor = slate
     styles["BodyText"].alignment = TA_JUSTIFY
     styles["BodyText"].spaceAfter = 6
 
     styles["Title"].fontName = bold_font
     styles["Title"].fontSize = 30
+    styles["Title"].leading = 34
     styles["Title"].textColor = deep_indigo
     styles["Title"].alignment = TA_CENTER
 
     styles["Heading1"].fontName = bold_font
     styles["Heading1"].fontSize = 24
+    styles["Heading1"].leading = 28
     styles["Heading1"].textColor = deep_indigo
     styles["Heading1"].alignment = TA_LEFT
 
     styles["Heading2"].fontName = bold_font
     styles["Heading2"].fontSize = 17
+    styles["Heading2"].leading = 21
     styles["Heading2"].textColor = royal_purple
     styles["Heading2"].alignment = TA_LEFT
 
     styles["Heading3"].fontName = bold_font
     styles["Heading3"].fontSize = 13
+    styles["Heading3"].leading = 17
     styles["Heading3"].textColor = deep_indigo
     styles["Heading3"].alignment = TA_LEFT
 
     styles["Heading4"].fontName = bold_font
     styles["Heading4"].fontSize = 11
+    styles["Heading4"].leading = 14
     styles["Heading4"].textColor = royal_purple
     styles["Heading4"].alignment = TA_LEFT
+
+    for style_name in ("Normal", "BodyText", "Title", "Heading1", "Heading2", "Heading3", "Heading4"):
+        styles[style_name].wordWrap = "CJK"
+        styles[style_name].encoding = "UTF-8"
+        styles[style_name].splitLongWords = 1
 
     if "SectionBanner" not in styles:
         styles.add(
@@ -101,8 +111,12 @@ def _build_styles():
                 parent=styles["Heading2"],
                 fontName=bold_font,
                 fontSize=14,
+                leading=18,
                 textColor=colors.white,
                 alignment=TA_LEFT,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
             )
         )
 
@@ -129,6 +143,9 @@ def _build_styles():
                 leading=30,
                 textColor=deep_indigo,
                 alignment=TA_CENTER,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
             )
         )
 
@@ -142,6 +159,9 @@ def _build_styles():
                 leading=27,
                 textColor=deep_indigo,
                 alignment=TA_CENTER,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
             )
         )
 
@@ -155,6 +175,9 @@ def _build_styles():
                 leading=28,
                 textColor=deep_indigo,
                 alignment=TA_CENTER,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
             )
         )
 
@@ -168,6 +191,38 @@ def _build_styles():
                 fontSize=12,
                 textColor=gold,
                 alignment=TA_CENTER,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
+            )
+        )
+
+    if "TableHeader" not in styles:
+        styles.add(
+            ParagraphStyle(
+                name="TableHeader",
+                parent=styles["BodyText"],
+                fontName=bold_font,
+                fontSize=9.5,
+                leading=12.5,
+                textColor=colors.white,
+                alignment=TA_LEFT,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
+            )
+        )
+
+    if "SmallText" not in styles:
+        styles.add(
+            ParagraphStyle(
+                name="SmallText",
+                parent=styles["BodyText"],
+                fontSize=8.5,
+                leading=11,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
             )
         )
 

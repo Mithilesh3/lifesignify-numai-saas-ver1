@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Literal
 
 from pydantic import BaseModel, Field, model_validator
@@ -39,6 +40,19 @@ def _map_career_role(career_type: Optional[str]) -> Optional[str]:
     if career == "job":
         return "employee"
     return None
+
+
+def _normalize_date(raw_date: Optional[str]) -> Optional[str]:
+    if not raw_date:
+        return raw_date
+
+    text = str(raw_date).strip()
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d", "%d.%m.%Y"):
+        try:
+            return datetime.strptime(text, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    return text
 
 
 class BasicIdentity(BaseModel):
@@ -123,7 +137,7 @@ class CalibrationAnswers(BaseModel):
 
 
 class ReportPreferences(BaseModel):
-    language_preference: SUPPORTED_LANGUAGE_PREFERENCE = "hinglish"
+    language_preference: SUPPORTED_LANGUAGE_PREFERENCE = "hindi"
     profession: Optional[str] = None
     relationship_status: Optional[str] = None
     career_type: Optional[SUPPORTED_CAREER_TYPE] = None
@@ -196,6 +210,10 @@ class LifeSignifyRequest(BaseModel):
         if flat_dob:
             identity.setdefault("date_of_birth", flat_dob)
             birth_details.setdefault("date_of_birth", flat_dob)
+        if identity.get("date_of_birth"):
+            identity["date_of_birth"] = _normalize_date(identity.get("date_of_birth"))
+        if birth_details.get("date_of_birth"):
+            birth_details["date_of_birth"] = _normalize_date(birth_details.get("date_of_birth"))
         if flat_gender and not identity.get("gender"):
             identity["gender"] = flat_gender
         if flat_country:
@@ -258,7 +276,7 @@ class LifeSignifyRequest(BaseModel):
                     "city": "Lucknow",
                     "country": "India",
                     "email": "aarav@example.com",
-                    "language_preference": "hinglish",
+                    "language_preference": "hindi",
                     "profession": "Sales",
                     "relationship_status": "married",
                     "career_type": "job",

@@ -7,15 +7,15 @@ def build_growth(elements, renderer, styles, data):
     if not growth:
         return
 
-    elements.append(renderer.section_banner("Growth Blueprint"))
+    elements.append(renderer.section_banner("विकास खाका | Growth Blueprint"))
 
     cards = [
-        renderer.insight_box("Stabilization", growth.get("phase_1", "Stabilize core systems."), tone="neutral"),
-        renderer.insight_box("Alignment", growth.get("phase_2", "Align execution to strategy."), tone="info"),
-        renderer.insight_box("Expansion", growth.get("phase_3", "Scale with governance."), tone="success"),
+        renderer.insight_box("स्थिरीकरण | Stabilization", growth.get("phase_1", "Core systems को stabilize करें।"), tone="neutral"),
+        renderer.insight_box("संतुलन | Alignment", growth.get("phase_2", "Execution को strategy के साथ align करें।"), tone="info"),
+        renderer.insight_box("विस्तार | Expansion", growth.get("phase_3", "Governance के साथ scale करें।"), tone="success"),
     ]
 
-    grid = Table([cards], colWidths=[156, 156, 156])
+    grid = Table([cards], colWidths=renderer.three_col_widths)
     grid.setStyle(
         TableStyle(
             [
@@ -31,7 +31,7 @@ def build_growth(elements, renderer, styles, data):
     elements.append(grid)
     elements.append(Spacer(1, 8))
 
-    elements.append(renderer.insight_box("Execution Note", "Move to the next phase only when current metrics stabilize.", tone="neutral"))
+    elements.append(renderer.insight_box("क्रियान्वयन नोट | Execution Note", "अगले phase में तभी जाएं जब current metrics stabilize हो जाएं।", tone="neutral"))
 
     elements.append(PageBreak())
 

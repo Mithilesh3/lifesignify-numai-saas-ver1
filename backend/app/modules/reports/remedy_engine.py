@@ -8,57 +8,57 @@ from typing import Dict, Any, Optional
 NUMBER_MANTRAS = {
     1: {
         "deity": "Surya (Sun)",
-        "mantra_sanskrit": "Om Ghrini Suryaya Namaha",
+        "mantra_sanskrit": "ॐ घृणि सूर्याय नमः",
         "mantra_english": "Om Ghrini Suryaya Namaha",
-        "donation": "Donate wheat or jaggery on Sunday",
+        "donation": "रविवार को गेहूं या गुड़ दान करें",
     },
     2: {
         "deity": "Chandra (Moon)",
-        "mantra_sanskrit": "Om Som Somaya Namaha",
+        "mantra_sanskrit": "ॐ सोम सोमाय नमः",
         "mantra_english": "Om Som Somaya Namaha",
-        "donation": "Donate rice or milk on Monday",
+        "donation": "सोमवार को चावल या दूध दान करें",
     },
     3: {
         "deity": "Guru (Jupiter)",
-        "mantra_sanskrit": "Om Brihaspataye Namaha",
+        "mantra_sanskrit": "ॐ बृहस्पतये नमः",
         "mantra_english": "Om Brihaspataye Namaha",
-        "donation": "Donate yellow sweets or turmeric",
+        "donation": "पीली मिठाई या हल्दी दान करें",
     },
     4: {
         "deity": "Rahu",
-        "mantra_sanskrit": "Om Rahave Namaha",
+        "mantra_sanskrit": "ॐ राहवे नमः",
         "mantra_english": "Om Rahave Namaha",
-        "donation": "Donate black sesame or blankets",
+        "donation": "काला तिल या कंबल दान करें",
     },
     5: {
         "deity": "Budh (Mercury)",
-        "mantra_sanskrit": "Om Bum Budhaya Namaha",
+        "mantra_sanskrit": "ॐ बुं बुधाय नमः",
         "mantra_english": "Om Bum Budhaya Namaha",
-        "donation": "Donate green vegetables",
+        "donation": "हरी सब्जियां दान करें",
     },
     6: {
         "deity": "Shukra (Venus)",
-        "mantra_sanskrit": "Om Shukraya Namaha",
+        "mantra_sanskrit": "ॐ शुक्राय नमः",
         "mantra_english": "Om Shukraya Namaha",
-        "donation": "Donate white clothes or rice",
+        "donation": "सफेद कपड़े या चावल दान करें",
     },
     7: {
         "deity": "Ketu",
-        "mantra_sanskrit": "Om Ketave Namaha",
+        "mantra_sanskrit": "ॐ केतवे नमः",
         "mantra_english": "Om Ketave Namaha",
-        "donation": "Feed stray dogs",
+        "donation": "आवारा कुत्तों को भोजन कराएं",
     },
     8: {
         "deity": "Shani",
-        "mantra_sanskrit": "Om Sham Shanicharaya Namaha",
+        "mantra_sanskrit": "ॐ शं शनैश्चराय नमः",
         "mantra_english": "Om Sham Shanicharaya Namaha",
-        "donation": "Donate black clothes or mustard oil",
+        "donation": "काले कपड़े या सरसों का तेल दान करें",
     },
     9: {
         "deity": "Mangal (Mars)",
-        "mantra_sanskrit": "Om Kraam Kreem Kraum Sah Bhaumaya Namaha",
+        "mantra_sanskrit": "ॐ क्रां क्रीं क्रौं सः भौमाय नमः",
         "mantra_english": "Om Kraam Kreem Kraum Sah Bhaumaya Namaha",
-        "donation": "Donate red lentils",
+        "donation": "लाल मसूर दान करें",
     },
 }
 
@@ -126,11 +126,11 @@ def generate_mobile_remedies(number: int, mobile_analysis: Optional[Dict[str, An
 
     return {
         "mobile_cover_color": color,
-        "mobile_wallpaper": "Use a calm geometric ya sacred-symbol wallpaper jo distraction kam kare.",
-        "charging_direction": "Phone ko East ya North facing position me charge karna zyada grounding feel kara sakta hai.",
-        "whatsapp_dp": "DP simple, clear aur confident rakhein taki digital identity clutter-free rahe.",
-        "mobile_usage_timing": "Heavy decisions raat me avoid karein; important calls aur planning ko morning ya early evening me shift karein.",
-        "number_energy_hint": f"Supportive ending energies: {supportive_text}. Real phone numbers generate nahi kiye gaye hain.",
+        "mobile_wallpaper": "ऐसा calm geometric या sacred-symbol wallpaper रखें जो distraction कम करे।",
+        "charging_direction": "फोन को East या North facing दिशा में charge करना ज्यादा grounding दे सकता है।",
+        "whatsapp_dp": "DP simple, clear और confident रखें ताकि digital identity clutter-free रहे।",
+        "mobile_usage_timing": "Heavy decisions रात में avoid करें; important calls और planning को morning या early evening में रखें।",
+        "number_energy_hint": f"Supportive ending energies: {supportive_text}. यहां real phone numbers generate नहीं किए गए हैं।",
     }
 
 
@@ -144,11 +144,11 @@ def generate_lifestyle_remedies(number: int, weakest_metric: str) -> Dict[str, A
     focus_area = _focus_message(weakest_metric)
 
     return {
-        "bracelet_suggestion": f"Color anchor ke liye number {number} aligned shades ({color}) ka subtle bracelet ya accessory use kar sakte hain.",
-        "daily_routine": f"Aapke liye sabse important habit hai {focus_area}.",
-        "meditation": "Roz 10 minute focused breathing ya mantra-based stillness practice rakhein.",
-        "color_alignment": f"Workspace aur clothing me {color} tones use karna aapki energy ko more aligned feel kara sakta hai.",
-        "habit_recommendation": f"Next 21 days ke liye ek repeatable ritual banayein jo {focus_area} par directly kaam kare.",
+        "bracelet_suggestion": f"Color anchor के लिए number {number} aligned shades ({color}) का subtle bracelet या accessory use कर सकते हैं।",
+        "daily_routine": f"आपके लिए सबसे important habit है {focus_area}।",
+        "meditation": "रोज 10 minute focused breathing या mantra-based stillness practice रखें।",
+        "color_alignment": f"Workspace और clothing में {color} tones use करना आपकी energy को more aligned महसूस करा सकता है।",
+        "habit_recommendation": f"अगले 21 दिनों के लिए ऐसा repeatable ritual बनाएं जो {focus_area} पर directly काम करे।",
     }
 
 
@@ -170,9 +170,9 @@ def generate_vedic_remedies(number: int, weakest_metric: str) -> Dict[str, Any]:
         "mantra_sanskrit": mantra_data["mantra_sanskrit"],
         "mantra_pronunciation": mantra_data["mantra_english"],
         "recommended_donation": mantra_data["donation"],
-        "practice_guideline": "108 repetitions daily for 21 days, preferably same time every morning.",
-        "purpose": f"Is remedy ka purpose hai {focus_area} aur inner alignment ko support karna.",
-        "planetary_alignment": f"Number {number} ki planetary energy ko disciplined routine ke saath harmonize karna is remedy ka main focus hai.",
+        "practice_guideline": "21 दिनों तक रोज 108 repetitions करें, बेहतर होगा कि हर सुबह same time पर करें।",
+        "purpose": f"इस remedy का purpose है {focus_area} और inner alignment को support करना।",
+        "planetary_alignment": f"Number {number} की planetary energy को disciplined routine के साथ harmonize करना इस remedy का main focus है।",
     }
 
 
@@ -185,10 +185,10 @@ def generate_daily_energy_alignment(number: int, weakest_metric: str) -> Dict[st
     focus_area = _focus_message(weakest_metric)
 
     return {
-        "morning": "Subah 10-15 minutes sunlight exposure ke saath din start karein.",
-        "breathing": "5 minutes deep nasal breathing ya box breathing se nervous system ko steady karein.",
-        "focus_routine": f"First work block se pehle ek clear intention likhein. Aaj ka main alignment focus: {focus_area}.",
-        "evening_reset": "Raat me screen slowdown aur short reflection note ke saath mental clutter release karein.",
+        "morning": "सुबह 10-15 minutes sunlight exposure के साथ दिन शुरू करें।",
+        "breathing": "5 minutes deep nasal breathing या box breathing से nervous system को steady करें।",
+        "focus_routine": f"First work block से पहले एक clear intention लिखें। आज का main alignment focus: {focus_area}।",
+        "evening_reset": "रात में screen slowdown और short reflection note के साथ mental clutter release करें।",
     }
 
 

@@ -5,6 +5,7 @@ from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
 
 from .assets import LOGO, MANDALA
+from .fonts import register_fonts
 from .layout import PAGE_HEIGHT, PAGE_WIDTH
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,7 @@ class PageDecorator:
         self.background = self._reader(MANDALA)
         self.logo = self._reader(LOGO)
         self.force_watermark = force_watermark
+        self.regular_font, self.bold_font = register_fonts()
 
         self.gold = colors.HexColor("#c6a15b")
         self.primary = colors.HexColor("#1b2f4b")
@@ -35,6 +37,7 @@ class PageDecorator:
 
     def draw_background(self, canvas, doc):
         canvas.saveState()
+        canvas.setFont(self.regular_font, 12)
 
         canvas.setFillColor(colors.white)
         canvas.rect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, fill=1, stroke=0)
@@ -72,7 +75,7 @@ class PageDecorator:
         if self.force_watermark:
             self._set_alpha(canvas, 0.12)
             canvas.setFillColor(self.primary)
-            canvas.setFont("Helvetica-Bold", 52)
+            canvas.setFont(self.bold_font, 52)
             canvas.saveState()
             canvas.translate(PAGE_WIDTH / 2, PAGE_HEIGHT / 2)
             canvas.rotate(32)
@@ -98,7 +101,7 @@ class PageDecorator:
         if self.logo is not None:
             canvas.drawImage(self.logo, 20 * mm, PAGE_HEIGHT - 25 * mm, width=100, height=25, mask="auto")
 
-        canvas.setFont("Helvetica-Bold", 10)
+        canvas.setFont(self.bold_font, 10)
         canvas.setFillColor(self.primary)
         canvas.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - 20 * mm, "Life Signify NumAI")
 
@@ -107,11 +110,11 @@ class PageDecorator:
     def draw_footer(self, canvas):
         canvas.saveState()
 
-        canvas.setFont("Helvetica", 9)
+        canvas.setFont(self.regular_font, 9)
         canvas.setFillColor(colors.grey)
         canvas.drawRightString(PAGE_WIDTH - 20 * mm, 10 * mm, f"- {canvas.getPageNumber()} -")
 
-        canvas.setFont("Helvetica", 8)
+        canvas.setFont(self.regular_font, 8)
         canvas.setFillColor(colors.lightgrey)
         canvas.drawString(20 * mm, 10 * mm, "CONFIDENTIAL - STRATEGIC INTELLIGENCE")
 

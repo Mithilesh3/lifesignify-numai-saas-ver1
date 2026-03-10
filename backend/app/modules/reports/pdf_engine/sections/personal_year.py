@@ -57,7 +57,7 @@ def build_personal_year(elements, renderer, styles, data):
     if not lucky:
         lucky = _lucky_numbers(data)
 
-    elements.append(renderer.section_banner("Personal Year Forecast"))
+    elements.append(renderer.section_banner("व्यक्तिगत वर्ष पूर्वानुमान | Personal Year Forecast"))
 
     forecast_body = (
         f"<b>Personal Year: {personal_year}</b><br/>"

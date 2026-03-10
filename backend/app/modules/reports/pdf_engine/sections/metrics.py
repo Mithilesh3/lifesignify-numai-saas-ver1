@@ -17,7 +17,7 @@ def build_metrics(elements, renderer, styles, data):
     if not metrics:
         return
 
-    elements.append(renderer.section_banner("Intelligence Metrics"))
+    elements.append(renderer.section_banner("मुख्य जीवन संकेतक | Intelligence Metrics"))
 
     confidence = _pick(metrics, "confidence_score")
     karma_pressure = _pick(metrics, "karma_pressure_index")
@@ -27,12 +27,12 @@ def build_metrics(elements, renderer, styles, data):
     financial_discipline = _pick(metrics, "financial_discipline_index")
 
     metric_pairs = [
-        ("Confidence Score", confidence),
-        ("Karma Pressure Index", karma_pressure),
-        ("Life Stability Index", life_stability),
-        ("Dharma Alignment", dharma_alignment),
-        ("Emotional Regulation", emotional_regulation),
-        ("Financial Discipline", financial_discipline),
+        ("विश्वास स्कोर | Confidence Score", confidence),
+        ("कर्म दबाव | Karma Pressure Index", karma_pressure),
+        ("जीवन स्थिरता | Life Stability", life_stability),
+        ("धर्म संतुलन | Dharma Alignment", dharma_alignment),
+        ("भावनात्मक संतुलन | Emotional Regulation", emotional_regulation),
+        ("वित्तीय अनुशासन | Financial Discipline", financial_discipline),
     ]
 
     elements.append(renderer.metric_grid(metric_pairs))
@@ -45,16 +45,22 @@ def build_metrics(elements, renderer, styles, data):
         "Emotional Regulation": emotional_regulation,
         "Financial Discipline": financial_discipline,
     }
-    elements.append(radar_chart(radar_data))
+    elements.append(radar_chart(radar_data, styles, renderer.full_width))
     elements.append(Spacer(1, 8))
 
     risk_band = metrics.get("risk_band", "Not classified")
+    low_data_note = ""
+    if confidence <= 25:
+        low_data_note = (
+            "<br/>व्यवहारिक और financial intake सीमित होने की वजह से कुछ indices neutral baseline पर हैं, "
+            "इसलिए इन scores को directional संकेत की तरह पढ़ें।"
+        )
     explanation = (
         f"Risk Band: <b>{risk_band}</b><br/>"
         f"Confidence {confidence}, Karma Pressure {karma_pressure}, Life Stability {life_stability}, "
         f"Dharma Alignment {dharma_alignment}, Emotional Regulation {emotional_regulation}, "
-        f"Financial Discipline {financial_discipline}."
+        f"Financial Discipline {financial_discipline}.{low_data_note}"
     )
-    elements.append(renderer.insight_box("Metric Interpretation", explanation, tone="neutral"))
+    elements.append(renderer.insight_box("संकेतक व्याख्या | Metric Interpretation", explanation, tone="neutral"))
 
     elements.append(PageBreak())

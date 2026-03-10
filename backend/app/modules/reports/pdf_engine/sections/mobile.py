@@ -8,30 +8,30 @@ def build_mobile(elements, renderer, styles, data):
     if not mobile_analysis and not mobile:
         return
 
-    elements.append(renderer.section_banner("Mobile Number Intelligence"))
+    elements.append(renderer.section_banner("मोबाइल नंबर ऊर्जा विश्लेषण | Mobile Number Energy Analysis"))
 
     vibration = mobile_analysis.get("mobile_vibration", "N/A")
     status = str(mobile_analysis.get("compatibility_status", "neutral")).title()
     summary = mobile_analysis.get(
         "compatibility_summary",
-        "Mobile vibration aapke day-to-day communication aur response pattern par subtle effect daalta hai.",
+        "Mobile vibration आपके day-to-day communication और response pattern पर subtle effect डालता है।",
     )
     correction = mobile_analysis.get(
         "correction_suggestion",
-        mobile.get("number_energy_hint", "Agar optimize karna ho to supportive ending energies consider ki ja sakti hain."),
+        mobile.get("number_energy_hint", "अगर optimize करना हो तो supportive ending energies consider की जा सकती हैं।"),
     )
 
-    elements.append(renderer.insight_box("Mobile Vibration", f"Vibration: {vibration} | Alignment: {status}", tone="info"))
+    elements.append(renderer.insight_box("मोबाइल कंपन | Mobile Vibration", f"Vibration: {vibration} | Alignment: {status}", tone="info"))
     elements.append(Spacer(1, 8))
-    elements.append(renderer.insight_box("Compatibility Insight", summary, tone="neutral"))
+    elements.append(renderer.insight_box("अनुकूलता संकेत | Compatibility Insight", summary, tone="neutral"))
     elements.append(Spacer(1, 8))
-    elements.append(renderer.insight_box("Correction Suggestion", correction, tone="success"))
+    elements.append(renderer.insight_box("सुधार सुझाव | Correction Suggestion", correction, tone="success"))
     elements.append(Spacer(1, 8))
 
-    usage = mobile.get("mobile_usage_timing", "Heavy decisions raat me avoid karein aur high-focus tasks morning me rakhein.")
-    focus = mobile.get("whatsapp_dp", "Digital identity ko simple aur clear rakhein.")
-    environment = mobile.get("charging_direction", "Phone charging spot ko stable aur clutter-free rakhein.")
+    usage = mobile.get("mobile_usage_timing", "Heavy decisions रात में avoid करें और high-focus tasks morning में रखें।")
+    focus = mobile.get("whatsapp_dp", "Digital identity को simple और clear रखें।")
+    environment = mobile.get("charging_direction", "Phone charging spot को stable और clutter-free रखें।")
 
-    elements.append(renderer.bullet_block("Daily Digital Alignment", [usage, focus, environment]))
+    elements.append(renderer.bullet_block("दैनिक डिजिटल संतुलन | Daily Digital Alignment", [usage, focus, environment]))
 
     elements.append(PageBreak())

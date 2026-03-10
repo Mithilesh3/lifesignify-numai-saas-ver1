@@ -8,7 +8,7 @@ def build_emotional(elements, renderer, styles, data):
     if not text or not str(text).strip():
         return
 
-    elements.append(renderer.section_banner("Emotional Intelligence"))
+    elements.append(renderer.section_banner("भावनात्मक संतुलन | Emotional Intelligence"))
 
     elements.append(renderer.insight_box("Emotional Profile", text, tone="info"))
     elements.append(Spacer(1, 8))

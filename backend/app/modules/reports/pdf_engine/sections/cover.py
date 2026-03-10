@@ -57,7 +57,7 @@ def build_cover(elements, styles, name, plan, data):
     elements.append(Paragraph("Life Signify NumAI", styles["CoverTitle"]))
 
     elements.append(Spacer(1, 6))
-    elements.append(Paragraph("Strategic Life Intelligence Report", styles["CoverSubtitle"]))
+    elements.append(Paragraph("जीवन बुद्धि रिपोर्ट | Strategic Life Intelligence Report", styles["CoverSubtitle"]))
 
     elements.append(Spacer(1, 4))
     elements.append(Paragraph(f"{plan.upper()} Intelligence Report", styles["CoverPlan"]))
@@ -75,10 +75,10 @@ def build_cover(elements, styles, name, plan, data):
 
     identity_table = Table(
         [
-            [Paragraph("<b>User Identity</b>", styles["Heading3"])],
-            [Paragraph(f"<para align='left'><b>Full Name:</b> {full_name}</para>", styles["BodyText"])],
-            [Paragraph(f"<para align='left'><b>DOB:</b> {dob}</para>", styles["BodyText"])],
-            [Paragraph(f"<para align='left'><b>Report Generated:</b> {generated_at}</para>", styles["BodyText"])],
+            [Paragraph("<b>उपयोगकर्ता विवरण | User Identity</b>", styles["Heading3"])],
+            [Paragraph(f"<para align='left'><b>पूरा नाम | Full Name:</b> {full_name}</para>", styles["BodyText"])],
+            [Paragraph(f"<para align='left'><b>जन्म तिथि | DOB:</b> {dob}</para>", styles["BodyText"])],
+            [Paragraph(f"<para align='left'><b>रिपोर्ट तिथि | Report Generated:</b> {generated_at}</para>", styles["BodyText"])],
         ],
         colWidths=[162 * mm],
     )

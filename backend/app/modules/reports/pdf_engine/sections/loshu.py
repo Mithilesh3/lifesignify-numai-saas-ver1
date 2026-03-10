@@ -11,7 +11,7 @@ def build_loshu(elements, renderer, data):
     if not grid_counts:
         return
 
-    elements.append(renderer.section_banner("Lo Shu Grid"))
+    elements.append(renderer.section_banner("लो शु ग्रिड | Lo Shu Grid"))
     elements.append(build_loshu_grid(renderer.styles, grid_counts))
     elements.append(Spacer(1, 8))
 

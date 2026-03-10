@@ -40,7 +40,7 @@ def build_vedic(elements, renderer, styles, data):
     if not remedy:
         return
 
-    elements.append(renderer.section_banner("Dynamic Vedic Remedies"))
+    elements.append(renderer.section_banner("वैदिक उपाय | Vedic Remedies"))
 
     deity_name = remedy.get("deity", "Budh (Mercury)")
     key = _deity_key(deity_name)
@@ -52,21 +52,21 @@ def build_vedic(elements, renderer, styles, data):
         elements.append(img)
         elements.append(Spacer(1, 8))
 
-    elements.append(renderer.insight_box("Planetary Alignment", remedy.get("planetary_alignment", deity_name), tone="neutral"))
+    elements.append(renderer.insight_box("ग्रह संतुलन | Planetary Alignment", remedy.get("planetary_alignment", deity_name), tone="neutral"))
     elements.append(Spacer(1, 8))
 
     mantra = remedy.get("mantra_sanskrit", "")
     pronunciation = remedy.get("mantra_pronunciation", "")
     practice = remedy.get("practice_guideline", "")
     donation = remedy.get("recommended_donation", "")
-    purpose = remedy.get("purpose", "Remedy ka purpose energy ko grounded aur disciplined direction dena hai.")
+    purpose = remedy.get("purpose", "इस remedy का purpose energy को grounded और disciplined direction देना है।")
 
-    elements.append(renderer.insight_box("Mantra", f"<b>{mantra}</b><br/>{pronunciation}", tone="info"))
+    elements.append(renderer.insight_box("मंत्र | Mantra", f"<b>{mantra}</b><br/>{pronunciation}", tone="info"))
     elements.append(Spacer(1, 8))
-    elements.append(renderer.insight_box("Practice", practice, tone="neutral"))
+    elements.append(renderer.insight_box("अनुष्ठान | Practice", practice, tone="neutral"))
     elements.append(Spacer(1, 8))
-    elements.append(renderer.insight_box("Donation", donation, tone="success"))
+    elements.append(renderer.insight_box("दान | Donation", donation, tone="success"))
     elements.append(Spacer(1, 8))
-    elements.append(renderer.insight_box("Purpose", purpose, tone="neutral"))
+    elements.append(renderer.insight_box("उद्देश्य | Purpose", purpose, tone="neutral"))
 
     elements.append(PageBreak())

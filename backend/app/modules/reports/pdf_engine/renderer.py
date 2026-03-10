@@ -6,6 +6,8 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.platypus import Image, Paragraph, Table, TableStyle
 
+from .layout import LEFT_MARGIN, PAGE_WIDTH, RIGHT_MARGIN
+
 
 class Renderer:
     def __init__(self, styles):
@@ -18,10 +20,11 @@ class Renderer:
         self.accent = HexColor("#c6a15b")
         self.neutral = HexColor("#f5f7fa")
 
-        # Matches page frame width with current margins.
-        self.full_width = 470
-        self.two_col_width = 233
-        self.two_col_inner_width = 225
+        self.full_width = PAGE_WIDTH - LEFT_MARGIN - RIGHT_MARGIN
+        self.two_col_widths = self.proportional_widths(1, 1)
+        self.three_col_widths = self.proportional_widths(1, 1, 1)
+        self.two_col_width = self.two_col_widths[0]
+        self.two_col_inner_width = self.two_col_width - 8
 
         self.metric_label_style = ParagraphStyle(
             "MetricLabel",
@@ -51,9 +54,15 @@ class Renderer:
         normalized = " ".join(str(text).split())
         return re.sub(r"([a-z])([A-Z])", r"\1 \2", normalized)
 
+    def proportional_widths(self, *weights, total=None):
+        total_width = total or self.full_width
+        resolved = list(weights) or [1]
+        total_weight = sum(resolved) or len(resolved)
+        return [total_width * (weight / total_weight) for weight in resolved]
+
     def section_banner(self, title):
         banner = Table(
-            [[Paragraph(title.upper(), self.section_style)]],
+            [[Paragraph(title, self.section_style)]],
             colWidths=[self.full_width],
         )
 
@@ -91,10 +100,10 @@ class Renderer:
 
         table = Table(
             [
-                [Paragraph(f"<b>{self.normalize_text(label).upper()}</b>", self.metric_label_style)],
+                [Paragraph(f"<b>{self.normalize_text(label)}</b>", self.metric_label_style)],
                 [Paragraph(str(value), self.metric_value_style)],
             ],
-            colWidths=[150],
+            colWidths=[self.three_col_widths[0] - 6],
         )
 
         table.setStyle(
@@ -121,7 +130,7 @@ class Renderer:
 
         rows = [cards[:3], cards[3:6]]
 
-        grid = Table(rows, colWidths=[156, 156, 156])
+        grid = Table(rows, colWidths=self.three_col_widths)
         grid.setStyle(
             TableStyle(
                 [
@@ -180,11 +189,12 @@ class Renderer:
             img.hAlign = "CENTER"
             left = img
         else:
-            left = Paragraph("", self.body_style)
+            return self.insight_box(title, text, tone="info")
 
-        right = self.insight_box(title, text, tone="info", width=self.full_width - 80)
+        icon_width = min(70, self.full_width * 0.16)
+        right = self.insight_box(title, text, tone="info", width=self.full_width - icon_width)
 
-        block = Table([[left, right]], colWidths=[70, 400])
+        block = Table([[left, right]], colWidths=[icon_width, self.full_width - icon_width])
         block.setStyle(
             TableStyle(
                 [
@@ -202,7 +212,7 @@ class Renderer:
         left = self.insight_box(left_title, left_text, tone="success", width=self.two_col_inner_width)
         right = self.insight_box(right_title, right_text, tone="risk", width=self.two_col_inner_width)
 
-        table = Table([[left, right]], colWidths=[self.two_col_width, self.two_col_width])
+        table = Table([[left, right]], colWidths=self.two_col_widths)
         table.setStyle(
             TableStyle(
                 [

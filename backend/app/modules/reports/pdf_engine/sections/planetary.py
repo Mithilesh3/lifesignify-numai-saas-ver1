@@ -47,7 +47,7 @@ def _planet_cell(renderer, key, label):
 
 
 def build_planetary(elements, renderer, styles, data):
-    elements.append(renderer.section_banner("Planetary Influence"))
+    elements.append(renderer.section_banner("ग्रह प्रभाव | Planetary Influence"))
 
     cells = [_planet_cell(renderer, key, label) for key, label in PLANETS]
 

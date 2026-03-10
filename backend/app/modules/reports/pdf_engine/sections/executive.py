@@ -10,12 +10,12 @@ def build_executive(elements, renderer, styles, data):
     if not summary:
         return
 
-    elements.append(renderer.section_banner("Executive Life Summary"))
+    elements.append(renderer.section_banner("जीवन सार | Executive Life Summary"))
 
     elements.append(
         renderer.icon_block(
             OM_SYMBOL,
-            "Strength Snapshot",
+            "ताकत की झलक | Strength Snapshot",
             summary,
         )
     )
@@ -24,7 +24,7 @@ def build_executive(elements, renderer, styles, data):
 
     strength_text = executive.get("key_strength", "No strengths provided.")
     risk_text = executive.get("key_risk", "No risks provided.")
-    elements.append(renderer.two_column_cards("Strength Snapshot", strength_text, "Risk Snapshot", risk_text))
+    elements.append(renderer.two_column_cards("ताकत की झलक | Strength Snapshot", strength_text, "जोखिम संकेत | Risk Snapshot", risk_text))
 
     elements.append(Spacer(1, 10))
 
@@ -32,6 +32,6 @@ def build_executive(elements, renderer, styles, data):
         "short_term",
         executive.get("strategic_focus", "Build disciplined systems and execute in phases."),
     )
-    elements.append(renderer.insight_box("Current Life Phase", outlook, tone="info"))
+    elements.append(renderer.insight_box("वर्तमान जीवन चरण | Current Life Phase", outlook, tone="info"))
 
     elements.append(PageBreak())
