@@ -93,7 +93,14 @@ def create_user(
 # =====================================================
 def authenticate_user(db: Session, email: str, password: str):
 
-    user = db.query(User).filter(User.email == email).first()
+    user = (
+        db.query(User)
+        .filter(
+            User.email == email,
+            User.is_deleted.is_(False),
+        )
+        .first()
+    )
 
     if not user:
         return None

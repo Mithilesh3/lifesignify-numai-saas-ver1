@@ -1,5 +1,3 @@
-import React from "react";
-
 interface Props {
   formData: any;
   setFormData: any;
@@ -7,16 +5,28 @@ interface Props {
   prev: () => void;
 }
 
+const toNumber = (value: string) => {
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
 export default function StepEmotional({
   formData,
   setFormData,
   next,
   prev,
 }: Props) {
-  const update = (value: string) => {
+  const update = (field: string, value: number | undefined) => {
     setFormData({
       ...formData,
-      emotional: { stress_level: value },
+      emotional: {
+        ...formData.emotional,
+        [field]: value,
+      },
     });
   };
 
@@ -25,14 +35,32 @@ export default function StepEmotional({
       <h2 className="text-xl font-semibold">Emotional State</h2>
 
       <input
-        placeholder="Current Stress Level (1-10)"
+        type="number"
+        min="1"
+        max="10"
+        placeholder="Anxiety Level (1-10)"
         className="input"
-        onChange={(e) => update(e.target.value)}
+        value={formData.emotional?.anxiety_level || ""}
+        onChange={(e) => update("anxiety_level", toNumber(e.target.value))}
+      />
+
+      <input
+        type="number"
+        min="1"
+        max="10"
+        placeholder="Decision Confusion (1-10)"
+        className="input"
+        value={formData.emotional?.decision_confusion || ""}
+        onChange={(e) => update("decision_confusion", toNumber(e.target.value))}
       />
 
       <div className="flex justify-between">
-        <button onClick={prev} className="btn-secondary">Back</button>
-        <button onClick={next} className="btn-primary">Continue</button>
+        <button onClick={prev} className="btn-secondary">
+          Back
+        </button>
+        <button onClick={next} className="btn-primary">
+          Continue
+        </button>
       </div>
     </div>
   );

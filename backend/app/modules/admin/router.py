@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.db.dependencies import get_db
-from app.modules.users.router import admin_required
+from app.modules.users.router import super_admin_required
 from app.db.models import User, Report, Organization, Subscription
 
 
@@ -18,7 +18,7 @@ router = APIRouter(tags=["Admin"])
 @router.get("/analytics")
 def get_admin_analytics(
     db: Session = Depends(get_db),
-    current_user: User = Depends(admin_required),
+    current_user: User = Depends(super_admin_required),
 ):
 
     total_users = db.query(func.count(User.id)).scalar()
@@ -37,3 +37,4 @@ def get_admin_analytics(
         "total_organizations": total_orgs or 0,
         "active_subscriptions": active_subscriptions or 0,
     }
+

@@ -1,4 +1,4 @@
-﻿from reportlab.platypus import PageBreak, Spacer
+from reportlab.platypus import PageBreak, Spacer
 
 from ..assets import OM_SYMBOL
 
@@ -10,12 +10,12 @@ def build_executive(elements, renderer, styles, data):
     if not summary:
         return
 
-    elements.append(renderer.section_banner("Executive Summary"))
+    elements.append(renderer.section_banner("Executive Life Summary"))
 
     elements.append(
         renderer.icon_block(
             OM_SYMBOL,
-            "Strategic Summary",
+            "Strength Snapshot",
             summary,
         )
     )
@@ -32,6 +32,6 @@ def build_executive(elements, renderer, styles, data):
         "short_term",
         executive.get("strategic_focus", "Build disciplined systems and execute in phases."),
     )
-    elements.append(renderer.insight_box("Next Phase Outlook", outlook, tone="info"))
+    elements.append(renderer.insight_box("Current Life Phase", outlook, tone="info"))
 
     elements.append(PageBreak())

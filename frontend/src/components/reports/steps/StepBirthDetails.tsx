@@ -1,5 +1,3 @@
-import React from "react";
-
 interface Props {
   formData: any;
   setFormData: any;
@@ -30,19 +28,29 @@ export default function StepBirthDetails({
       <input
         type="date"
         className="input"
+        value={formData.birth_details?.date_of_birth || ""}
         onChange={(e) => update("date_of_birth", e.target.value)}
       />
 
       <input
         placeholder="Time of Birth"
         className="input"
+        value={formData.birth_details?.time_of_birth || ""}
         onChange={(e) => update("time_of_birth", e.target.value)}
       />
 
       <input
         placeholder="Birth City"
         className="input"
+        value={formData.birth_details?.birthplace_city || ""}
         onChange={(e) => update("birthplace_city", e.target.value)}
+      />
+
+      <input
+        placeholder="Birth Country"
+        className="input"
+        value={formData.birth_details?.birthplace_country || ""}
+        onChange={(e) => update("birthplace_country", e.target.value)}
       />
 
       <div className="flex justify-between">

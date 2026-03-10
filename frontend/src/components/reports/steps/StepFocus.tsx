@@ -1,5 +1,3 @@
-import React from "react";
-
 interface Props {
   formData: any;
   setFormData: any;
@@ -26,18 +24,26 @@ export default function StepFocus({
 
       <select
         className="input"
+        value={formData.focus?.life_focus || ""}
         onChange={(e) => update(e.target.value)}
       >
         <option value="">Select</option>
         <option value="career_growth">Career Growth</option>
-        <option value="business_expansion">Business Expansion</option>
+        <option value="finance_debt">Finance and Debt</option>
         <option value="relationship">Relationship</option>
-        <option value="wealth">Wealth</option>
+        <option value="health_stability">Health Stability</option>
+        <option value="emotional_confusion">Emotional Confusion</option>
+        <option value="business_decision">Business Decision</option>
+        <option value="general_alignment">General Alignment</option>
       </select>
 
       <div className="flex justify-between">
-        <button onClick={prev} className="btn-secondary">Back</button>
-        <button onClick={next} className="btn-primary">Continue</button>
+        <button onClick={prev} className="btn-secondary">
+          Back
+        </button>
+        <button onClick={next} className="btn-primary">
+          Continue
+        </button>
       </div>
     </div>
   );

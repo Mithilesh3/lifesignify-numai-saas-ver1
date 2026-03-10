@@ -6,13 +6,12 @@ import AppLayout from "../components/layout/AppLayout";
 import DashboardPage from "../pages/dashboard/DashboardPage";
 import ReportsListPage from "../pages/reports/ReportsListPage";
 import ReportDetailPage from "../pages/reports/ReportDetailPage";
-import GenerateReportPage from "../pages/reports/GenerateReportPage"; // ✅ NEW
+import GenerateReportPage from "../pages/reports/GenerateReportPage";
 
 import UpgradePage from "../pages/upgrade/UpgradePage";
 import BillingPage from "../pages/billing/BillingPage";
 import SettingsPage from "../pages/settings/SettingsPage";
 
-import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminUsersPage from "../pages/admin/AdminUsersPage";
 
 import LoginPage from "../pages/auth/LoginPage";
@@ -23,7 +22,6 @@ import ForbiddenPage from "../pages/errors/ForbiddenPage";
 
 import ProtectedRoute from "../components/ProtectedRoute";
 import AdminRoute from "./AdminRoute";
-import PlanRoute from "./PlanRoute";
 
 export default function AppRoutes() {
   const { user, loading } = useAuth();
@@ -38,7 +36,6 @@ export default function AppRoutes() {
 
   return (
     <Routes>
-      {/* PUBLIC ROUTES */}
       <Route
         path="/login"
         element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
@@ -49,7 +46,6 @@ export default function AppRoutes() {
         element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
       />
 
-      {/* PROTECTED ROUTES WITH LAYOUT */}
       <Route
         path="/"
         element={
@@ -61,29 +57,16 @@ export default function AppRoutes() {
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="reports" element={<ReportsListPage />} />
         <Route path="reports/:id" element={<ReportDetailPage />} />
-        
-        {/* ✅ NEW ROUTE ADDED HERE */}
         <Route path="generate-report" element={<GenerateReportPage />} />
-
         <Route path="settings" element={<SettingsPage />} />
         <Route path="upgrade" element={<UpgradePage />} />
+        <Route path="billing" element={<BillingPage />} />
 
-        {/* BILLING (Plan Protected) */}
-        <Route
-          path="billing"
-          element={
-            <PlanRoute>
-              <BillingPage />
-            </PlanRoute>
-          }
-        />
-
-        {/* ADMIN ROUTES */}
         <Route
           path="admin"
           element={
             <AdminRoute>
-              <AdminDashboard />
+              <Navigate to="/admin/users" replace />
             </AdminRoute>
           }
         />
@@ -98,7 +81,6 @@ export default function AppRoutes() {
         />
       </Route>
 
-      {/* ERROR ROUTES */}
       <Route path="/forbidden" element={<ForbiddenPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

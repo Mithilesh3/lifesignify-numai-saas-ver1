@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 
 from reportlab.lib.colors import HexColor
 from reportlab.lib.units import mm
@@ -29,7 +29,8 @@ def build_cover(elements, styles, name, plan, data):
     meta = data.get("meta", {}) if isinstance(data, dict) else {}
 
     full_name = name or identity.get("full_name") or "User"
-    dob = identity.get("date_of_birth") or identity.get("dob") or "Not Provided"
+    birth_details = data.get("birth_details", {}) if isinstance(data, dict) else {}
+    dob = identity.get("date_of_birth") or identity.get("dob") or birth_details.get("date_of_birth") or "Not Provided"
     generated_at = _fmt_date(meta.get("generated_at"))
 
     elements.append(Spacer(1, 18))
@@ -98,3 +99,4 @@ def build_cover(elements, styles, name, plan, data):
     elements.append(Spacer(1, 10))
     elements.append(Paragraph(full_name, styles["CoverName"]))
     elements.append(PageBreak())
+

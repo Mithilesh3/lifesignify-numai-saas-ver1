@@ -1,4 +1,4 @@
-﻿import re
+import re
 
 from reportlab.platypus import Image, PageBreak, Spacer
 
@@ -27,7 +27,7 @@ DEITY_MAP = {
 
 def _deity_key(raw_name):
     cleaned = re.sub(r"[^a-zA-Z ]", " ", (raw_name or "").lower())
-    parts = [p for p in cleaned.split() if p]
+    parts = [part for part in cleaned.split() if part]
     for part in parts:
         if part in DEITY_MAP:
             return DEITY_MAP[part]
@@ -40,7 +40,7 @@ def build_vedic(elements, renderer, styles, data):
     if not remedy:
         return
 
-    elements.append(renderer.section_banner("Vedic Remedy Intelligence"))
+    elements.append(renderer.section_banner("Dynamic Vedic Remedies"))
 
     deity_name = remedy.get("deity", "Budh (Mercury)")
     key = _deity_key(deity_name)
@@ -52,13 +52,14 @@ def build_vedic(elements, renderer, styles, data):
         elements.append(img)
         elements.append(Spacer(1, 8))
 
-    elements.append(renderer.insight_box("Deity", deity_name, tone="neutral"))
+    elements.append(renderer.insight_box("Planetary Alignment", remedy.get("planetary_alignment", deity_name), tone="neutral"))
     elements.append(Spacer(1, 8))
 
     mantra = remedy.get("mantra_sanskrit", "")
     pronunciation = remedy.get("mantra_pronunciation", "")
     practice = remedy.get("practice_guideline", "")
     donation = remedy.get("recommended_donation", "")
+    purpose = remedy.get("purpose", "Remedy ka purpose energy ko grounded aur disciplined direction dena hai.")
 
     elements.append(renderer.insight_box("Mantra", f"<b>{mantra}</b><br/>{pronunciation}", tone="info"))
     elements.append(Spacer(1, 8))
@@ -66,11 +67,6 @@ def build_vedic(elements, renderer, styles, data):
     elements.append(Spacer(1, 8))
     elements.append(renderer.insight_box("Donation", donation, tone="success"))
     elements.append(Spacer(1, 8))
-
-    energy = (
-        "This remedy aligns discipline, clarity, and spiritual grounding. "
-        "Consistency matters more than intensity."
-    )
-    elements.append(renderer.insight_box("Energy Explanation", energy, tone="neutral"))
+    elements.append(renderer.insight_box("Purpose", purpose, tone="neutral"))
 
     elements.append(PageBreak())

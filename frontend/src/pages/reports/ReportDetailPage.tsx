@@ -1,123 +1,88 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import API from "../../services/api";
 import RadarChartComponent from "../../components/dashboard/RadarChartComponent";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 
+interface ReportContent {
+  executive_brief?: {
+    summary?: string;
+    key_strength?: string;
+    key_risk?: string;
+    strategic_focus?: string;
+  };
+  core_metrics?: {
+    life_stability_index?: number;
+    financial_discipline_index?: number;
+    emotional_regulation_index?: number;
+    dharma_alignment_score?: number;
+    confidence_score?: number;
+    risk_band?: string;
+  };
+  analysis_sections?: Record<string, string>;
+  radar_chart_data?: Record<string, number>;
+}
+
 interface Report {
   id: number;
   title?: string;
   created_at: string;
-
-  executive_dashboard?: any;
-  radar_chart_data?: any;
-  ai_narrative?: any;
-
-  archetype_hint?: string;
-  numerology_profile?: any;
-  scenario_simulation?: any;
-  three_year_projection?: any;
-
-  risk_analysis?: string;
-  remedy_direction?: string;
+  content: ReportContent;
 }
 
 export default function ReportDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ Proper subscription check
   const plan =
-    user?.subscription?.plan_name?.toLowerCase() || "basic";
-
-  const hasSubscription = !!user?.subscription;
+    user?.subscription?.plan_name?.toLowerCase() ||
+    user?.organization?.plan?.toLowerCase() ||
+    "basic";
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      setError("Report not found.");
+      return;
+    }
 
     const fetchReport = async () => {
       try {
         const res = await API.get(`/reports/${id}`);
         setReport(res.data);
-      } catch {
-        setError("Failed to load report.");
+      } catch (requestError: any) {
+        setError(
+          requestError?.response?.data?.detail || "Failed to load report."
+        );
         toast.error("Failed to load report");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchReport();
+    void fetchReport();
   }, [id]);
-
-  // =====================================================
-  // FIXED GENERATE FUNCTION (403 SAFE)
-  // =====================================================
-  const generateNewReport = async () => {
-
-    if (!hasSubscription) {
-      toast.error("Please upgrade your plan to generate AI reports.");
-      return;
-    }
-
-    const loadingToast = toast.loading("Generating AI Report...");
-    setGenerating(true);
-
-    try {
-      await API.post("/reports/generate-ai-report", {
-        identity: {
-          full_name: "Jay Prakash",
-          date_of_birth: "20/02/1990",
-          gender: "male",
-          country_of_residence: "India",
-        },
-        birth_details: {
-          date_of_birth: "20/02/1990",
-          time_of_birth: "10:30 AM",
-          birthplace_city: "Mumbai",
-          birthplace_country: "India",
-        },
-        focus: {
-          life_focus: "career_growth",
-        },
-      });
-
-      toast.success("New AI Report generated 🚀", {
-        id: loadingToast,
-      });
-
-      window.location.href = "/reports";
-    } catch (error: any) {
-
-      if (error?.response?.status === 403) {
-        toast.error(
-          error?.response?.data?.detail ||
-          "Your plan does not allow this action.",
-          { id: loadingToast }
-        );
-      } else {
-        toast.error("Failed to generate report", {
-          id: loadingToast,
-        });
-      }
-    } finally {
-      setGenerating(false);
-    }
-  };
 
   const downloadPDF = async () => {
     if (!id) return;
 
+    setDownloading(true);
     const loadingToast = toast.loading("Preparing PDF...");
 
     try {
-      const response = await API.get(`/reports/${id}/export-pdf`, {
+      const endpoint =
+        plan === "basic"
+          ? `/reports/${id}/preview-pdf`
+          : `/reports/${id}/export-pdf`;
+
+      const response = await API.get(endpoint, {
         responseType: "blob",
       });
 
@@ -127,14 +92,14 @@ export default function ReportDetailPage() {
       link.setAttribute("download", `report-${id}.pdf`);
       document.body.appendChild(link);
       link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
 
-      toast.success("Report downloaded successfully", {
-        id: loadingToast,
-      });
+      toast.success("Report downloaded successfully", { id: loadingToast });
     } catch {
-      toast.error("Failed to download PDF", {
-        id: loadingToast,
-      });
+      toast.error("Failed to download PDF", { id: loadingToast });
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -154,79 +119,103 @@ export default function ReportDetailPage() {
     );
   }
 
-  const dashboard = report.executive_dashboard;
-
-  const radarData =
-    report.radar_chart_data ??
-    (dashboard
-      ? [
-          { metric: "Life Stability", score: dashboard.life_stability_index ?? 0 },
-          { metric: "Financial Discipline", score: dashboard.financial_discipline_index ?? 0 },
-          { metric: "Emotional Regulation", score: dashboard.emotional_regulation_index ?? 0 },
-          { metric: "Dharma Alignment", score: dashboard.dharma_alignment_score ?? 0 },
-          { metric: "Karma Pressure", score: dashboard.karma_pressure_index ?? 0 },
-        ]
-      : []);
+  const content = report.content || {};
+  const summary = content.executive_brief;
+  const metrics = content.core_metrics;
+  const analysisEntries = Object.entries(content.analysis_sections || {});
+  const radarData = Object.entries(content.radar_chart_data || {}).map(
+    ([metric, score]) => ({ metric, score: Number(score) })
+  );
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8 space-y-10">
-
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">
             {report.title || "Life Intelligence Report"}
           </h1>
-          <p className="text-gray-400 text-sm">
-            Plan: {plan.toUpperCase()}
+          <p className="text-gray-400 text-sm mt-1">
+            Plan: {plan.toUpperCase()} | Generated {new Date(report.created_at).toLocaleString()}
           </p>
         </div>
 
         <div className="flex gap-4">
           <button
-            onClick={generateNewReport}
-            disabled={generating}
-            className="bg-emerald-600 hover:bg-emerald-500 px-5 py-2 rounded-lg transition disabled:opacity-50"
+            onClick={() => navigate("/generate-report")}
+            className="bg-emerald-600 hover:bg-emerald-500 px-5 py-2 rounded-lg transition"
           >
-            {generating ? "Generating..." : "Generate New Report"}
+            Create Another Report
           </button>
 
           <button
             onClick={downloadPDF}
-            className="bg-indigo-600 hover:bg-indigo-500 transition px-5 py-2 rounded-lg"
+            disabled={downloading}
+            className="bg-indigo-600 hover:bg-indigo-500 transition px-5 py-2 rounded-lg disabled:opacity-50"
           >
-            Download PDF
+            {downloading ? "Preparing PDF..." : "Download PDF"}
           </button>
         </div>
       </div>
 
-      {dashboard && (
-        <>
-          <h2 className="text-xl font-semibold">Executive Dashboard</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <ScoreCard label="Life Stability" value={dashboard.life_stability_index} />
-            <ScoreCard label="Financial Discipline" value={dashboard.financial_discipline_index} />
-            <ScoreCard label="Emotional Regulation" value={dashboard.emotional_regulation_index} />
-            <ScoreCard label="Dharma Alignment" value={dashboard.dharma_alignment_score} />
-            <ScoreCard label="Karma Pressure" value={dashboard.karma_pressure_index} />
-          </div>
-        </>
+      {summary && (
+        <div className="bg-gray-900 p-6 rounded-xl shadow-md space-y-4">
+          <h2 className="text-xl font-semibold">Executive Brief</h2>
+          {summary.summary && <p className="text-gray-300 leading-7">{summary.summary}</p>}
+          {summary.key_strength && (
+            <p>
+              <span className="text-emerald-400 font-semibold">Key strength:</span> {summary.key_strength}
+            </p>
+          )}
+          {summary.key_risk && (
+            <p>
+              <span className="text-yellow-400 font-semibold">Key risk:</span> {summary.key_risk}
+            </p>
+          )}
+          {summary.strategic_focus && (
+            <p>
+              <span className="text-indigo-400 font-semibold">Strategic focus:</span> {summary.strategic_focus}
+            </p>
+          )}
+        </div>
       )}
 
-      {radarData.length > 0 && (
-        <RadarChartComponent data={radarData} />
+      {metrics && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <ScoreCard label="Life Stability" value={metrics.life_stability_index} />
+          <ScoreCard label="Financial Discipline" value={metrics.financial_discipline_index} />
+          <ScoreCard label="Emotional Regulation" value={metrics.emotional_regulation_index} />
+          <ScoreCard label="Dharma Alignment" value={metrics.dharma_alignment_score} />
+          <ScoreCard label="Confidence Score" value={metrics.confidence_score} />
+          <ScoreCard label="Risk Band" value={metrics.risk_band || "--"} />
+        </div>
+      )}
+
+      {radarData.length > 0 && <RadarChartComponent data={radarData} />}
+
+      {analysisEntries.length > 0 && (
+        <div className="bg-gray-900 p-6 rounded-xl shadow-md">
+          <h2 className="text-xl font-semibold mb-6">Analysis</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {analysisEntries.map(([label, value]) => (
+              <div key={label} className="bg-gray-800 p-4 rounded-lg">
+                <h3 className="text-sm uppercase tracking-wide text-gray-400 mb-2">
+                  {label.replace(/_/g, " ")}
+                </h3>
+                <p className="text-gray-200 leading-7">{value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
-function ScoreCard({ label, value }: { label: string; value?: number }) {
+function ScoreCard({ label, value }: { label: string; value?: number | string }) {
   return (
     <div className="bg-gray-900 p-6 rounded-xl shadow-md">
       <p className="text-sm text-gray-400">{label}</p>
-      <p className="text-3xl font-bold mt-2">
-        {value ?? "--"}
-      </p>
+      <p className="text-3xl font-bold mt-2">{value ?? "--"}</p>
     </div>
   );
 }

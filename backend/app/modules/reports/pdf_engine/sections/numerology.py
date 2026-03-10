@@ -1,22 +1,22 @@
-﻿from reportlab.lib.colors import HexColor
+from reportlab.lib.colors import HexColor
 from reportlab.platypus import PageBreak, Paragraph, Spacer, Table, TableStyle
 
 
 def build_numerology(elements, renderer, styles, data):
     core = data.get("numerology_core", {})
 
-    p = core.get("pythagorean", {})
-    c = core.get("chaldean", {})
-    email = core.get("email_analysis", {})
+    pythagorean = core.get("pythagorean", {})
+    chaldean = core.get("chaldean", {})
+    mobile = core.get("mobile_analysis", {})
 
     elements.append(renderer.section_banner("Core Numerology Architecture"))
 
     rows = [
-        ["Life Path", p.get("life_path_number", "N/A"), "Strategic direction and purpose path"],
-        ["Destiny", p.get("destiny_number", "N/A"), "Execution style in outer world"],
-        ["Expression", p.get("expression_number", "N/A"), "Natural talent communication pattern"],
-        ["Name Number", c.get("name_number", "N/A"), "Brand and social vibration"],
-        ["Email Number", email.get("email_number", "N/A"), "Digital identity signal"],
+        ["Life Path", pythagorean.get("life_path_number", "N/A"), "Life direction aur natural movement pattern"],
+        ["Destiny", pythagorean.get("destiny_number", "N/A"), "Outer-world execution aur achievement style"],
+        ["Expression", pythagorean.get("expression_number", "N/A"), "Communication aur talent expression pattern"],
+        ["Name Number", chaldean.get("name_number", "N/A"), "Social vibration aur identity impact"],
+        ["Mobile Vibration", mobile.get("mobile_vibration", "N/A"), "Daily communication signal aur device energy"],
     ]
 
     table_rows = [
@@ -35,7 +35,7 @@ def build_numerology(elements, renderer, styles, data):
             ]
         )
 
-    table = Table(table_rows, colWidths=[95, 65, 310])
+    table = Table(table_rows, colWidths=[100, 70, 300])
     table.setStyle(
         TableStyle(
             [
@@ -55,10 +55,9 @@ def build_numerology(elements, renderer, styles, data):
     elements.append(table)
     elements.append(Spacer(1, 8))
 
-    summary = (
-        "Your numerology stack shows how identity, execution, and communication align. "
-        "Use high-signal numbers for strategic decisions and role alignment."
+    compatibility_summary = mobile.get("compatibility_summary") or (
+        "Core numbers aapki identity aur execution ko dikhate hain, jabki mobile vibration daily communication pattern ko influence karta hai."
     )
-    elements.append(renderer.insight_box("Interpretation Summary", summary, tone="neutral"))
+    elements.append(renderer.insight_box("Interpretation Summary", compatibility_summary, tone="neutral"))
 
     elements.append(PageBreak())

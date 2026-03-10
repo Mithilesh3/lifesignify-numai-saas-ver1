@@ -5,46 +5,57 @@ import { useAuth } from "./AuthContext";
 interface Usage {
   reports_used: number;
   reports_limit: number;
+  reports_remaining: number;
 }
 
 const PLAN_LIMITS: Record<string, number> = {
   basic: 1,
   pro: 5,
   premium: 50,
+  enterprise: 200,
 };
 
 const UsageContext = createContext<{
   usage: Usage | null;
-  refreshUsage: () => void;
+  refreshUsage: () => Promise<void>;
 } | null>(null);
 
-export const UsageProvider = ({ children }: any) => {
+export const UsageProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   const [usage, setUsage] = useState<Usage | null>(null);
 
   const loadUsage = async () => {
-    if (!user) return;
+    if (!user) {
+      setUsage(null);
+      return;
+    }
 
     try {
       const data = await getUsage();
       setUsage(data);
     } catch {
       if (user.subscription) {
+        const reportsUsed = user.subscription.reports_used || 0;
+        const reportsLimit =
+          PLAN_LIMITS[user.subscription.plan_name?.toLowerCase()] ?? 0;
+
         setUsage({
-          reports_used: user.subscription.reports_used,
-          reports_limit:
-            PLAN_LIMITS[user.subscription.plan_name?.toLowerCase()] ?? 0,
+          reports_used: reportsUsed,
+          reports_limit: reportsLimit,
+          reports_remaining: Math.max(reportsLimit - reportsUsed, 0),
+        });
+      } else {
+        setUsage({
+          reports_used: 0,
+          reports_limit: 0,
+          reports_remaining: 0,
         });
       }
     }
   };
 
   useEffect(() => {
-    if (user) {
-      loadUsage();
-    } else {
-      setUsage(null);
-    }
+    void loadUsage();
   }, [user]);
 
   return (
@@ -56,6 +67,10 @@ export const UsageProvider = ({ children }: any) => {
 
 export const useUsage = () => {
   const ctx = useContext(UsageContext);
-  if (!ctx) throw new Error("useUsage must be inside UsageProvider");
+
+  if (!ctx) {
+    throw new Error("useUsage must be inside UsageProvider");
+  }
+
   return ctx;
 };

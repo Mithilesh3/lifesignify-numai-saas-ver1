@@ -89,12 +89,14 @@ def financial_discipline_index(data: Dict[str, Any]) -> int:
     impulse = 1 - normalize(data.get("impulse_spending"), 1, 10)
 
     risk_map = {
-        "Low": 0.8,
-        "Moderate": 0.6,
-        "High": 0.3
+        "low": 0.8,
+        "moderate": 0.6,
+        "high": 0.3,
     }
 
-    risk = risk_map.get(data.get("risk_tolerance"), 0.5)
+    raw_risk_tolerance = data.get("risk_tolerance")
+    risk_key = str(raw_risk_tolerance).strip().lower() if raw_risk_tolerance is not None else ""
+    risk = risk_map.get(risk_key, 0.5)
 
     return weighted_score([
         {"value": savings, "weight": 0.30},
@@ -198,3 +200,5 @@ def generate_score_summary(data: Dict[str, Any]) -> Dict[str, Any]:
         "confidence_score": confidence,
         "risk_band": risk_band(stability),
     }
+
+

@@ -13,6 +13,7 @@ from app.modules.numerology.compatibility import analyze_compatibility
 # MASTER NUMEROLOGY ORCHESTRATOR
 # =========================================================
 
+
 def generate_numerology_profile(
     identity: Dict[str, Any],
     birth_details: Dict[str, Any],
@@ -29,73 +30,65 @@ def generate_numerology_profile(
     partner_name = identity.get("partner_name")
 
     date_of_birth = birth_details.get("date_of_birth")
-
     mobile_number = identity.get("mobile_number")
 
     numerology_core: Dict[str, Any] = {}
 
     # =====================================================
-    # BASIC FEATURES (Always Active)
+    # DETERMINISTIC CORE FEATURES (Always Active)
     # =====================================================
 
-    numerology_core["pythagorean"] = generate_pythagorean_numbers(
+    pythagorean = generate_pythagorean_numbers(
         identity,
-        birth_details
+        birth_details,
     )
+    numerology_core["pythagorean"] = pythagorean
 
     numerology_core["chaldean"] = generate_chaldean_numbers(
         identity
     )
 
-    # =====================================================
-    # PRO FEATURES
-    # =====================================================
+    if date_of_birth:
+        numerology_core["loshu_grid"] = generate_loshu_grid(
+            date_of_birth
+        )
 
-    if plan_name in ["pro", "premium", "enterprise"]:
-
-        if date_of_birth:
-            numerology_core["loshu_grid"] = generate_loshu_grid(
-                date_of_birth
-            )
-
-        if mobile_number:
-            numerology_core["mobile_analysis"] = analyze_mobile_number(
-                mobile_number
-            )
+    if mobile_number:
+        numerology_core["mobile_analysis"] = analyze_mobile_number(
+            mobile_number,
+            life_path_number=pythagorean.get("life_path_number"),
+        )
 
     # =====================================================
-    # PREMIUM FEATURES
+    # ENHANCED FEATURES
     # =====================================================
 
-    if plan_name in ["premium", "enterprise"]:
+    if email:
+        numerology_core["email_analysis"] = analyze_email(
+            email
+        )
 
-        if email:
-            numerology_core["email_analysis"] = analyze_email(
-                email
-            )
+    if full_name:
+        numerology_core["name_correction"] = suggest_name_corrections(
+            full_name
+        )
 
-        if full_name:
-            numerology_core["name_correction"] = suggest_name_corrections(
-                full_name
-            )
+    if full_name and partner_name and date_of_birth:
 
-        # Relationship compatibility
-        if full_name and partner_name and date_of_birth:
+        primary_profile = generate_pythagorean_numbers(
+            {"full_name": full_name},
+            {"date_of_birth": date_of_birth}
+        )
 
-            primary_profile = generate_pythagorean_numbers(
-                {"full_name": full_name},
-                {"date_of_birth": date_of_birth}
-            )
+        partner_profile = generate_pythagorean_numbers(
+            {"full_name": partner_name},
+            {"date_of_birth": date_of_birth}
+        )
 
-            partner_profile = generate_pythagorean_numbers(
-                {"full_name": partner_name},
-                {"date_of_birth": date_of_birth}
-            )
-
-            numerology_core["compatibility"] = analyze_compatibility(
-                primary_profile,
-                partner_profile
-            )
+        numerology_core["compatibility"] = analyze_compatibility(
+            primary_profile,
+            partner_profile
+        )
 
     # =====================================================
     # ENTERPRISE FEATURES

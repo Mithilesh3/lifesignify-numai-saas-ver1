@@ -1,6 +1,9 @@
-﻿from pathlib import Path
+from pathlib import Path
 
-BASE_ASSETS = Path("/app/app/assets")
+CONTAINER_ASSETS = Path("/app/app/assets")
+LOCAL_ASSETS = Path(__file__).resolve().parents[3] / "assets"
+
+BASE_ASSETS = CONTAINER_ASSETS if CONTAINER_ASSETS.exists() else LOCAL_ASSETS
 
 ICONS = BASE_ASSETS / "icons"
 SACRED = BASE_ASSETS / "sacred"
@@ -52,4 +55,3 @@ METRICS_BAR_CHART = CHARTS / "metrics_bar.png"
 
 def asset_exists(path: Path) -> bool:
     return path.exists()
-

@@ -472,6 +472,9 @@ def restore_report(db: Session, current_user: User, report_id: int) -> Dict[str,
     if not report:
         raise HTTPException(status_code=404, detail="Deleted report not found")
 
+
+    if not current_user.is_admin and report.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only access your own reports")
     report.is_deleted = False
     db.commit()
     
@@ -522,8 +525,8 @@ def generate_ai_report_service(
         # Validate subscription and lock for update
         subscription = _validate_and_lock_subscription(db, current_user)
 
-        # Determine plan (allow override for testing)
-        plan_name = _normalize_plan_name(intake_data.get("plan_override", "") or subscription.plan_name or "basic")
+        # Determine plan from the active subscription only
+        plan_name = _normalize_plan_name(subscription.plan_name or "basic")
 
         if plan_name not in PLAN_LIMITS:
             logger.error(f"Invalid plan name: {plan_name}")
@@ -557,6 +560,7 @@ def generate_ai_report_service(
             "life_events": intake_data.get("life_events", []),
             "calibration": intake_data.get("calibration", {}),
             "contact": intake_data.get("contact", {}),
+            "preferences": intake_data.get("preferences", {}),
             "current_problem": intake_data.get("current_problem", ""),
         }
 
@@ -655,6 +659,9 @@ def get_reports(
     query = db.query(Report).filter(
         Report.tenant_id == current_user.tenant_id
     )
+
+    if not current_user.is_admin:
+        query = query.filter(Report.user_id == current_user.id)
     
     if not include_deleted:
         query = query.filter(Report.is_deleted.is_(False))
@@ -696,6 +703,12 @@ def get_report(
             detail="Report not found"
         )
 
+
+    if not current_user.is_admin and report.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only access your own reports",
+        )
     return report
 
 
@@ -842,6 +855,11 @@ def bulk_delete_reports(
         "processed_ids": found_ids,
         "not_found_ids": list(not_found)
     }
+
+
+
+
+
 
 
 

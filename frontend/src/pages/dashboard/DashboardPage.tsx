@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
@@ -6,21 +6,18 @@ import { useUsage } from "../../context/UsageContext";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 
-interface RiskAnalysis {
-  burnout_risk?: number;
-  overall_risk_level?: string;
-  karma_pressure_level?: string;
-  financial_stress_probability?: number;
-}
-
 interface Report {
   id: number;
   created_at: string;
   content: {
-    executive_dashboard?: {
-      life_stability_index?: number;
+    executive_brief?: {
+      summary?: string;
     };
-    risk_analysis?: RiskAnalysis;
+    core_metrics?: {
+      life_stability_index?: number;
+      risk_band?: string;
+      confidence_score?: number;
+    };
   };
 }
 
@@ -33,13 +30,15 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   const currentPlan =
-    user?.subscription?.plan_name?.toLowerCase() || "none";
+    user?.subscription?.plan_name?.toLowerCase() ||
+    user?.organization?.plan?.toLowerCase() ||
+    "none";
 
   const isActive = user?.subscription?.is_active ?? false;
 
   const used = usage?.reports_used || 0;
   const limit = usage?.reports_limit || 0;
-  const remaining = Math.max(limit - used, 0);
+  const remaining = usage?.reports_remaining ?? Math.max(limit - used, 0);
 
   const usagePercent =
     limit > 0 ? Math.min((used / limit) * 100, 100) : 0;
@@ -56,21 +55,18 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    fetchReports();
+    void fetchReports();
   }, []);
 
   const latestReport = reports[0];
-  const risk = latestReport?.content?.risk_analysis;
+  const latestMetrics = latestReport?.content?.core_metrics;
+  const latestSummary = latestReport?.content?.executive_brief?.summary;
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8 space-y-10">
-
-      {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">
-            Welcome back, {user?.email}
-          </h1>
+          <h1 className="text-3xl font-bold">Welcome back, {user?.email}</h1>
           <p className="text-gray-400 mt-1">
             Your Life Intelligence Executive Dashboard
           </p>
@@ -87,7 +83,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* USAGE BAR */}
       <div className="bg-gray-900 p-6 rounded-2xl shadow-lg">
         <div className="flex justify-between text-sm mb-2">
           <span>
@@ -110,40 +105,31 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* KPI CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <MetricCard label="Total Reports" value={loading ? "..." : reports.length} />
         <MetricCard
-          label="Total Reports"
-          value={loading ? "..." : reports.length}
+          label="Life Stability"
+          value={latestMetrics?.life_stability_index ?? "--"}
         />
-
+        <MetricCard label="Risk Band" value={latestMetrics?.risk_band ?? "--"} />
         <MetricCard
-          label="Latest Stability Score"
+          label="Confidence Score"
           value={
-            latestReport?.content?.executive_dashboard
-              ?.life_stability_index ?? "--"
-          }
-        />
-
-        <MetricCard
-          label="Overall Risk Level"
-          value={risk?.overall_risk_level ?? "--"}
-        />
-
-        <MetricCard
-          label="Burnout Risk"
-          value={
-            risk?.burnout_risk !== undefined
-              ? `${risk.burnout_risk}%`
+            latestMetrics?.confidence_score !== undefined
+              ? `${latestMetrics.confidence_score}%`
               : "--"
           }
         />
       </div>
 
-      {/* ACTIONS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {latestSummary && (
+        <div className="bg-gray-900 p-6 rounded-2xl shadow-lg">
+          <h2 className="text-xl font-semibold mb-3">Latest Summary</h2>
+          <p className="text-gray-300 leading-7">{latestSummary}</p>
+        </div>
+      )}
 
-        {/* 🔥 Now only navigation — NOT API call */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <motion.button
           whileHover={{ scale: 1.03 }}
           onClick={() => navigate("/generate-report")}
@@ -177,7 +163,7 @@ export default function DashboardPage() {
   );
 }
 
-function MetricCard({ label, value }: { label: string; value: any }) {
+function MetricCard({ label, value }: { label: string; value: string | number }) {
   return (
     <motion.div
       whileHover={{ scale: 1.04 }}

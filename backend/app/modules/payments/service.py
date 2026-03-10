@@ -87,6 +87,9 @@ def verify_payment_signature(
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
 
+    if payment.user_id != current_user.id or payment.tenant_id != current_user.tenant_id:
+        raise HTTPException(status_code=403, detail="Payment does not belong to this user")
+
     if payment.status == "paid":
         return {"message": "Already verified"}
 
@@ -99,13 +102,13 @@ def verify_payment_signature(
     # =====================================================
     subscription = (
         db.query(Subscription)
-        .filter(Subscription.tenant_id == current_user.tenant_id)
+        .filter(Subscription.tenant_id == payment.tenant_id)
         .first()
     )
 
     if not subscription:
         subscription = Subscription(
-            tenant_id=current_user.tenant_id
+            tenant_id=payment.tenant_id
         )
         db.add(subscription)
 
@@ -119,7 +122,7 @@ def verify_payment_signature(
 
     organization = (
         db.query(Organization)
-        .filter(Organization.id == current_user.tenant_id)
+        .filter(Organization.id == payment.tenant_id)
         .first()
     )
 
@@ -131,3 +134,5 @@ def verify_payment_signature(
         "message": "Subscription activated",
         "plan": organization.plan
     }
+
+

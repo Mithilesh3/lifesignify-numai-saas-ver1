@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import API from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 
 import StepIdentity from "../../components/reports/steps/StepIdentity";
 import StepBirthDetails from "../../components/reports/steps/StepBirthDetails";
@@ -13,11 +14,11 @@ import StepHealth from "../../components/reports/steps/StepHealth";
 import StepCalibration from "../../components/reports/steps/StepCalibration";
 import StepReview from "../../components/reports/steps/StepReview";
 
-interface Props {
-  user: any;
-}
+const hasValues = (value: Record<string, unknown> | undefined) =>
+  Boolean(value) && Object.values(value as Record<string, unknown>).some(Boolean);
 
-export default function GenerateReportPage({ user }: Props) {
+export default function GenerateReportPage() {
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -35,7 +36,7 @@ export default function GenerateReportPage({ user }: Props) {
 
   const plan = user?.subscription?.plan_name?.toLowerCase() || "basic";
 
-  const steps: any[] = [
+  const steps: Array<{ key: string; component: any }> = [
     { key: "identity", component: StepIdentity },
     { key: "birth_details", component: StepBirthDetails },
     { key: "focus", component: StepFocus },
@@ -64,12 +65,7 @@ export default function GenerateReportPage({ user }: Props) {
   const next = () => step < totalSteps && setStep(step + 1);
   const prev = () => step > 1 && setStep(step - 1);
 
-  // =====================================================
-  // VALIDATION + SAFE SUBMIT
-  // =====================================================
-
   const handleSubmit = async () => {
-    // Frontend validation
     if (
       !formData.identity?.full_name ||
       !formData.identity?.country_of_residence ||
@@ -86,46 +82,35 @@ export default function GenerateReportPage({ user }: Props) {
 
     try {
       const payload = {
-        identity: formData.identity,
+        identity: {
+          ...formData.identity,
+          date_of_birth: formData.birth_details.date_of_birth,
+        },
         birth_details: formData.birth_details,
         focus: formData.focus,
-        financial:
-          Object.keys(formData.financial || {}).length > 0
-            ? formData.financial
-            : undefined,
-        emotional:
-          Object.keys(formData.emotional || {}).length > 0
-            ? formData.emotional
-            : undefined,
-        business_history:
-          Object.keys(formData.business_history || {}).length > 0
-            ? formData.business_history
-            : undefined,
-        health:
-          Object.keys(formData.health || {}).length > 0
-            ? formData.health
-            : undefined,
-        calibration:
-          Object.keys(formData.calibration || {}).length > 0
-            ? formData.calibration
-            : undefined,
+        financial: hasValues(formData.financial) ? formData.financial : undefined,
+        emotional: hasValues(formData.emotional) ? formData.emotional : undefined,
+        business_history: hasValues(formData.business_history)
+          ? formData.business_history
+          : undefined,
+        health: hasValues(formData.health) ? formData.health : undefined,
+        calibration: hasValues(formData.calibration)
+          ? formData.calibration
+          : undefined,
       };
 
-      console.log("Submitting payload:", payload);
+      const { data } = await API.post("/reports/generate-ai-report", payload);
+      await refreshUser();
 
-      await API.post("/reports/generate-ai-report", payload);
-
-      toast.success("Report generated successfully 🚀");
-      navigate("/dashboard");
+      toast.success("Report generated successfully");
+      navigate(`/reports/${data.id}`);
     } catch (error: any) {
-      console.error("Backend Error:", error?.response?.data);
-
       if (error?.response?.status === 422) {
         const details = error.response.data?.detail;
 
         if (Array.isArray(details)) {
           const message = details
-            .map((err: any) => `${err.loc?.join(" → ")} : ${err.msg}`)
+            .map((err: any) => `${err.loc?.join(" -> ")} : ${err.msg}`)
             .join("\n");
 
           toast.error(message);
@@ -147,7 +132,6 @@ export default function GenerateReportPage({ user }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto py-10 px-4">
-      {/* Progress */}
       <div className="w-full bg-gray-800 h-2 rounded-full mb-6">
         <div
           className="bg-indigo-600 h-2 rounded-full transition-all"
