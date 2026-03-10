@@ -61,6 +61,13 @@ export default function StepIdentity({ formData, setFormData, next }: Props) {
       />
 
       <input
+        placeholder="Signature Style (optional)"
+        className="input"
+        value={formData.identity?.signature_style || ""}
+        onChange={(e) => updateIdentity("signature_style", e.target.value)}
+      />
+
+      <input
         placeholder="Mobile Number"
         className="input"
         value={formData.contact?.mobile_number || ""}
@@ -96,7 +103,7 @@ export default function StepIdentity({ formData, setFormData, next }: Props) {
       </select>
 
       <p className="text-sm text-gray-400">
-        Mobile number and language preference now feed the updated backend report engine.
+        Mobile, signature style, and language now feed correction-led personalization in the report engine.
       </p>
 
       <button

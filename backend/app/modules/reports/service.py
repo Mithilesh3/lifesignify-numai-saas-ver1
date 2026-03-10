@@ -561,7 +561,7 @@ def generate_ai_report_service(
             "financial": intake_data.get("financial", {}),
             "career": intake_data.get("career", {}),
             "emotional": intake_data.get("emotional", {}),
-            "life_events": intake_data.get("life_events", []),
+            "life_events": intake_data.get("life_events", {}),
             "calibration": intake_data.get("calibration", {}),
             "contact": intake_data.get("contact", {}),
             "preferences": intake_data.get("preferences", {}),

@@ -1,94 +1,66 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+from datetime import datetime
+from typing import Any, Dict, List, Sequence, Tuple
 
+from app.modules.reports.blueprint import SECTION_TITLES, get_tier_section_blueprint
 
-METRIC_GUIDE: Dict[str, Dict[str, str]] = {
-    "life_stability_index": {
-        "label": "जीवन स्थिरता | Life Stability",
-        "meaning": "यह संकेतक बताता है कि आपका routine, pressure handling और long-term consistency कितनी स्थिर है।",
-        "risk": "जब यह score नीचे जाता है, तब execution टूट-टूट कर चलता है और अच्छे अवसर भी fragmented effort में बदल सकते हैं।",
-        "improvement": "Sleep rhythm, debt control, emotional recovery और weekly planning को एक साथ improve करने से यह score मजबूत होता है।",
-    },
-    "confidence_score": {
-        "label": "निर्णय स्पष्टता | Decision Clarity",
-        "meaning": "यह score दो चीजें दिखाता है: behavioral input कितना पूरा है और आपकी decision visibility कितनी साफ है।",
-        "risk": "Low confidence का मतलब यह नहीं कि क्षमता कम है; इसका अर्थ अक्सर यह होता है कि data sparse है या clarity filters अभी weak हैं।",
-        "improvement": "Decision journal, written criteria और complete intake signals इस score को जल्दी बेहतर बनाते हैं।",
-    },
-    "dharma_alignment_score": {
-        "label": "धर्म संतुलन | Dharma Alignment",
-        "meaning": "यह बताता है कि आपका effort, role choice और inner purpose एक-दूसरे के साथ कितने aligned हैं।",
-        "risk": "Low dharma alignment से मेहनत बहुत लगती है लेकिन compounding कम होता है, क्योंकि energy scattered directions में चली जाती है।",
-        "improvement": "Role clarity, focus discipline और meaningful work selection इस score के लिए सबसे बड़ा lever है।",
-    },
-    "emotional_regulation_index": {
-        "label": "भावनात्मक संतुलन | Emotional Regulation",
-        "meaning": "यह score pressure के दौरान nervous system stability, response quality और recovery speed को reflect करता है।",
-        "risk": "यह क्षेत्र कमजोर हो तो अच्छे decisions भी stress phase में reactive बन सकते हैं।",
-        "improvement": "Breathwork, lower-noise routines, sleep recovery और decision delay rules इसे मजबूत बनाते हैं।",
-    },
-    "financial_discipline_index": {
-        "label": "वित्तीय अनुशासन | Financial Discipline",
-        "meaning": "यह संकेतक savings, debt, impulse control और risk attitude के संयुक्त pattern को पढ़ता है।",
-        "risk": "Weak financial discipline अक्सर income problem नहीं बल्कि structure problem को show करता है।",
-        "improvement": "Budget checkpoints, auto-saving और delayed spending protocol सबसे direct remedy हैं।",
-    },
-    "karma_pressure_index": {
-        "label": "कर्म दबाव | Karma Pressure",
-        "meaning": "यह score anxiety, setbacks और unresolved load के pressure signal को capture करता है।",
-        "risk": "High karma pressure phases में छोटी समस्याएं भी disproportionately heavy महसूस हो सकती हैं।",
-        "improvement": "Priority reduction, debt cleanup और recovery rituals इस pressure को soften करते हैं।",
-    },
+PLANET_BY_NUMBER: Dict[int, str] = {
+    1: "Surya",
+    2: "Chandra",
+    3: "Guru",
+    4: "Rahu",
+    5: "Budh",
+    6: "Shukra",
+    7: "Ketu",
+    8: "Shani",
+    9: "Mangal",
+    11: "Moon-Jupiter",
+    22: "Rahu-Saturn",
 }
 
 NUMBER_TRAITS: Dict[int, Dict[str, str]] = {
-    1: {"gift": "initiative और leadership", "shadow": "ego-driven solo execution", "growth": "collaboration के साथ clear leadership"},
-    2: {"gift": "sensitivity और partnership intelligence", "shadow": "indecision और emotional dependency", "growth": "boundaries के साथ supportive influence"},
-    3: {"gift": "communication और creative expression", "shadow": "scatter और unfinished execution", "growth": "structured communication with disciplined follow-through"},
-    4: {"gift": "structure, process और reliability", "shadow": "rigidity और slow adaptation", "growth": "system thinking के साथ flexible execution"},
-    5: {"gift": "adaptability, learning और mobility", "shadow": "restlessness और inconsistency", "growth": "freedom के भीतर disciplined rhythm"},
-    6: {"gift": "care, responsibility और relationship anchoring", "shadow": "over-responsibility और guilt load", "growth": "healthy care with boundaries"},
-    7: {"gift": "analysis, insight और research depth", "shadow": "withdrawal और overthinking", "growth": "deep thinking को practical expression देना"},
-    8: {"gift": "power, material strategy और governance", "shadow": "control stress और harsh pressure", "growth": "ethical authority with stable systems"},
-    9: {"gift": "vision, compassion और larger purpose", "shadow": "energy leakage और emotional exhaustion", "growth": "purpose को grounded structure देना"},
+    1: {"strength": "initiative and leadership", "risk": "over-control", "protocol": "lead with review loops"},
+    2: {"strength": "diplomacy and empathy", "risk": "indecision", "protocol": "enforce decision windows"},
+    3: {"strength": "communication and creativity", "risk": "scattered execution", "protocol": "convert ideas into weekly outputs"},
+    4: {"strength": "discipline and structure", "risk": "rigidity", "protocol": "blend process with flexibility"},
+    5: {"strength": "adaptability and speed", "risk": "restless switching", "protocol": "protect freedom inside routine"},
+    6: {"strength": "responsibility and trust", "risk": "over-burdening", "protocol": "set role boundaries"},
+    7: {"strength": "analysis and insight", "risk": "overthinking", "protocol": "convert insight to checkpoints"},
+    8: {"strength": "authority and material strategy", "risk": "pressure intensity", "protocol": "scale with governance"},
+    9: {"strength": "vision and influence", "risk": "energy leakage", "protocol": "prioritize and close loops"},
 }
 
-PLANET_MAP: Dict[int, str] = {
-    1: "सूर्य | Surya",
-    2: "चंद्र | Chandra",
-    3: "गुरु | Guru",
-    4: "राहु | Rahu",
-    5: "बुध | Budh",
-    6: "शुक्र | Shukra",
-    7: "केतु | Ketu",
-    8: "शनि | Shani",
-    9: "मंगल | Mangal",
-    11: "चंद्र-गुरु मिश्र ऊर्जा | Moon-Jupiter Blend",
-    22: "राहु-शनि संरचना | Rahu-Saturn Build Force",
+COMPOUND_MEANINGS: Dict[int, str] = {
+    13: "karmic discipline debt",
+    14: "karmic freedom debt",
+    16: "karmic ego correction",
+    19: "karmic independence debt",
+    22: "master builder field",
+    33: "master service field",
 }
 
-LOSHU_MEANINGS: Dict[int, str] = {
-    1: "स्वतंत्र निर्णय और personal will",
-    2: "sensitivity, relationship awareness और diplomacy",
-    3: "communication, creative expression और social ease",
-    4: "discipline, order और practical systems",
-    5: "adaptability, center balance और response flexibility",
-    6: "family duty, commitment और responsibility",
-    7: "introspection, research और inner truth seeking",
-    8: "power handling, endurance और material governance",
-    9: "vision, courage और larger humanitarian direction",
+SECTION_META: Dict[str, Dict[str, Any]] = {
+    "default": {
+        "purpose": "Deliver deterministic diagnosis with correction protocol.",
+        "key_inputs": ["numerology_core", "core_metrics", "intake_context"],
+        "output_fields": ["cards", "bullets", "narrative"],
+        "interpretation_logic": "Map structural signals to behavior impact and protocol.",
+        "tone_guidance": "Executive and consultation-grade.",
+    },
+    "intelligence_metrics": {
+        "purpose": "Quantify strength, deficit, and intervention focus.",
+        "key_inputs": ["core_metrics", "loshu_grid", "behavioral_intake"],
+        "output_fields": ["primary_strength", "primary_deficit", "structural_cause", "intervention_focus", "risk_band"],
+        "interpretation_logic": "Rank metric stack and connect with structural signals.",
+        "tone_guidance": "Diagnostic and high-authority.",
+    },
 }
 
-FOCUS_LABELS = {
-    "finance_debt": "financial stability और debt control",
-    "career_growth": "career growth और role positioning",
-    "relationship": "relationship clarity और emotional balance",
-    "health_stability": "health stability और energy rhythm",
-    "emotional_confusion": "emotional clarity और inner steadiness",
-    "business_decision": "business direction और strategic execution",
-    "general_alignment": "overall life alignment",
-}
+
+def _safe_text(value: Any, default: str = "") -> str:
+    text = " ".join(str(value or "").split())
+    return text or default
 
 
 def _safe_int(value: Any, default: int = 0) -> int:
@@ -98,221 +70,221 @@ def _safe_int(value: Any, default: int = 0) -> int:
         return default
 
 
-def _clean_text(value: Any, default: str = "") -> str:
-    if value is None:
-        return default
-    text = " ".join(str(value).split())
-    return text or default
+def _safe_list(value: Any) -> List[Any]:
+    if isinstance(value, list):
+        return [item for item in value if item not in (None, "", [], {})]
+    if value in (None, "", [], {}):
+        return []
+    return [value]
 
 
-def _first_name(identity: Dict[str, Any]) -> str:
-    full_name = _clean_text(identity.get("full_name"), "उपयोगकर्ता")
-    return full_name.split()[0] if full_name else "उपयोगकर्ता"
+def _reduce_number(value: int) -> int:
+    while value > 9 and value not in {11, 22, 33}:
+        value = sum(int(char) for char in str(value))
+    return value
 
 
-def _focus_label(focus_key: str) -> str:
-    return FOCUS_LABELS.get(focus_key or "general_alignment", FOCUS_LABELS["general_alignment"])
+def _alpha_sum(value: str) -> int:
+    cleaned = "".join(char for char in value.lower() if char.isalpha())
+    return sum(ord(char) - 96 for char in cleaned)
 
 
-def _life_numbers(numerology_core: Dict[str, Any]) -> Tuple[int, int, int, int]:
-    pyth = numerology_core.get("pythagorean") or {}
-    chaldean = numerology_core.get("chaldean") or {}
-    return (
-        _safe_int(pyth.get("life_path_number"), 0),
-        _safe_int(pyth.get("destiny_number"), 0),
-        _safe_int(pyth.get("expression_number"), 0),
-        _safe_int(chaldean.get("name_number"), 0),
-    )
+def _vibration_from_text(value: str) -> int:
+    total = _alpha_sum(value)
+    return _reduce_number(total) if total > 0 else 0
 
 
-def _metric_pairs(scores: Dict[str, Any]) -> List[Tuple[str, int]]:
-    ordered = []
-    for key in (
+def _vibration_from_digits(value: str) -> int:
+    digits = [int(char) for char in str(value or "") if char.isdigit()]
+    return _reduce_number(sum(digits)) if digits else 0
+
+
+def _metric_labels() -> Dict[str, str]:
+    return {
+        "life_stability_index": "Life Stability",
+        "confidence_score": "Decision Clarity",
+        "dharma_alignment_score": "Dharma Alignment",
+        "emotional_regulation_index": "Emotional Regulation",
+        "financial_discipline_index": "Financial Discipline",
+        "karma_pressure_index": "Karma Pressure",
+    }
+
+
+def _metric_order(scores: Dict[str, Any]) -> List[Tuple[str, int]]:
+    keys = [
         "life_stability_index",
         "confidence_score",
         "dharma_alignment_score",
         "emotional_regulation_index",
         "financial_discipline_index",
         "karma_pressure_index",
-    ):
-        ordered.append((key, _safe_int(scores.get(key), 50)))
-    return ordered
+    ]
+    return [(key, _safe_int(scores.get(key), 50)) for key in keys]
 
 
-def _strongest_metric(scores: Dict[str, Any]) -> Tuple[str, int]:
-    return max(_metric_pairs(scores), key=lambda item: item[1])
-
-
-def _weakest_metric(scores: Dict[str, Any]) -> Tuple[str, int]:
-    return min(_metric_pairs(scores), key=lambda item: item[1])
-
-
-def _score_tone(score: int) -> str:
+def _metric_status(score: int) -> str:
     if score >= 75:
-        return "मजबूत"
+        return "Strong"
     if score >= 55:
-        return "मध्यम लेकिन workable"
-    return "संवेदनशील"
+        return "Moderate"
+    return "Sensitive"
+
+
+def _risk_band(scores: Dict[str, Any]) -> str:
+    confidence = _safe_int(scores.get("confidence_score"), 50)
+    stability = _safe_int(scores.get("life_stability_index"), 50)
+    emotional = _safe_int(scores.get("emotional_regulation_index"), 50)
+    finance = _safe_int(scores.get("financial_discipline_index"), 50)
+    karma = _safe_int(scores.get("karma_pressure_index"), 50)
+    weakest = min(confidence, stability, emotional, finance)
+    if karma >= 75 or weakest <= 35:
+        return "High Risk | Structural Intervention Required"
+    if karma >= 60 or weakest <= 49:
+        return "Watch Zone | Guided Stabilization Required"
+    if weakest >= 70 and karma <= 45:
+        return "Strategic Growth Zone | Scale with Governance"
+    return "Correctable Zone | Protocol-Driven Improvement"
 
 
 def _dominant_planet(life_path: int, destiny: int, name_number: int) -> str:
     primary = life_path or destiny or name_number or 5
-    return PLANET_MAP.get(primary, "बुध | Budh")
+    return PLANET_BY_NUMBER.get(primary, "Budh")
 
 
-def _missing_numbers(numerology_core: Dict[str, Any]) -> List[int]:
-    loshu = numerology_core.get("loshu_grid") or {}
-    missing = loshu.get("missing_numbers") or []
-    return sorted(_safe_int(number, 0) for number in missing if _safe_int(number, 0))
+def _parse_date(value: str) -> Tuple[int, int, int]:
+    text = _safe_text(value)
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d"):
+        try:
+            dt = datetime.strptime(text, fmt)
+            return (dt.day, dt.month, dt.year)
+        except ValueError:
+            continue
+    return (1, 1, 2000)
 
 
-def _present_numbers(numerology_core: Dict[str, Any]) -> List[int]:
-    loshu = numerology_core.get("loshu_grid") or {}
-    grid = loshu.get("grid_counts") or {}
-    present: List[int] = []
-    for number in range(1, 10):
-        if _safe_int(grid.get(str(number), grid.get(number)), 0) > 0:
-            present.append(number)
-    return present
+def _personal_year(day: int, month: int) -> int:
+    total = sum(int(char) for char in f"{day:02d}{month:02d}{datetime.utcnow().year}")
+    return _reduce_number(total)
 
 
-def _zone_balance(numerology_core: Dict[str, Any]) -> Tuple[str, str]:
-    loshu = numerology_core.get("loshu_grid") or {}
-    grid = loshu.get("grid_counts") or {}
-    zones = {
-        "mental plane": sum(_safe_int(grid.get(str(number), 0), 0) for number in (4, 9, 2)),
-        "emotional plane": sum(_safe_int(grid.get(str(number), 0), 0) for number in (3, 5, 7)),
-        "practical plane": sum(_safe_int(grid.get(str(number), 0), 0) for number in (8, 1, 6)),
-    }
-    weakest = min(zones.items(), key=lambda item: item[1])[0]
-    strongest = max(zones.items(), key=lambda item: item[1])[0]
-    return strongest, weakest
+def _lucky_dates(day: int, month: int, life_path: int, destiny: int) -> List[int]:
+    anchors = {life_path, destiny, _reduce_number(day), _reduce_number(month)}
+    anchors.discard(0)
+    dates = sorted(value for value in anchors if value <= 31)
+    return dates[:5] or [3, 5, 9]
 
 
-def _metric_driver(metric_key: str, scores: Dict[str, Any], intake_context: Dict[str, Any]) -> str:
-    financial = intake_context.get("financial") or {}
-    emotional = intake_context.get("emotional") or {}
-    career = intake_context.get("career") or {}
-    life_events = intake_context.get("life_events") or {}
-
-    if metric_key == "confidence_score":
-        missing = []
-        if financial.get("savings_ratio") is None:
-            missing.append("savings ratio")
-        if financial.get("debt_ratio") is None:
-            missing.append("debt ratio")
-        if career.get("stress_level") is None:
-            missing.append("stress level")
-        if emotional.get("anxiety_level") is None:
-            missing.append("anxiety signal")
-        if career.get("years_experience") is None:
-            missing.append("experience depth")
-        if missing:
-            return "यह score नीचे है क्योंकि behavioral intake में " + ", ".join(missing[:4]) + " जैसे signals अधूरे हैं।"
-        return "Confidence low नहीं है; इसका आधार decision clarity और input completeness दोनों हैं।"
-
-    if metric_key == "financial_discipline_index":
-        savings = financial.get("savings_ratio")
-        debt = financial.get("debt_ratio")
-        return (
-            f"Savings ratio {savings if savings is not None else 'उपलब्ध नहीं'} और debt ratio {debt if debt is not None else 'उपलब्ध नहीं'} "
-            "इस metric को सबसे अधिक influence कर रहे हैं।"
-        )
-
-    if metric_key == "emotional_regulation_index":
-        anxiety = emotional.get("anxiety_level")
-        stability = emotional.get("emotional_stability")
-        return (
-            f"Anxiety level {anxiety if anxiety is not None else 'उपलब्ध नहीं'} और emotional stability "
-            f"{stability if stability is not None else 'उपलब्ध नहीं'} इस score की दिशा तय कर रहे हैं।"
-        )
-
-    if metric_key == "life_stability_index":
-        setbacks = len(life_events.get("setback_events_years") or [])
-        stress = career.get("stress_level")
-        return (
-            f"Stress level {stress if stress is not None else 'उपलब्ध नहीं'} और setback count {setbacks} "
-            "जीवन स्थिरता की practical quality को shape कर रहे हैं।"
-        )
-
-    if metric_key == "dharma_alignment_score":
-        years = career.get("years_experience")
-        focus_key = (intake_context.get("focus") or {}).get("life_focus")
-        return (
-            f"Current focus {_focus_label(focus_key)} और experience depth {years if years is not None else 'उपलब्ध नहीं'} "
-            "इस alignment score के प्रमुख drivers हैं।"
-        )
-
-    if metric_key == "karma_pressure_index":
-        setbacks = len(life_events.get("setback_events_years") or [])
-        anxiety = emotional.get("anxiety_level")
-        return (
-            f"Anxiety signal {anxiety if anxiety is not None else 'उपलब्ध नहीं'} और पिछले setbacks {setbacks} "
-            "कर्म दबाव की intensity को influence कर रहे हैं।"
-        )
-
-    return "यह संकेतक उपलब्ध numerology और behavioral inputs के संयुक्त pattern से निकला है।"
+def _karmic_numbers(day: int, name_compound: int, business_compound: int) -> List[int]:
+    values = [day, name_compound, business_compound]
+    return sorted(set(value for value in values if value in {13, 14, 16, 19}))
 
 
-def _metric_explanations(scores: Dict[str, Any], intake_context: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
-    explanations: Dict[str, Dict[str, Any]] = {}
-    for key, score in _metric_pairs(scores):
-        guide = METRIC_GUIDE[key]
-        explanations[key] = {
-            "label": guide["label"],
-            "score": score,
-            "status": _score_tone(score),
-            "meaning": guide["meaning"],
-            "driver": _metric_driver(key, scores, intake_context),
-            "risk": guide["risk"],
-            "improvement": guide["improvement"],
-        }
-    return explanations
+def _hidden_passion(loshu_grid: Dict[str, Any], full_name: str) -> Tuple[int, str]:
+    counts = loshu_grid.get("grid_counts") if isinstance(loshu_grid, dict) else {}
+    if isinstance(counts, dict) and counts:
+        best_number = max(range(1, 10), key=lambda number: _safe_int(counts.get(str(number), counts.get(number, 0)), 0))
+        return best_number, NUMBER_TRAITS.get(best_number, NUMBER_TRAITS[5])["strength"]
+    vibration = _vibration_from_text(full_name) or 5
+    return vibration, NUMBER_TRAITS.get(vibration, NUMBER_TRAITS[5])["strength"]
 
 
-def _deficit_model(
-    scores: Dict[str, Any],
-    numerology_core: Dict[str, Any],
-    remedies: Dict[str, Any],
-    intake_context: Dict[str, Any],
-) -> Dict[str, str]:
-    missing = _missing_numbers(numerology_core)
-    weakest_metric_key, weakest_score = _weakest_metric(scores)
-    weakest_metric = METRIC_GUIDE[weakest_metric_key]["label"]
+def _pinnacle_challenge(day: int, month: int, year: int) -> Dict[str, List[int]]:
+    year_sum = _reduce_number(sum(int(char) for char in str(year)))
+    day_root = _reduce_number(day)
+    month_root = _reduce_number(month)
+    p1 = _reduce_number(day_root + month_root)
+    p2 = _reduce_number(day_root + year_sum)
+    p3 = _reduce_number(p1 + p2)
+    c1 = abs(day_root - month_root)
+    c2 = abs(day_root - year_sum)
+    c3 = abs(c1 - c2)
+    return {"pinnacles": [p1, p2, p3], "challenges": [c1, c2, c3]}
 
-    if 5 in missing:
-        deficit = "केंद्र 5 की कमी | Missing center 5"
-        symptom = "Decision instability, context switching और emotional anchoring की कमी एक साथ दिखाई दे सकती है।"
-        patch = "हर बड़े निर्णय के लिए 24-hour pause rule, written priorities और same-time daily reset install करें।"
-    elif missing:
-        primary_missing = missing[0]
-        deficit = f"लो शु कमी {primary_missing} | Missing {primary_missing}"
-        symptom = (
-            f"यह कमी {LOSHU_MEANINGS.get(primary_missing, 'core expression')} से जुड़े व्यवहार में gap दिखाती है, "
-            "जिससे consistency या communication में friction बढ़ सकता है।"
-        )
-        patch = (
-            f"ऐसी routine बनाएं जो {LOSHU_MEANINGS.get(primary_missing, 'इस ऊर्जा')} को daily action में convert करे। "
-            "Small repeated practices यहां सबसे effective रहेंगी।"
-        )
-    else:
-        deficit = f"स्कोर अंतर | Weakest metric: {weakest_metric}"
-        symptom = METRIC_GUIDE[weakest_metric_key]["risk"]
-        patch = METRIC_GUIDE[weakest_metric_key]["improvement"]
+def _name_options(full_name: str, target_numbers: Sequence[int]) -> List[Dict[str, Any]]:
+    base = _safe_text(full_name)
+    if not base:
+        return []
+    variants = [base, f"{base}a", f"{base}h", f"{base}aa", f"{base}y", f"{base}i"]
+    options: List[Dict[str, Any]] = []
+    seen = set()
+    for variant in variants:
+        key = variant.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        number = _vibration_from_text(variant)
+        if number <= 0:
+            continue
+        if target_numbers and number not in target_numbers:
+            continue
+        options.append({"option": variant, "number": number, "logic": "aligns with target vibration"})
+    return options[:3]
 
-    focus_key = (intake_context.get("focus") or {}).get("life_focus")
-    routine = ((remedies.get("daily_energy_alignment") or {}).get("focus_routine")) or "सुबह स्पष्ट intention लिखें।"
-    rationale = (
-        f"Current focus {_focus_label(focus_key)} है और weakest pressure point का score {weakest_score} है। "
-        f"इसलिए engineered patch केवल advice नहीं बल्कि daily operating system होना चाहिए. Anchor line: {routine}"
-    )
 
+def _handle_patterns(base: str, target_numbers: Sequence[int]) -> List[str]:
+    cleaned = "".join(char for char in base.lower() if char.isalnum()) or "strategicprofile"
+    patterns: List[str] = []
+    for number in target_numbers[:3] or [1, 3, 5]:
+        patterns.append(f"{cleaned}.{number}")
+        patterns.append(f"{cleaned}_{number}x")
+    deduped: List[str] = []
+    for item in patterns:
+        if item not in deduped:
+            deduped.append(item)
+    return deduped[:4]
+
+
+def _compound_meaning(value: int) -> str:
+    return COMPOUND_MEANINGS.get(value, "composite growth-pressure cycle")
+
+
+def _section_payload(
+    section_key: str,
+    narrative: str,
+    what_happening: str,
+    why_happening: str,
+    impact: str,
+    action: str,
+    extra_cards: Sequence[Dict[str, str]] | None = None,
+    bullets: Sequence[str] | None = None,
+) -> Dict[str, Any]:
+    meta = SECTION_META.get(section_key, SECTION_META["default"])
+    cards = [
+        {"label": "What is happening", "value": what_happening},
+        {"label": "Why it is happening", "value": why_happening},
+        {"label": "What it affects", "value": impact},
+        {"label": "What to do about it", "value": action},
+    ]
+    if extra_cards:
+        cards.extend(extra_cards)
+    clean_bullets = [_safe_text(item) for item in (bullets or []) if _safe_text(item)]
     return {
-        "structural_deficit": deficit,
-        "behavioral_symptom": symptom,
-        "engineered_patch": patch,
-        "rationale": rationale,
+        "section_key": section_key,
+        "title": SECTION_TITLES.get(section_key, section_key.replace("_", " ").title()),
+        "purpose": meta["purpose"],
+        "key_inputs": meta["key_inputs"],
+        "output_fields": meta["output_fields"],
+        "interpretation_logic": meta["interpretation_logic"],
+        "tone_guidance": meta["tone_guidance"],
+        "cards": cards,
+        "bullets": clean_bullets,
+        "narrative": _safe_text(narrative),
     }
+
+
+def _ensure_all_payloads(plan_name: str, payloads: Dict[str, Any]) -> Dict[str, Any]:
+    for section in get_tier_section_blueprint(plan_name).get("sections", []):
+        key = section.get("key")
+        if key and key not in payloads:
+            payloads[key] = _section_payload(
+                key,
+                narrative=f"{SECTION_TITLES.get(key, key)} generated from deterministic profile synthesis.",
+                what_happening="Deterministic signal is identified in this intelligence layer.",
+                why_happening="This layer is derived from numerology-core and intake-pattern relationships.",
+                impact="Provides a correction-aware decision lens.",
+                action="Apply this section protocol inside the integrated execution system.",
+            )
+    return payloads
 
 
 def build_interpretation_report(
@@ -321,367 +293,302 @@ def build_interpretation_report(
     scores: Dict[str, Any],
     archetype: Dict[str, Any],
     remedies: Dict[str, Any],
+    plan_name: str = "basic",
 ) -> Dict[str, Any]:
+    intake_context = intake_context or {}
+    numerology_core = numerology_core or {}
+    scores = scores or {}
+    archetype = archetype or {}
+    remedies = remedies or {}
+
     identity = intake_context.get("identity") or {}
     birth_details = intake_context.get("birth_details") or {}
-    preferences = intake_context.get("preferences") or {}
     focus = intake_context.get("focus") or {}
-    financial = intake_context.get("financial") or {}
     career = intake_context.get("career") or {}
-    current_problem = _clean_text(intake_context.get("current_problem"), "overall life alignment")
+    contact = intake_context.get("contact") or {}
+    preferences = intake_context.get("preferences") or {}
 
-    name = _clean_text(identity.get("full_name"), "उपयोगकर्ता")
-    first_name = _first_name(identity)
-    city = _clean_text(birth_details.get("birthplace_city"), "जन्म-स्थान उपलब्ध नहीं")
-    language = _clean_text(preferences.get("language_preference"), "hindi")
-    focus_key = _clean_text(focus.get("life_focus"), "general_alignment")
-    focus_label = _focus_label(focus_key)
+    full_name = _safe_text(identity.get("full_name"), "Strategic Client")
+    first_name = full_name.split()[0]
+    date_of_birth = _safe_text(birth_details.get("date_of_birth") or identity.get("date_of_birth"))
+    day, month, year = _parse_date(date_of_birth)
+    current_problem = _safe_text(intake_context.get("current_problem"), "strategic consistency and calibrated growth")
 
-    life_path, destiny, expression, name_number = _life_numbers(numerology_core)
-    dominant_planet = _dominant_planet(life_path, destiny, name_number)
-    strongest_metric_key, strongest_metric_score = _strongest_metric(scores)
-    weakest_metric_key, weakest_metric_score = _weakest_metric(scores)
-    strongest_metric = METRIC_GUIDE[strongest_metric_key]["label"]
-    weakest_metric = METRIC_GUIDE[weakest_metric_key]["label"]
-    metric_explanations = _metric_explanations(scores, intake_context)
+    city = _safe_text(birth_details.get("birthplace_city") or identity.get("city"), "current city")
+    career_industry = _safe_text(career.get("industry") or preferences.get("profession"), "strategy and operations")
 
-    archetype_name = _clean_text(archetype.get("archetype_name"), "Strategic Pattern")
-    core_archetype = _clean_text(archetype.get("core_archetype"), "Adaptive Archetype")
-    behavior_style = _clean_text(archetype.get("behavior_style"), "Adaptive Thinker")
-    archetype_description = _clean_text(archetype.get("description"))
-
-    traits = NUMBER_TRAITS.get(life_path or destiny or 5, NUMBER_TRAITS[5])
-    missing_numbers = _missing_numbers(numerology_core)
-    present_numbers = _present_numbers(numerology_core)
-    strongest_zone, weakest_zone = _zone_balance(numerology_core)
-    risk_band = _clean_text(scores.get("risk_band"), "Correctable")
-    confidence = _safe_int(scores.get("confidence_score"), 50)
+    pyth = numerology_core.get("pythagorean") or {}
+    chaldean = numerology_core.get("chaldean") or {}
+    loshu_grid = numerology_core.get("loshu_grid") or {}
     mobile_analysis = numerology_core.get("mobile_analysis") or {}
+    email_analysis = numerology_core.get("email_analysis") or {}
+    name_correction = numerology_core.get("name_correction") or {}
     business_analysis = numerology_core.get("business_analysis") or {}
     compatibility = numerology_core.get("compatibility") or {}
-    life_remedies = remedies.get("lifestyle_remedies") or {}
-    mobile_remedies = remedies.get("mobile_remedies") or {}
-    vedic = remedies.get("vedic_remedies") or {}
-    daily = remedies.get("daily_energy_alignment") or {}
 
-    savings = financial.get("savings_ratio")
-    debt = financial.get("debt_ratio")
-    stress_level = career.get("stress_level")
-    years = career.get("years_experience")
-    industry = _clean_text(career.get("industry"), _clean_text(preferences.get("profession"), "general professional domain"))
+    life_path = _safe_int(pyth.get("life_path_number"), 0)
+    destiny = _safe_int(pyth.get("destiny_number"), 0)
+    expression = _safe_int(pyth.get("expression_number"), 0)
+    soul_urge = _safe_int(pyth.get("soul_urge_number"), _reduce_number(_alpha_sum(full_name)))
+    personality = _safe_int(pyth.get("personality_number"), expression)
+    name_number = _safe_int(chaldean.get("name_number"), _safe_int(name_correction.get("current_number"), 0))
 
-    primary_insight = {
-        "core_archetype": archetype_name,
-        "strength": (
-            f"{strongest_metric} इस report का सबसे मजबूत संकेतक है। इसका अर्थ है कि {first_name} के पास "
-            f"{METRIC_GUIDE[strongest_metric_key]['meaning'].replace('यह ', '').replace('यह score ', '')}"
-        ),
-        "critical_deficit": (
-            f"सबसे बड़ा deficit {weakest_metric} में दिख रहा है। वर्तमान score {weakest_metric_score} इस बात का संकेत देता है कि "
-            f"{METRIC_GUIDE[weakest_metric_key]['risk']}"
-        ),
-        "stability_risk": (
-            f"Risk band {risk_band} है। इसका अर्थ यह है कि structure मौजूद है, लेकिन अगर {weakest_metric.lower()} पर काम नहीं किया गया "
-            "तो growth pressure phases में instability जल्दी बढ़ सकती है।"
-        ),
-        "phase_1_diagnostic": (
-            f"Phase 1 Diagnostic: {first_name} की current challenge '{current_problem}' है। Life Path {life_path}, Destiny {destiny} "
-            f"और weakest signal {weakest_metric.lower()} यह दिखाते हैं कि समस्या केवल बाहरी नहीं बल्कि operating rhythm की भी है।"
-        ),
-        "phase_2_blueprint": (
-            f"Phase 2 Structural Blueprint: Foundation number {life_path}, execution number {destiny}, expression {expression} "
-            f"और public facade {name_number} को एक single strategic lane में align करना होगा ताकि {focus_label} compounding mode में जा सके।"
-        ),
-        "phase_3_intervention_protocol": (
-            f"Phase 3 Intervention Protocol: सुबह के anchor, decision filters, mobile-energy hygiene और remedy discipline को 21-day protocol में चलाकर "
-            f"{weakest_metric.lower()} को stabilize करना इस report की मुख्य recommendation है।"
-        ),
-        "narrative": (
-            f"{name} की Strategic Life Audit यह दिखाती है कि core archetype '{archetype_name}' है, जिसका central theme {traits['gift']} है। "
-            f"Life Path {life_path}, Destiny {destiny} और Name Number {name_number} मिलकर एक ऐसा pattern बना रहे हैं जिसमें potential मौजूद है, "
-            f"लेकिन उसका compounding weakest metric {weakest_metric.lower()} के कारण रुक सकता है। Current focus {focus_label} है, "
-            f"और confidence score {confidence} बताता है कि clarity का स्तर {'मध्यम' if confidence >= 50 else 'सीमित'} है। "
-            f"इसलिए report का intent prediction देना नहीं बल्कि operating system redesign करना है, ताकि {first_name} reactive cycle से निकलकर deliberate growth mode में जा सके।"
-        ),
-    }
+    name_compound = _alpha_sum(full_name)
+    name_trait = NUMBER_TRAITS.get(name_number or life_path or 5, NUMBER_TRAITS[5])
+    name_strength = name_trait["strength"]
+    name_risk = name_trait["risk"]
 
-    numerology_architecture = {
-        "foundation": {
-            "label": "Foundation → Life Path",
-            "value": life_path,
-            "meaning": f"Life Path {life_path} आपकी natural journey, recurring lessons और default direction को govern करता है।",
-        },
-        "left_pillar": {
-            "label": "Left Pillar → Destiny",
-            "value": destiny,
-            "meaning": f"Destiny {destiny} outer-world execution, achievement style और visible contribution की शैली को shape करता है।",
-        },
-        "right_pillar": {
-            "label": "Right Pillar → Expression",
-            "value": expression,
-            "meaning": f"Expression {expression} communication tone, talent expression और public articulation की ताकत दिखाता है।",
-        },
-        "facade": {
-            "label": "Facade → Name Number",
-            "value": name_number,
-            "meaning": f"Name Number {name_number} social vibration, first impression और public trust architecture को influence करता है।",
-        },
-        "interaction_summary": (
-            f"जब Foundation {life_path} movement create करता है, Left Pillar {destiny} उसे execution में बदलता है, Right Pillar {expression} "
-            f"उसकी communication quality तय करता है और Facade {name_number} दुनिया तक उसकी branding पहुंचाता है। "
-            f"{first_name} के case में यह architecture research, structured movement और identity signal को combine करता है, इसलिए random multitasking के बजाय "
-            "clear lanes बनाना ज्यादा powerful रहेगा।"
-        ),
-    }
+    dominant_planet = _dominant_planet(life_path, destiny, name_number)
 
-    leadership_traits = [
-        f"{traits['gift']} इस profile की natural leadership strength है।",
-        f"Behavior Style '{behavior_style}' यह दिखाता है कि {first_name} uncertainty के बीच pattern पढ़ सकता है।",
-        f"{industry} जैसे domain में यह profile ownership, analysis और credibility-driven roles में अधिक चमक सकती है।",
-    ]
-    if business_analysis.get("compatible_industries"):
-        leadership_traits.append(
-            "Business vibration विशेष रूप से इन sectors को support करती है: "
-            + ", ".join(str(item) for item in business_analysis.get("compatible_industries", [])[:3])
-            + "."
+    metric_labels = _metric_labels()
+    metric_pairs = _metric_order(scores)
+    strongest_key, strongest_score = max(metric_pairs, key=lambda item: item[1])
+    weakest_key, weakest_score = min(metric_pairs, key=lambda item: item[1])
+    strongest_metric = metric_labels[strongest_key]
+    weakest_metric = metric_labels[weakest_key]
+    risk_band = _risk_band(scores)
+
+    grid_counts = loshu_grid.get("grid_counts") if isinstance(loshu_grid, dict) else {}
+    loshu_present: List[int] = []
+    loshu_missing: List[int] = []
+    if isinstance(grid_counts, dict) and grid_counts:
+        for number in range(1, 10):
+            count = _safe_int(grid_counts.get(str(number), grid_counts.get(number, 0)), 0)
+            if count > 0:
+                loshu_present.append(number)
+            else:
+                loshu_missing.append(number)
+    else:
+        loshu_missing = [3, 5, 6]
+
+    override_missing = [_safe_int(value, 0) for value in _safe_list(loshu_grid.get("missing_numbers")) if _safe_int(value, 0)]
+    if override_missing:
+        loshu_missing = sorted(set(override_missing))
+        loshu_present = [number for number in range(1, 10) if number not in loshu_missing]
+
+    primary_missing = loshu_missing[0] if loshu_missing else 0
+    structural_cause = f"Weakest axis {weakest_metric} is amplified by missing Lo Shu digit {primary_missing or 'none'} and current stress load."
+    intervention_focus = f"Stabilize {weakest_metric.lower()} with rhythm protocol, then align identity corrections to architecture."
+
+    metric_cards: List[Dict[str, Any]] = []
+    for key, score in metric_pairs:
+        label = metric_labels[key]
+        metric_cards.append(
+            {
+                "key": key,
+                "label": label,
+                "score": score,
+                "status": _metric_status(score),
+                "meaning": f"{label} captures deterministic behavior-risk quality at score {score}.",
+                "risk": "Low values indicate unstable execution under pressure.",
+                "improvement": "Attach a measurable protocol and weekly review checkpoint.",
+            }
         )
 
-    archetype_intelligence = {
-        "signature": (
-            f"{core_archetype} signature का मतलब यह है कि {first_name} का mind surface-level patterns से जल्दी संतुष्ट नहीं होता। "
-            f"यह profile {archetype_description or traits['gift']} को practical strategy में बदलने की क्षमता रखती है।"
-        ),
-        "leadership_traits": leadership_traits,
-        "shadow_traits": (
-            f"इस archetype का shadow side {traits['shadow']} है। Weakest metric {weakest_metric.lower()} होने के कारण "
-            f"यह shadow pressure phases में और visible हो सकता है, खासकर जब stress level {stress_level if stress_level is not None else 'उपलब्ध नहीं'} हो।"
-        ),
-        "growth_path": (
-            f"Growth path यह है कि {traits['growth']}। इसका practical मतलब है कि freedom और depth दोनों को repeatable systems के भीतर operate करना होगा।"
-        ),
+    metric_explanations = {
+        card["key"]: {
+            "label": card["label"],
+            "score": card["score"],
+            "status": card["status"],
+            "meaning": card["meaning"],
+            "driver": structural_cause,
+            "risk": card["risk"],
+            "improvement": card["improvement"],
+        }
+        for card in metric_cards
     }
 
-    missing_meanings = [
-        f"Missing {number}: {LOSHU_MEANINGS[number]} वाले क्षेत्र पर conscious training की जरूरत है।"
-        for number in missing_numbers
-        if number in LOSHU_MEANINGS
+    mobile_value = _safe_text(contact.get("mobile_number") or identity.get("mobile_number"))
+    mobile_vibration = _safe_int(mobile_analysis.get("mobile_vibration") or mobile_analysis.get("mobile_number_vibration"), _vibration_from_digits(mobile_value))
+    mobile_supportive = [_safe_int(value, 0) for value in _safe_list(mobile_analysis.get("supportive_number_energies")) if _safe_int(value, 0)]
+    if not mobile_supportive:
+        mobile_supportive = [life_path or 1, destiny or 3, 5]
+    mobile_compatibility = _safe_text(mobile_analysis.get("compatibility_status"), "supportive" if mobile_vibration in mobile_supportive else "neutral")
+    mobile_summary = _safe_text(mobile_analysis.get("compatibility_summary"), f"Mobile vibration {mobile_vibration} with profile compatibility {mobile_compatibility}.")
+
+    email_value = _safe_text(identity.get("email"))
+    email_vibration = _safe_int(email_analysis.get("email_number"), _vibration_from_text(email_value.split("@")[0] if email_value else ""))
+
+    social_handle = _safe_text(contact.get("social_handle"))
+    domain_handle = _safe_text(contact.get("domain_handle"))
+    residence_number = _safe_text(contact.get("residence_number"))
+    vehicle_number = _safe_text(contact.get("vehicle_number"))
+    residence_vibration = _vibration_from_digits(residence_number)
+    vehicle_vibration = _vibration_from_digits(vehicle_number)
+
+    business_name = _safe_text(identity.get("business_name"))
+    business_number = _safe_int(business_analysis.get("business_number"), _vibration_from_text(business_name))
+    business_compound = _safe_int(business_analysis.get("compound_number"), _alpha_sum(business_name))
+    business_strength = _safe_text(business_analysis.get("business_strength"), "Business signal supports strategic positioning with disciplined execution.")
+    business_risk = _safe_text(business_analysis.get("risk_factor"), "Commercial outcome depends on discipline and clarity under pressure.")
+    business_industries = [_safe_text(item) for item in _safe_list(business_analysis.get("compatible_industries")) if _safe_text(item)]
+    if not business_industries:
+        business_industries = [career_industry, "consulting", "digital services"]
+
+    personal_year = _personal_year(day, month)
+    lucky_dates = _lucky_dates(day, month, life_path, destiny)
+    karmic_numbers = _karmic_numbers(day, name_compound, business_compound)
+    hidden_passion_number, hidden_talent_trait = _hidden_passion(loshu_grid, full_name)
+    pinnacle = _pinnacle_challenge(day, month, year)
+
+    name_targets = sorted({value for value in [life_path, destiny, expression, 3, 5, 6] if value and value not in {4, 8}})[:4]
+    if not name_targets:
+        name_targets = [1, 3, 5]
+    name_options = _name_options(full_name, name_targets)
+
+    compatibility_summary = _safe_text(
+        compatibility.get("relationship_guidance"),
+        f"Compatibility is strongest with profiles reinforcing {strongest_metric.lower()} and reducing pressure on {weakest_metric.lower()}.",
+    )
+
+    lifestyle_protocol = "Same-time morning anchor, deep-work first block, and evening shutdown checklist."
+    digital_protocol = "Notification tiering, no high-stake decisions late-night, weekly digital detox window."
+    decision_protocol = "24-hour delay for high-impact calls, written criteria, weekly assumption audit."
+    emotional_protocol = "Breath reset before key calls, fixed sleep window, and post-stress review cadence."
+
+    vedic = remedies.get("vedic_remedies") if isinstance(remedies, dict) else {}
+    vedic = vedic if isinstance(vedic, dict) else {}
+    vedic_code = _safe_text(vedic.get("mantra_pronunciation") or vedic.get("mantra_sanskrit"), "Om Budhaya Namah")
+    vedic_parameter = _safe_text(vedic.get("practice_guideline"), "21 days x 108 repetitions at fixed time")
+    vedic_output = _safe_text(vedic.get("recommended_donation"), "Weekly practical donation aligned with intention")
+
+    correction_priority_lines = [
+        f"Stabilize {weakest_metric.lower()} through rhythm protocol.",
+        "Optimize name and mobile vibration alignment.",
+        "Upgrade email and signature authority signal.",
+        "Align residence and vehicle vibration if high-pressure pattern persists.",
     ]
-    center_presence = 5 in present_numbers
-    loshu_diagnostic = {
-        "present_numbers": present_numbers,
-        "missing_numbers": missing_numbers,
-        "center_presence": center_presence,
-        "energy_imbalance": f"Strongest zone {strongest_zone} है, जबकि weakest zone {weakest_zone} दिख रहा है।",
-        "missing_number_meanings": missing_meanings,
-        "narrative": (
-            f"Lo Shu grid {first_name} के behavioral architecture का silent map है। Present numbers {', '.join(map(str, present_numbers)) or 'none'} "
-            f"उन energies को दिखाते हैं जो naturally accessible हैं, जबकि missing numbers {', '.join(map(str, missing_numbers)) or 'none'} "
-            "बताते हैं कि किन qualities को consciously build करना होगा। "
-            f"Center 5 {'present' if center_presence else 'missing'} होने के कारण adaptability और internal balance "
-            f"{'accessible' if center_presence else 'एक major training theme'} बनते हैं। यह grid विशेष रूप से {focus_label} के context में महत्वपूर्ण है।"
-        ),
+
+    payloads: Dict[str, Any] = {}
+    payloads["executive_summary"] = _section_payload("executive_summary", f"{full_name} profile strategic but correction-sensitive hai. Risk band {risk_band}. Primary strength {strongest_metric}, primary deficit {weakest_metric}. Core concern: {current_problem}.", f"Strategic potential visible hai, but {weakest_metric.lower()} execution drag create kar raha hai.", structural_cause, f"Career momentum, financial discipline, and decision quality par impact in {career_industry}.", intervention_focus, [{"label": "Risk Band", "value": risk_band}, {"label": "Dominant Planet", "value": dominant_planet}])
+    payloads["intelligence_metrics"] = {**_section_payload("intelligence_metrics", "Metrics are used as structural diagnostics.", f"Primary Strength: {strongest_metric}. Primary Deficit: {weakest_metric}.", structural_cause, "Deficit metric introduces volatility while strength metric is leverage for growth.", intervention_focus, [{"label": "Primary Strength", "value": strongest_metric}, {"label": "Primary Deficit", "value": weakest_metric}, {"label": "Structural Cause", "value": structural_cause}, {"label": "Intervention Focus", "value": intervention_focus}, {"label": "Risk Band", "value": risk_band}]), "metric_cards": metric_cards, "show_chart": True}
+    payloads["core_numerology_numbers"] = _section_payload("core_numerology_numbers", f"Core stack: Life Path {life_path}, Destiny {destiny}, Expression {expression}, Soul Urge {soul_urge}, Personality {personality}.", "Core numbers indicate strategic-growth potential with protocol dependency.", "Direction, execution, expression, and projection are controlled by this stack.", "Role-fit, leadership style, and stress response follow this architecture.", "Leverage strongest axis and patch weakest behavior loop.")
+    payloads["name_number_analysis"] = _section_payload("name_number_analysis", f"Current name vibration {name_number}, compound {name_compound} ({_compound_meaning(name_compound)}).", "Name signal is active but partially optimized.", "Name frequency impacts authority and trust perception.", "Mismatch can suppress social clarity and strategic momentum.", "Move toward target-aligned spelling where practical.", [{"label": "Current Name Number", "value": str(name_number)}, {"label": "Strength", "value": name_trait['strength']}, {"label": "Risk", "value": name_trait['risk']}, {"label": "Target Numbers", "value": ', '.join(str(value) for value in name_targets)}], [f"Option {index + 1}: {item['option']} -> {item['number']}" for index, item in enumerate(name_options)])
+    payloads["birth_date_numerology"] = _section_payload("birth_date_numerology", f"Birth pattern and personal year {personal_year} define timing quality.", "Birth-date rhythm indicates cycle-based opportunities and caution windows.", "Day, month, and year roots shape recurring behavior cadence.", "Cycle alignment improves clarity and reduces decision friction.", "Schedule major actions in favorable date windows.", [{"label": "Favorable Dates", "value": ', '.join(str(v) for v in lucky_dates)}])
+    payloads["loshu_grid_intelligence"] = _section_payload("loshu_grid_intelligence", f"Lo Shu present: {', '.join(str(v) for v in loshu_present) or 'none'} | missing: {', '.join(str(v) for v in loshu_missing) or 'none'}.", "Lo Shu reveals naturally available energies and missing capacities.", "Digit distribution maps communication, discipline, and adaptability.", "Missing center/communication digits can amplify instability.", "Target missing number themes with habit-based correction protocol.")
+    payloads["karmic_pattern_intelligence"] = _section_payload("karmic_pattern_intelligence", f"Karmic indicators: {', '.join(str(v) for v in karmic_numbers) if karmic_numbers else 'none explicit'}.", "Karmic numbers indicate recurring lesson loops.", "Date and compound patterns repeat during stress cycles.", "Unresolved loops delay consistency and compounding progress.", "Attach one behavior protocol to each active karmic pattern.")
+    payloads["hidden_talent_intelligence"] = _section_payload("hidden_talent_intelligence", f"Hidden Passion number {hidden_passion_number} indicates edge in {hidden_talent_trait}.", "Latent skill axis is visible in number-dominance patterns.", "Core and grid signals create compounding potential.", "When activated, this axis boosts speed and confidence.", "Convert hidden talent into weekly measurable outputs.")
+    payloads["personal_year_forecast"] = _section_payload("personal_year_forecast", f"Personal year {personal_year} indicates correction-led growth and consolidation.", f"Current cycle number {personal_year} defines the year theme.", "Personal year derives from birth day/month and current year.", "Cycle awareness improves effort-to-result ratio.", "Use favorable dates for launches and directional decisions.")
+    payloads["lucky_numbers_favorable_dates"] = _section_payload("lucky_numbers_favorable_dates", "Lucky logic is scheduling calibration, not superstition.", "Selected numbers and dates show higher profile resonance.", "They align with life-path and destiny rhythm.", "Timing alignment can improve confidence and outcomes.", "Use these windows for high-impact actions.", [{"label": "Lucky Numbers", "value": ', '.join(str(v) for v in name_targets[:4])}, {"label": "Favorable Dates", "value": ', '.join(str(v) for v in lucky_dates)}])
+    payloads["basic_remedies"] = _section_payload("basic_remedies", "Basic remedies are behavior anchors designed for consistency.", f"Weakest metric {weakest_metric.lower()} requires stabilization.", "Profile sensitivity increases when routine breaks under stress.", "Instability affects strategic clarity and follow-through.", f"{lifestyle_protocol} | {digital_protocol}", bullets=[f"Mantra code: {vedic_code}", f"Practice: {vedic_parameter}", f"Output: {vedic_output}"])
+    payloads["archetype_intelligence"] = _section_payload("archetype_intelligence", f"{first_name} archetype blends {name_strength} with risk of {name_risk}.", "Archetype signature shows strategic upside with discipline dependency.", "Core numbers combine analytical depth and adaptive drive.", "Leadership impact depends on rhythm and message clarity.", name_trait["protocol"])
+    payloads["career_intelligence"] = _section_payload("career_intelligence", f"Career alignment strongest in {career_industry} with ownership-driven roles.", "Growth curve favors strategic responsibility and measurable outcomes.", "Life-path and expression alignment rewards depth over reactivity.", "Role mismatch causes effort without compounding.", "Prioritize roles with authority, visibility, and accountability.")
+    payloads["financial_intelligence"] = _section_payload("financial_intelligence", f"Financial signal: discipline score {_safe_int(scores.get('financial_discipline_index'), 50)} with protocol-first improvement path.", "Financial behavior is correction-ready but structure-dependent.", "Metric stack suggests discipline variance under stress.", "Without protocol, growth leaks through reactive decisions.", "Install budget checkpoints and monthly capital review.")
+    payloads["numerology_architecture"] = _section_payload("numerology_architecture", f"Architecture: Foundation {life_path}, Left Pillar {destiny}, Right Pillar {expression}, Facade {name_number}.", "Core numbers form a unified structural blueprint.", "Each pillar controls direction, execution, and projection.", "Misalignment appears as confidence drift and inconsistency.", "Align corrections (name/mobile/email) to this architecture.")
+    payloads["planetary_influence"] = _section_payload("planetary_influence", f"Primary intervention planet: {dominant_planet}.", "Planetary mapping is calibration lens, not fate prediction.", "Core numbers amplify one intervention channel in current cycle.", "Ignoring it increases friction in decision and emotional domains.", "Anchor routines and remedies to intervention-planet discipline.")
+    payloads["compatibility_intelligence"] = _section_payload("compatibility_intelligence", _safe_text(compatibility.get("relationship_guidance"), f"Compatibility strongest with profiles reinforcing {strongest_metric.lower()} and reducing pressure on {weakest_metric.lower()}"), "Compatibility signal highlights support and friction patterns.", "Number resonance influences communication pace and expectation alignment.", "Mismatch can drain energy in personal and business collaborations.", "Prioritize partnerships that reinforce strengths and de-risk deficits.")
+    payloads["life_cycle_timeline"] = _section_payload("life_cycle_timeline", "Life cycle timeline maps foundation, expansion, and integration phases.", "Current phase requires correction-led consolidation before aggressive scaling.", "Pinnacle progression and personal-year rhythm indicate sequencing needs.", "Right sequencing improves long-term optionality and stability.", "Plan in three phases: stabilize, optimize, scale.")
+    payloads["pinnacle_challenge_cycle_intelligence"] = _section_payload("pinnacle_challenge_cycle_intelligence", f"Pinnacles {pinnacle['pinnacles']} | Challenges {pinnacle['challenges']}.", "Pinnacle cycles define opportunities; challenge cycles define resistance.", "Date-derived reductions map developmental sequence.", "Ignoring challenge signatures repeats avoidable errors.", "Match strategy to active pinnacle and neutralize challenge traits.")
+    payloads["strategic_guidance"] = _section_payload("strategic_guidance", "Strategic guidance converts numerology into operating decisions.", "System requires correction-first execution before scale expansion.", f"Risk band {risk_band} and weakest axis {weakest_metric.lower()} require stabilization.", "Correct sequence improves clarity and timing quality.", "Run correction stack: behavior -> identity -> timing -> scale.")
+    payloads["name_vibration_optimization"] = _section_payload("name_vibration_optimization", f"Current name number {name_number}, compound {name_compound} ({_compound_meaning(name_compound)}).", "Name vibration is active but partially optimized for strategic goals.", "Name frequency encodes authority and trust signal.", "Suboptimal signal can reduce conversion quality and momentum.", "Adopt target-aligned variants where commercial context justifies.", [{"label": "Current Number", "value": str(name_number)}, {"label": "Target Numbers", "value": ', '.join(str(v) for v in name_targets)}, {"label": "Strength", "value": name_trait['strength']}, {"label": "Risk", "value": name_trait['risk']}], [f"Option {index + 1}: {item['option']} -> {item['number']}" for index, item in enumerate(name_options)])
+    payloads["mobile_number_intelligence"] = _section_payload("mobile_number_intelligence", mobile_summary, f"Current mobile vibration {mobile_vibration} with {mobile_compatibility} compatibility.", "Mobile frequency influences communication and response cadence.", "Misalignment may increase noise or decision fatigue.", "Shift to supportive ending patterns when feasible.", [{"label": "Current Mobile", "value": mobile_value or 'Not provided'}, {"label": "Target Vibrations", "value": ', '.join(str(v) for v in mobile_supportive[:4])}, {"label": "Ending Logic", "value": "Prefer final digits matching supportive triad"}])
+    payloads["email_identity_intelligence"] = _section_payload("email_identity_intelligence", f"Current email vibration {email_vibration} shapes digital authority signal.", "Digital identity is active but can be optimized for trust and visibility.", "Email local-part vibration affects first-impression coding.", "Weak signal can lower credibility and response quality.", "Use cleaner naming pattern aligned with target profile numbers.", [{"label": "Current Email", "value": email_value or 'Not provided'}, {"label": "Email Vibration", "value": str(email_vibration or 0)}, {"label": "Authority Signal", "value": 'High' if email_vibration in {1, 8, 9, 22} else 'Moderate'}], [f"Suggested pattern: {pattern}" for pattern in _handle_patterns(first_name, name_targets)])
+    payloads["signature_intelligence"] = _section_payload("signature_intelligence", "Signature energy should communicate authority with controlled flow and completion.", "Current signature behavior can be optimized for growth alignment.", "Stroke structure encodes confidence and decision intent.", "Weak structure can dilute authority signal.", "Use rising start, stable midline, and forward closure stroke.", [{"label": "Starting Stroke", "value": "Begin upward, avoid backward hooks"}, {"label": "Ending Stroke", "value": "Close forward-right with complete finish"}, {"label": "Authority Alignment", "value": 'High' if name_number in {1, 8, 9, 22} else 'Moderate'}])
+    payloads["business_name_intelligence"] = _section_payload("business_name_intelligence", f"Business vibration {business_number or 0}, compound {business_compound or 0}, signal: {business_strength}.", "Business name signal affects commercial trust and positioning.", "Brand vibration influences category fit and conversion texture.", "Misalignment can reduce pricing power and authority velocity.", "Adjust naming pattern toward target commercial numbers when required.", [{"label": "Business Name", "value": business_name or 'Not provided'}, {"label": "Industry Fit", "value": ', '.join(business_industries[:3])}, {"label": "Risk", "value": business_risk}])
+
+    handle_source = domain_handle or social_handle or first_name
+    handle_vibration = _vibration_from_text(handle_source)
+    payloads["brand_handle_optimization"] = _section_payload("brand_handle_optimization", f"Current handle/domain vibration {handle_vibration or 0} should align with visibility strategy.", "Public handle signal can be optimized for trust and discoverability.", "Handle vibration influences memorability and social proof perception.", "Weak naming logic lowers visibility consistency.", "Unify handle/domain root with target vibration endings.", [{"label": "Social Handle", "value": social_handle or 'Not provided'}, {"label": "Domain Handle", "value": domain_handle or 'Not provided'}, {"label": "Authority Signal", "value": 'High' if handle_vibration in {1, 8, 9, 22} else 'Moderate'}], [f"Improved pattern: {pattern}" for pattern in _handle_patterns(handle_source, name_targets)])
+    payloads["residence_energy_intelligence"] = _section_payload("residence_energy_intelligence", f"Residence vibration {residence_vibration or 0} affects baseline stability signal.", "Home number creates recurring environmental energy tone.", "Repeated daily exposure amplifies behavior feedback.", "Misfit vibration can reduce recovery quality and clarity.", "Apply symbolic balancing with plate letters and entrance corrections.", [{"label": "Current Residence Number", "value": residence_number or 'Not provided'}, {"label": "Residence Vibration", "value": str(residence_vibration or 0)}])
+    payloads["vehicle_number_intelligence"] = _section_payload("vehicle_number_intelligence", f"Vehicle vibration {vehicle_vibration or 0} influences movement tone and confidence expression.", "Vehicle number creates recurring movement-state signal.", "Travel frequency amplifies vibration feedback into transitions.", "Misalignment may increase urgency bias and reactive behavior.", "Prefer compatible number logic during selection or correction.", [{"label": "Current Vehicle Number", "value": vehicle_number or 'Not provided'}, {"label": "Vehicle Vibration", "value": str(vehicle_vibration or 0)}])
+    payloads["lifestyle_alignment"] = _section_payload("lifestyle_alignment", "Lifestyle alignment is strategic infrastructure, not wellness filler.", f"Weakest metric {weakest_metric.lower()} needs rhythm-led stabilization.", "Routine disruption increases cognitive noise and volatility.", "Instability affects clarity, discipline, and execution quality.", lifestyle_protocol)
+    payloads["digital_discipline"] = _section_payload("digital_discipline", "Digital behavior directly shapes decision quality and recovery.", "Notification overload is hidden performance drain.", "High-frequency context switching amplifies deficit metrics.", "Reactive decisions and reduced deep-work quality follow.", digital_protocol)
+    payloads["vedic_remedy"] = _section_payload("vedic_remedy", "Vedic protocol is focus-conditioning and discipline anchor.", "Current profile benefits from ritualized consistency loops.", "Weakest metric and dominant planet point to intervention need.", "Improves composure and timing discipline.", f"Code: {vedic_code} | Parameter: {vedic_parameter}", [{"label": "Focus", "value": weakest_metric}, {"label": "Code", "value": vedic_code}, {"label": "Parameter", "value": vedic_parameter}, {"label": "Output", "value": vedic_output}])
+    payloads["correction_protocol_summary"] = _section_payload("correction_protocol_summary", "Correction protocol ranks interventions by impact on stability and monetizable outcomes.", "Multiple correction levers exist and must be sequenced.", "Weakest metric and identity-signal gaps define order.", "Correct sequencing improves measurable improvement speed.", "Execute 21-day and 90-day checkpoints with priority order.", [{"label": "Top Priority", "value": correction_priority_lines[0]}, {"label": "High-Impact Quick Fixes", "value": ' | '.join(correction_priority_lines[:2])}, {"label": "Medium-Term Adjustments", "value": "Email identity, signature protocol, environment alignment"}, {"label": "Premium Advisory", "value": "Run full correction audit quarterly"}], correction_priority_lines)
+    payloads["business_intelligence"] = _section_payload("business_intelligence", f"Business signal: {business_strength}. Risk gate: {business_risk}.", "Commercial upside exists with correction-led governance discipline.", "Business vibration and metric stack indicate potential with pressure constraints.", "Without structure, growth can convert into volatility.", "Align offer, pricing, and positioning to cycle window.")
+    payloads["wealth_energy_blueprint"] = _section_payload("wealth_energy_blueprint", f"Wealth blueprint: financial discipline {_safe_int(scores.get('financial_discipline_index'), 50)} with business vibration {business_number or 'N/A'}.", "Wealth path depends on behavior architecture.", "Financial metric and identity signals define compounding quality.", "Protocol failure causes leak in high-income phases.", "Use monthly capital governance and staged risk model.")
+    payloads["decision_intelligence"] = _section_payload("decision_intelligence", "Decision intelligence is engineered via filters, delay rules, and review loops.", "Current profile shows capability with stress-phase inconsistency.", f"Weakest metric {weakest_metric.lower()} increases noise under load.", "Fast unfiltered calls increase opportunity cost.", decision_protocol)
+    payloads["emotional_intelligence"] = _section_payload("emotional_intelligence", "Emotional regulation is strategic performance infrastructure.", "Recovery speed acts as variable risk factor.", "Metric pattern indicates reactive windows when rhythm breaks.", "Affects clarity, relationships, and financial discipline.", emotional_protocol)
+    payloads["leadership_intelligence"] = _section_payload("leadership_intelligence", "Leadership signal should combine authority with stable execution cadence.", "Leadership potential is high but governance rhythm is mandatory.", "Core numbers indicate strategic strength with overextension risk.", "Inconsistent cadence reduces trust and execution velocity.", "Weekly leadership protocol: priorities, delegation, review, recovery.")
+    payloads["strategic_timing_intelligence"] = _section_payload("strategic_timing_intelligence", "Timing intelligence calibrates when to push, pause, and consolidate.", "Decision quality varies by cycle windows and date resonance.", "Personal-year and pinnacle sequences define timing intensity.", "Poor timing increases effort with lower conversion.", "Use favorable dates for launches and negotiations.", [{"label": "Current Personal Year", "value": str(personal_year)}, {"label": "Favorable Dates", "value": ', '.join(str(v) for v in lucky_dates)}])
+    payloads["growth_blueprint"] = _section_payload("growth_blueprint", "Growth blueprint sequences stabilize -> optimize -> scale.", "Current phase is correction-led stabilization before aggressive expansion.", f"Risk band {risk_band} requires structural readiness before scale.", "Premature expansion can lock volatility into operations.", "Run staged roadmap with gate checks across 90 days.")
+    payloads["strategic_execution_roadmap"] = _section_payload("strategic_execution_roadmap", "Execution roadmap converts intelligence into a 90-day operating system.", "Multiple interventions need coordinated sequencing.", "Correction outcomes compound only in operational order.", "Unsequenced action wastes effort and obscures ROI.", "Days 1-30 stabilize, 31-60 optimize, 61-90 scale tests.", bullets=["Days 1-30: metric deficit stabilization and behavior lock.", "Days 31-60: identity corrections (name/mobile/email/signature).", "Days 61-90: timing alignment and controlled scale tests."])
+    payloads["closing_synthesis"] = _section_payload("closing_synthesis", f"Final synthesis: {full_name} has clear leverage potential if correction priorities are executed with discipline.", "Profile is calibration-sensitive, not fundamentally blocked.", "Strength-deficit architecture is explicit and correctable.", "Protocol-led execution can convert constraints into strategic advantage.", "Commit to correction stack, timing control, and quarterly recalibration.")
+
+    payloads = _ensure_all_payloads(plan_name, payloads)
+
+    primary_insight = {
+        "core_archetype": _safe_text(archetype.get("archetype_name"), "Strategic Adaptive Archetype"),
+        "strength": f"Primary strength axis: {strongest_metric}",
+        "critical_deficit": f"Primary deficit axis: {weakest_metric}",
+        "stability_risk": risk_band,
+        "phase_1_diagnostic": "Phase 1: diagnose deficit triggers and lock baseline behaviors.",
+        "phase_2_blueprint": "Phase 2: deploy identity corrections aligned to architecture.",
+        "phase_3_intervention_protocol": "Phase 3: run timing-calibrated execution protocol for 90 days.",
+        "narrative": payloads["executive_summary"]["narrative"],
     }
-
-    calibration_cluster = []
-    calibration = intake_context.get("calibration") or {}
-    for key in ("stress_response", "money_decision_style", "biggest_weakness", "decision_style"):
-        value = _clean_text(calibration.get(key))
-        if value:
-            calibration_cluster.append(value.replace("_", " "))
-    if not calibration_cluster:
-        calibration_cluster = ["structured clarity", "measured response", "deliberate execution"]
-
-    planetary_mapping = {
-        "background_forces": (
-            f"Life Path {life_path}, Destiny {destiny} और Name Number {name_number} मिलकर {dominant_planet} की background force को amplify कर रहे हैं। "
-            "यह force बताती है कि learning, discipline, speed या introspection में से कौन-सी energy report में सबसे central है।"
-        ),
-        "primary_intervention_planet": dominant_planet,
-        "calibration_cluster": ", ".join(calibration_cluster[:3]),
-        "narrative": (
-            f"Planetary mapping को यहां prediction की तरह नहीं बल्कि calibration map की तरह पढ़ा जाना चाहिए। {dominant_planet} इस समय primary intervention planet है, "
-            f"क्योंकि current deficit {weakest_metric.lower()} के around दिखाई दे रहा है। इसका अर्थ यह है कि remedies, routines और behavioral rules "
-            f"उसी energy को stabilize करें जो {first_name} के numbers में सबसे loud या सबसे stressed रूप में उभर रही है।"
-        ),
-    }
-
-    deficit_model = _deficit_model(scores, numerology_core, remedies, intake_context)
-
-    circadian_alignment = {
-        "morning_routine": _clean_text(
-            daily.get("morning"),
-            "सुबह 10-15 मिनट sunlight, breath reset और दिन का एक primary intention लिखें।",
-        ),
-        "work_alignment": _clean_text(
-            daily.get("focus_routine"),
-            f"पहले work block से पहले {focus_label} से जुड़ा एक measurable outcome define करें।",
-        ),
-        "evening_shutdown": _clean_text(
-            daily.get("evening_reset"),
-            "रात में screen slowdown, spending stop-line और short reflection note के साथ दिन बंद करें।",
-        ),
-        "narrative": (
-            f"{first_name} की report यह साफ दिखाती है कि circadian rhythm केवल health tool नहीं बल्कि decision quality tool है। "
-            f"जब morning anchor clear होता है, तब {weakest_metric.lower()} का noise कम होता है। "
-            f"इसीलिए इस report का समय-संबंधी protocol सीधे productivity नहीं बल्कि judgment stability को target करता है।"
-        ),
-    }
-
-    supportive_energies = mobile_analysis.get("supportive_number_energies") or []
-    environment_alignment = {
-        "physical_space": (
-            f"Workspace को clean zones में divide करें: deep work, admin work और recovery. {city} जैसी high-noise environment contexts में visual clutter कम रखना खास जरूरी है।"
-        ),
-        "color_alignment": _clean_text(
-            life_remedies.get("color_alignment"),
-            "Color environment को overstimulating नहीं बल्कि grounding बनाएं।",
-        ),
-        "mobile_number_analysis": (
-            _clean_text(mobile_analysis.get("compatibility_summary"))
-            + (" " if mobile_analysis.get("compatibility_summary") else "")
-            + _clean_text(
-                mobile_analysis.get("correction_suggestion"),
-                f"Supportive ending energies: {', '.join(map(str, supportive_energies[:3])) or '1, 3, 5'}",
-            )
-        ).strip(),
-        "digital_behavior": " ".join(
-            part
-            for part in [
-                _clean_text(mobile_remedies.get("mobile_usage_timing")),
-                _clean_text(mobile_remedies.get("whatsapp_dp")),
-                _clean_text(mobile_remedies.get("charging_direction")),
-            ]
-            if part
-        ),
-        "narrative": (
-            f"Environment alignment का मतलब केवल color suggestion नहीं बल्कि external friction कम करना है। "
-            f"अगर mobile vibration {mobile_analysis.get('mobile_vibration', 'N/A')} है और supportive energies {', '.join(map(str, supportive_energies[:3])) or '1, 3, 5'} हैं, "
-            "तो digital behavior, notification load और device symbolism भी day-to-day response quality को influence करेंगे।"
-        ),
-    }
-
-    vedic_protocol = {
-        "focus": f"Primary focus: {weakest_metric}",
-        "code": _clean_text(vedic.get("mantra_sanskrit"), "ॐ बुधाय नमः"),
-        "parameter": _clean_text(vedic.get("practice_guideline"), "21 दिनों तक रोज 108 बार जप करें।"),
-        "output": _clean_text(vedic.get("recommended_donation"), "हरित दान या grounded सेवा करें।"),
-        "purpose": _clean_text(
-            vedic.get("purpose"),
-            f"इस remedy का उद्देश्य {weakest_metric.lower()} को stabilize करना और {dominant_planet} की energy को disciplined direction देना है।",
-        ),
-        "planetary_alignment": _clean_text(
-            vedic.get("planetary_alignment"),
-            f"{dominant_planet} इस समय intervention planet के रूप में काम कर रहा है।",
-        ),
-        "pronunciation": _clean_text(vedic.get("mantra_pronunciation")),
-    }
-
-    execution_plan = {
-        "install_rhythm": "दिन 1-7: Morning anchor, spending visibility, sleep boundary और one-page daily intention को install करें।",
-        "deploy_anchor": "दिन 8-14: Weakest metric के लिए एक measurable control जोड़ें, जैसे debt check, recovery block या decision rule.",
-        "run_protocol": "दिन 15-21: Remedy discipline, work-lane clarity और review cadence को बिना break maintain करें ताकि नया pattern body level पर settle हो।",
-        "checkpoints": [
-            "सप्ताह 1 checkpoint: confidence score driver inputs पूरे करें।",
-            f"सप्ताह 2 checkpoint: {weakest_metric.lower()} को track करने वाला एक visible metric रखें।",
-            "सप्ताह 3 checkpoint: जो routine काम कर रहा है उसे अगले 60 दिनों की plan sheet में lock करें।",
-        ],
-        "summary": (
-            f"21-day plan का उद्देश्य transformation का illusion देना नहीं बल्कि operating discipline की शुरुआत करना है। "
-            f"यदि {first_name} इस protocol को consistency से follow करता है, तो {focus_label} से जुड़ा वर्तमान pressure measurable clarity में बदल सकता है।"
-        ),
-    }
-
-    compatible_numbers = compatibility.get("compatible_numbers")
-    challenging_numbers = compatibility.get("challenging_numbers")
-    if compatible_numbers is None:
-        compatible_numbers = mobile_analysis.get("supportive_number_energies") or [life_path or 1, name_number or 3]
-    if challenging_numbers is None:
-        challenging_numbers = missing_numbers[:2]
 
     executive_brief = {
-        "summary": primary_insight["narrative"],
+        "summary": payloads["executive_summary"]["narrative"],
         "key_strength": primary_insight["strength"],
         "key_risk": primary_insight["critical_deficit"],
-        "strategic_focus": primary_insight["phase_3_intervention_protocol"],
+        "strategic_focus": intervention_focus,
     }
 
     analysis_sections = {
-        "career_analysis": (
-            f"{industry} domain में {first_name} को ऐसे roles ज़्यादा suit करते हैं जहां ownership, depth और credibility visible हो। "
-            f"Years of experience {years if years is not None else 'उपलब्ध नहीं'} होने के बावजूद growth तभी compound करेगी जब {weakest_metric.lower()} पर control बढ़ेगा।"
-        ),
-        "decision_profile": (
-            f"Decision profile अभी {confidence}/100 confidence और {risk_band} risk band पर खड़ा है। "
-            "इसका अर्थ है कि choices में क्षमता मौजूद है, लेकिन better filters, written decision rules और noise reduction की जरूरत है।"
-        ),
-        "emotional_analysis": (
-            f"Emotional regulation score {_safe_int(scores.get('emotional_regulation_index'), 50)} है। "
-            "इसका behavioral अर्थ है कि recovery system को luxury नहीं बल्कि strategy समझना होगा।"
-        ),
-        "financial_analysis": (
-            f"Financial discipline score {_safe_int(scores.get('financial_discipline_index'), 50)} है। "
-            f"Savings {savings if savings is not None else 'उपलब्ध नहीं'} और debt {debt if debt is not None else 'उपलब्ध नहीं'} के आधार पर यह स्पष्ट है कि money structure growth engine बनेगा या pressure engine, यह routine तय करेगी।"
-        ),
+        "career_analysis": payloads["career_intelligence"]["narrative"],
+        "decision_profile": payloads["decision_intelligence"]["narrative"],
+        "emotional_analysis": payloads["emotional_intelligence"]["narrative"],
+        "financial_analysis": payloads["financial_intelligence"]["narrative"],
     }
 
     strategic_guidance = {
-        "short_term": primary_insight["phase_1_diagnostic"],
-        "mid_term": primary_insight["phase_2_blueprint"],
-        "long_term": primary_insight["phase_3_intervention_protocol"],
+        "short_term": "Stabilize weakest metric with low-noise behavior protocol.",
+        "mid_term": "Deploy identity corrections and measure behavior delta.",
+        "long_term": "Scale with strategic timing and quarterly recalibration.",
     }
 
     growth_blueprint = {
-        "phase_1": execution_plan["install_rhythm"],
-        "phase_2": execution_plan["deploy_anchor"],
-        "phase_3": execution_plan["run_protocol"],
+        "phase_1": "Days 1-30: stabilize and baseline deficit behavior.",
+        "phase_2": "Days 31-60: deploy correction stack across identity and environment.",
+        "phase_3": "Days 61-90: execute timing-aligned growth experiments.",
     }
 
-    business_block = {
-        "business_strength": _clean_text(
-            business_analysis.get("business_strength"),
-            f"{first_name} की profile strategy, clarity और trust-based positioning को support करती है।",
-        ),
-        "risk_factor": _clean_text(
-            business_analysis.get("risk_factor"),
-            f"Main business risk यह है कि {weakest_metric.lower()} growth opportunities को fragmented execution में बदल सकता है।",
-        ),
-        "compatible_industries": business_analysis.get("compatible_industries") or [industry],
-    }
-
-    compatibility_block = {
-        "compatible_numbers": compatible_numbers,
-        "challenging_numbers": challenging_numbers,
-        "relationship_guidance": (
-            f"ऐसे लोग या environments {first_name} को ज्यादा support करेंगे जो {strongest_metric.lower()} को reinforce करें और "
-            f"{weakest_metric.lower()} पर unnecessary pressure न बढ़ाएं।"
-        ),
-    }
+    business_block = {"business_strength": business_strength, "risk_factor": business_risk, "compatible_industries": business_industries}
+    compatibility_block = {"compatible_numbers": [value for value in [life_path, destiny, expression] if value], "challenging_numbers": loshu_missing[:3], "relationship_guidance": compatibility_summary}
 
     return {
         "primary_insight": primary_insight,
         "metric_explanations": metric_explanations,
-        "numerology_architecture": numerology_architecture,
-        "archetype_intelligence": archetype_intelligence,
-        "loshu_diagnostic": loshu_diagnostic,
-        "planetary_mapping": planetary_mapping,
-        "structural_deficit_model": deficit_model,
-        "circadian_alignment": circadian_alignment,
-        "environment_alignment": environment_alignment,
-        "vedic_remedy_protocol": vedic_protocol,
-        "execution_plan": execution_plan,
+        "metrics_spine": {"primary_strength": strongest_metric, "primary_deficit": weakest_metric, "structural_cause": structural_cause, "intervention_focus": intervention_focus, "risk_band": risk_band},
+        "numerology_architecture": {"foundation": life_path, "left_pillar": destiny, "right_pillar": expression, "facade": name_number, "narrative": payloads["numerology_architecture"]["narrative"]},
+        "archetype_intelligence": {"signature": payloads["archetype_intelligence"]["narrative"], "leadership_traits": name_trait["strength"], "shadow_traits": name_trait["risk"], "growth_path": name_trait["protocol"]},
+        "loshu_diagnostic": {"present_numbers": loshu_present, "missing_numbers": loshu_missing, "center_presence": 5 in loshu_present, "energy_imbalance": f"Present {len(loshu_present)} vs missing {len(loshu_missing)}.", "missing_number_meanings": [f"Missing {number}: build conscious protocol." for number in loshu_missing], "narrative": payloads["loshu_grid_intelligence"]["narrative"]},
+        "planetary_mapping": {"background_forces": f"Life Path {life_path}, Destiny {destiny}, Name {name_number} combine under {dominant_planet}.", "primary_intervention_planet": dominant_planet, "calibration_cluster": "discipline, timing, authority", "narrative": payloads["planetary_influence"]["narrative"]},
+        "structural_deficit_model": {"deficit": f"Primary deficit: {weakest_metric}", "symptom": "Inconsistent execution under stress and identity mismatch.", "patch": intervention_focus, "summary": "Deficit -> behavior risk -> protocol patch sequence."},
+        "circadian_alignment": {"morning_routine": "10-minute sunlight, breath reset, strategic priority lock.", "work_alignment": "First deep-work block before communication noise.", "evening_shutdown": "Decision freeze window, digital wind-down, short review.", "narrative": "Rhythm quality drives decision quality."},
+        "environment_alignment": {"physical_space": "Use low-clutter workspace zones for focus and recovery.", "color_alignment": "Use grounded color palette in workspace and digital surfaces.", "mobile_number_analysis": payloads["mobile_number_intelligence"]["narrative"], "digital_behavior": digital_protocol, "narrative": "Environment should reduce friction and protect clarity."},
+        "vedic_remedy_protocol": {"focus": weakest_metric, "code": vedic_code, "parameter": vedic_parameter, "output": vedic_output, "purpose": "Stabilize deficit metric through disciplined intention.", "planetary_alignment": dominant_planet, "pronunciation": vedic_code},
+        "execution_plan": {"install_rhythm": growth_blueprint["phase_1"], "deploy_anchor": growth_blueprint["phase_2"], "run_protocol": growth_blueprint["phase_3"], "checkpoints": ["Week 1: lock rhythm and metric baseline.", "Week 2: deploy identity corrections and compare behavior delta.", "Week 3: validate timing windows and scale decision quality."], "summary": "21-day execution builds stability before strategic expansion."},
         "executive_brief": executive_brief,
         "analysis_sections": analysis_sections,
         "strategic_guidance": strategic_guidance,
         "growth_blueprint": growth_blueprint,
         "business_block": business_block,
         "compatibility_block": compatibility_block,
-        "meta_notes": {
-            "language_preference": language,
-            "dominant_planet": dominant_planet,
-            "focus_label": focus_label,
-            "strongest_metric": strongest_metric,
-            "strongest_metric_score": strongest_metric_score,
-            "weakest_metric": weakest_metric,
-            "weakest_metric_score": weakest_metric_score,
-        },
+        "personal_year_forecast": {"current_personal_year": personal_year, "theme": "Consolidate structure and improve correction adoption.", "opportunities": "Aligned launches, cleaner partnerships, stronger authority signal.", "caution_areas": "Reactive decisions in high-noise windows.", "favorable_dates": lucky_dates},
+        "name_vibration_optimization": payloads["name_vibration_optimization"],
+        "mobile_number_intelligence": payloads["mobile_number_intelligence"],
+        "email_identity_intelligence": payloads["email_identity_intelligence"],
+        "signature_intelligence": payloads.get("signature_intelligence"),
+        "business_name_intelligence": payloads.get("business_name_intelligence"),
+        "brand_handle_optimization": payloads.get("brand_handle_optimization"),
+        "residence_energy_intelligence": payloads.get("residence_energy_intelligence"),
+        "vehicle_number_intelligence": payloads.get("vehicle_number_intelligence"),
+        "correction_protocol_summary": payloads["correction_protocol_summary"],
+        "karmic_pattern_intelligence": payloads["karmic_pattern_intelligence"],
+        "hidden_talent_intelligence": payloads["hidden_talent_intelligence"],
+        "pinnacle_challenge_cycle_intelligence": payloads["pinnacle_challenge_cycle_intelligence"],
+        "life_cycle_timeline": payloads["life_cycle_timeline"],
+        "strategic_timing_intelligence": payloads.get("strategic_timing_intelligence"),
+        "wealth_energy_blueprint": payloads.get("wealth_energy_blueprint"),
+        "leadership_intelligence": payloads.get("leadership_intelligence"),
+        "decision_intelligence": payloads.get("decision_intelligence"),
+        "emotional_intelligence": payloads.get("emotional_intelligence"),
+        "digital_discipline": payloads.get("digital_discipline"),
+        "lifestyle_alignment": payloads.get("lifestyle_alignment"),
+        "vedic_remedy": payloads.get("vedic_remedy"),
+        "closing_synthesis": payloads["closing_synthesis"],
+        "section_payloads": payloads,
+        "meta_notes": {"dominant_planet": dominant_planet, "strongest_metric": strongest_metric, "strongest_metric_score": strongest_score, "weakest_metric": weakest_metric, "weakest_metric_score": weakest_score, "focus": _safe_text(focus.get("life_focus"), "general_alignment"), "city": city, "career_industry": career_industry, "risk_band": risk_band, "social_handle": social_handle, "domain_handle": domain_handle, "residence_number": residence_number, "vehicle_number": vehicle_number},
     }

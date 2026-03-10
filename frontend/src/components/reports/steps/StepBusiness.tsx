@@ -22,6 +22,19 @@ export default function StepBusiness({ formData, setFormData, next, prev }: Prop
     });
   };
 
+  const updateContact = (
+    field: keyof ReportFormData["contact"],
+    value: string
+  ) => {
+    setFormData({
+      ...formData,
+      contact: {
+        ...formData.contact,
+        [field]: value,
+      },
+    });
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">Business & Relationship Context</h2>
@@ -40,8 +53,36 @@ export default function StepBusiness({ formData, setFormData, next, prev }: Prop
         onChange={(e) => updateIdentity("partner_name", e.target.value)}
       />
 
+      <input
+        placeholder="Social Handle (optional)"
+        className="input"
+        value={formData.contact?.social_handle || ""}
+        onChange={(e) => updateContact("social_handle", e.target.value)}
+      />
+
+      <input
+        placeholder="Domain Handle (optional)"
+        className="input"
+        value={formData.contact?.domain_handle || ""}
+        onChange={(e) => updateContact("domain_handle", e.target.value)}
+      />
+
+      <input
+        placeholder="Residence / Flat Number (optional)"
+        className="input"
+        value={formData.contact?.residence_number || ""}
+        onChange={(e) => updateContact("residence_number", e.target.value)}
+      />
+
+      <input
+        placeholder="Vehicle Number (optional)"
+        className="input"
+        value={formData.contact?.vehicle_number || ""}
+        onChange={(e) => updateContact("vehicle_number", e.target.value)}
+      />
+
       <p className="text-sm text-gray-400">
-        These fields feed business-name analysis and compatibility context in the backend.
+        These fields feed business, brand handle, residence energy, and vehicle vibration intelligence.
       </p>
 
       <div className="flex justify-between">

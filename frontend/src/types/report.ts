@@ -19,6 +19,7 @@ export interface ReportFormData {
     email?: string;
     partner_name?: string;
     business_name?: string;
+    signature_style?: string;
   };
   birth_details: {
     date_of_birth?: string;
@@ -31,6 +32,10 @@ export interface ReportFormData {
   };
   contact: {
     mobile_number?: string;
+    social_handle?: string;
+    domain_handle?: string;
+    residence_number?: string;
+    vehicle_number?: string;
   };
   preferences: {
     language_preference?: LanguagePreference;
@@ -77,6 +82,15 @@ export interface ReportContent {
     used_fallback_narrative?: boolean;
     section_count?: number;
   };
+  report_blueprint?: {
+    plan_tier?: string;
+    section_count?: number;
+    sections?: Array<{
+      order: number;
+      key: string;
+      title: string;
+    }>;
+  };
   current_problem?: string;
   executive_brief?: {
     summary?: string;
@@ -95,6 +109,27 @@ export interface ReportContent {
   };
   analysis_sections?: Record<string, string>;
   radar_chart_data?: Record<string, number>;
+  metrics_spine?: {
+    primary_strength?: string;
+    primary_deficit?: string;
+    structural_cause?: string;
+    intervention_focus?: string;
+    risk_band?: string;
+  };
+  section_payloads?: Record<
+    string,
+    {
+      title?: string;
+      purpose?: string;
+      key_inputs?: string[];
+      output_fields?: string[];
+      interpretation_logic?: string;
+      tone_guidance?: string;
+      narrative?: string;
+      cards?: Array<{ label: string; value: string }>;
+      bullets?: string[];
+    }
+  >;
 }
 
 export interface ReportResponse {

@@ -501,6 +501,7 @@ def generate_life_signify_report(
         scores=scores,
         archetype=archetype,
         remedies=remedies,
+        plan_name=plan_name,
     )
 
     # -------------------------------------------------
@@ -558,6 +559,8 @@ def generate_life_signify_report(
 
         "metric_explanations": ai_sections.get("metric_explanations"),
 
+        "metrics_spine": ai_sections.get("metrics_spine"),
+
         "numerology_core": numerology_core,
 
         "executive_brief": ai_sections.get("executive_brief"),
@@ -588,6 +591,52 @@ def generate_life_signify_report(
 
         "growth_blueprint": ai_sections.get("growth_blueprint"),
 
+        "personal_year_forecast": ai_sections.get("personal_year_forecast"),
+
+        "name_vibration_optimization": ai_sections.get("name_vibration_optimization"),
+
+        "mobile_number_intelligence": ai_sections.get("mobile_number_intelligence"),
+
+        "email_identity_intelligence": ai_sections.get("email_identity_intelligence"),
+
+        "signature_intelligence": ai_sections.get("signature_intelligence"),
+
+        "business_name_intelligence": ai_sections.get("business_name_intelligence"),
+
+        "brand_handle_optimization": ai_sections.get("brand_handle_optimization"),
+
+        "residence_energy_intelligence": ai_sections.get("residence_energy_intelligence"),
+
+        "vehicle_number_intelligence": ai_sections.get("vehicle_number_intelligence"),
+
+        "correction_protocol_summary": ai_sections.get("correction_protocol_summary"),
+
+        "karmic_pattern_intelligence": ai_sections.get("karmic_pattern_intelligence"),
+
+        "hidden_talent_intelligence": ai_sections.get("hidden_talent_intelligence"),
+
+        "pinnacle_challenge_cycle_intelligence": ai_sections.get("pinnacle_challenge_cycle_intelligence"),
+
+        "life_cycle_timeline": ai_sections.get("life_cycle_timeline"),
+
+        "strategic_timing_intelligence": ai_sections.get("strategic_timing_intelligence"),
+
+        "wealth_energy_blueprint": ai_sections.get("wealth_energy_blueprint"),
+
+        "leadership_intelligence": ai_sections.get("leadership_intelligence"),
+
+        "decision_intelligence": ai_sections.get("decision_intelligence"),
+
+        "emotional_intelligence": ai_sections.get("emotional_intelligence"),
+
+        "digital_discipline": ai_sections.get("digital_discipline"),
+
+        "lifestyle_alignment": ai_sections.get("lifestyle_alignment"),
+
+        "vedic_remedy": ai_sections.get("vedic_remedy"),
+
+        "closing_synthesis": ai_sections.get("closing_synthesis"),
+
         "business_block": ai_sections.get("business_block"),
 
         "compatibility_block": ai_sections.get("compatibility_block"),
@@ -603,6 +652,8 @@ def generate_life_signify_report(
         "daily_energy_alignment": remedies.get("daily_energy_alignment"),
 
         "numerology_archetype": archetype,
+
+        "section_payloads": ai_sections.get("section_payloads"),
 
         "disclaimer": {
             "framework": "Tiered Numerology Intelligence System",

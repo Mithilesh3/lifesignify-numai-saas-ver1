@@ -63,6 +63,7 @@ class BasicIdentity(BaseModel):
     email: Optional[str] = None
     partner_name: Optional[str] = None
     business_name: Optional[str] = None
+    signature_style: Optional[str] = None
 
 
 class BirthDetails(BaseModel):
@@ -86,6 +87,10 @@ class FocusArea(BaseModel):
 
 class ContactLayer(BaseModel):
     mobile_number: Optional[str] = None
+    social_handle: Optional[str] = None
+    domain_handle: Optional[str] = None
+    residence_number: Optional[str] = None
+    vehicle_number: Optional[str] = None
 
 
 class FinancialSnapshot(BaseModel):

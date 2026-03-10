@@ -115,6 +115,18 @@ export default function ReportDetailPage() {
   const confidenceScore = metrics?.confidence_score ?? 0;
   const showInputWarning = usedFallbackNarrative || confidenceScore <= 25;
   const analysisEntries = Object.entries(content.analysis_sections || {});
+  const metricsSpine = content.metrics_spine;
+  const blueprintSections = content.report_blueprint?.sections || [];
+  const sectionOrder = new Map(
+    blueprintSections.map((section) => [section.key, section.order])
+  );
+  const sectionPayloadEntries = Object.entries(content.section_payloads || {}).sort(
+    ([keyA], [keyB]) => {
+      const orderA = sectionOrder.get(keyA) ?? Number.MAX_SAFE_INTEGER;
+      const orderB = sectionOrder.get(keyB) ?? Number.MAX_SAFE_INTEGER;
+      return orderA - orderB;
+    }
+  );
   const radarData = Object.entries(content.radar_chart_data || {}).map(
     ([metric, score]) => ({ metric, score: Number(score) })
   );
@@ -156,6 +168,14 @@ export default function ReportDetailPage() {
           may stay near the neutral baseline. For final manual testing, generate
           one report with full financial, emotional, work-stress, and life-event
           data.
+        </div>
+      )}
+
+      {(content.report_blueprint?.section_count || content.meta?.section_count) && (
+        <div className="rounded-xl border border-sky-500/30 bg-sky-500/10 p-5 text-sky-100">
+          Blueprint coverage:{" "}
+          {content.report_blueprint?.section_count || content.meta?.section_count}{" "}
+          structured sections aligned to the {reportPlan.toUpperCase()} backend tier.
         </div>
       )}
 
@@ -213,6 +233,40 @@ export default function ReportDetailPage() {
         </div>
       )}
 
+      {metricsSpine && (
+        <div className="bg-gray-900 p-6 rounded-xl shadow-md space-y-3">
+          <h2 className="text-xl font-semibold">Metrics Diagnostic Spine</h2>
+          <p>
+            <span className="text-emerald-400 font-semibold">
+              Primary strength:
+            </span>{" "}
+            {metricsSpine.primary_strength || "--"}
+          </p>
+          <p>
+            <span className="text-yellow-400 font-semibold">
+              Primary deficit:
+            </span>{" "}
+            {metricsSpine.primary_deficit || "--"}
+          </p>
+          <p>
+            <span className="text-sky-400 font-semibold">
+              Structural cause:
+            </span>{" "}
+            {metricsSpine.structural_cause || "--"}
+          </p>
+          <p>
+            <span className="text-indigo-400 font-semibold">
+              Intervention focus:
+            </span>{" "}
+            {metricsSpine.intervention_focus || "--"}
+          </p>
+          <p>
+            <span className="text-rose-400 font-semibold">Risk band:</span>{" "}
+            {metricsSpine.risk_band || "--"}
+          </p>
+        </div>
+      )}
+
       {radarData.length > 0 && <RadarChartComponent data={radarData} />}
 
       {analysisEntries.length > 0 && (
@@ -225,6 +279,44 @@ export default function ReportDetailPage() {
                   {ANALYSIS_LABELS[label] || label.replace(/_/g, " ")}
                 </h3>
                 <p className="text-gray-200 leading-7">{value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {sectionPayloadEntries.length > 0 && (
+        <div className="bg-gray-900 p-6 rounded-xl shadow-md">
+          <h2 className="text-xl font-semibold mb-6">
+            Strategic Intelligence Layers
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {sectionPayloadEntries.map(([key, section]) => (
+              <div key={key} className="bg-gray-800 p-4 rounded-lg space-y-3">
+                <h3 className="text-sm uppercase tracking-wide text-indigo-300">
+                  {section.title || key.replace(/_/g, " ")}
+                </h3>
+                {section.purpose && (
+                  <p className="text-xs text-gray-400">{section.purpose}</p>
+                )}
+                {section.narrative && (
+                  <p className="text-gray-200 leading-7">{section.narrative}</p>
+                )}
+                {(section.cards || []).slice(0, 4).map((card, index) => (
+                  <p key={`${key}-${index}`} className="text-sm text-gray-300">
+                    <span className="font-semibold text-gray-100">
+                      {card.label}:
+                    </span>{" "}
+                    {card.value}
+                  </p>
+                ))}
+                {(section.bullets || []).length > 0 && (
+                  <ul className="list-disc pl-5 text-sm text-gray-300 space-y-1">
+                    {section.bullets!.slice(0, 4).map((bullet, index) => (
+                      <li key={`${key}-bullet-${index}`}>{bullet}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ))}
           </div>

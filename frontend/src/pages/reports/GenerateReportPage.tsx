@@ -64,9 +64,12 @@ export default function GenerateReportPage() {
     );
   }
 
+  if (plan !== "basic") {
+    steps.push({ key: "business_context", component: StepBusiness });
+  }
+
   if (plan === "enterprise") {
     steps.push(
-      { key: "business_context", component: StepBusiness },
       { key: "life_events", component: StepHealth },
       { key: "calibration", component: StepCalibration }
     );
