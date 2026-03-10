@@ -1,6 +1,9 @@
+import type { Dispatch, SetStateAction } from "react";
+import type { ReportFormData } from "../../../types/report";
+
 interface Props {
-  formData: any;
-  setFormData: any;
+  formData: ReportFormData;
+  setFormData: Dispatch<SetStateAction<ReportFormData>>;
   next: () => void;
   prev: () => void;
 }
@@ -11,7 +14,7 @@ export default function StepBirthDetails({
   next,
   prev,
 }: Props) {
-  const update = (field: string, value: string) => {
+  const update = (field: keyof ReportFormData["birth_details"], value: string) => {
     setFormData({
       ...formData,
       birth_details: {
@@ -57,7 +60,15 @@ export default function StepBirthDetails({
         <button onClick={prev} className="btn-secondary">
           Back
         </button>
-        <button onClick={next} className="btn-primary">
+        <button
+          onClick={next}
+          className="btn-primary"
+          disabled={
+            !formData.birth_details?.date_of_birth ||
+            !formData.birth_details?.birthplace_city ||
+            !formData.birth_details?.birthplace_country
+          }
+        >
           Continue
         </button>
       </div>

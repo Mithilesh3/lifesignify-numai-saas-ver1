@@ -1,42 +1,25 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import API from "../../services/api";
+import toast from "react-hot-toast";
 import RadarChartComponent from "../../components/dashboard/RadarChartComponent";
 import { useAuth } from "../../context/AuthContext";
-import toast from "react-hot-toast";
+import API from "../../services/api";
+import type { ReportResponse } from "../../types/report";
 
-interface ReportContent {
-  executive_brief?: {
-    summary?: string;
-    key_strength?: string;
-    key_risk?: string;
-    strategic_focus?: string;
-  };
-  core_metrics?: {
-    life_stability_index?: number;
-    financial_discipline_index?: number;
-    emotional_regulation_index?: number;
-    dharma_alignment_score?: number;
-    confidence_score?: number;
-    risk_band?: string;
-  };
-  analysis_sections?: Record<string, string>;
-  radar_chart_data?: Record<string, number>;
-}
-
-interface Report {
-  id: number;
-  title?: string;
-  created_at: string;
-  content: ReportContent;
-}
+const ANALYSIS_LABELS: Record<string, string> = {
+  career_analysis: "Career Analysis",
+  decision_profile: "Decision Profile",
+  emotional_analysis: "Emotional Analysis",
+  financial_analysis: "Financial Analysis",
+};
 
 export default function ReportDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [report, setReport] = useState<Report | null>(null);
+  const [report, setReport] = useState<ReportResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState("");
@@ -57,9 +40,12 @@ export default function ReportDetailPage() {
       try {
         const res = await API.get(`/reports/${id}`);
         setReport(res.data);
-      } catch (requestError: any) {
+      } catch (requestError: unknown) {
+        const detail = axios.isAxiosError(requestError)
+          ? requestError.response?.data?.detail
+          : undefined;
         setError(
-          requestError?.response?.data?.detail || "Failed to load report."
+          detail || "Failed to load report."
         );
         toast.error("Failed to load report");
       } finally {
@@ -71,7 +57,9 @@ export default function ReportDetailPage() {
   }, [id]);
 
   const downloadPDF = async () => {
-    if (!id) return;
+    if (!id) {
+      return;
+    }
 
     setDownloading(true);
     const loadingToast = toast.loading("Preparing PDF...");
@@ -122,6 +110,10 @@ export default function ReportDetailPage() {
   const content = report.content || {};
   const summary = content.executive_brief;
   const metrics = content.core_metrics;
+  const reportPlan = content.meta?.plan_tier || plan;
+  const usedFallbackNarrative = Boolean(content.meta?.used_fallback_narrative);
+  const confidenceScore = metrics?.confidence_score ?? 0;
+  const showInputWarning = usedFallbackNarrative || confidenceScore <= 25;
   const analysisEntries = Object.entries(content.analysis_sections || {});
   const radarData = Object.entries(content.radar_chart_data || {}).map(
     ([metric, score]) => ({ metric, score: Number(score) })
@@ -135,7 +127,8 @@ export default function ReportDetailPage() {
             {report.title || "Life Intelligence Report"}
           </h1>
           <p className="text-gray-400 text-sm mt-1">
-            Plan: {plan.toUpperCase()} | Generated {new Date(report.created_at).toLocaleString()}
+            Plan: {reportPlan.toUpperCase()} | Generated{" "}
+            {new Date(report.created_at).toLocaleString()}
           </p>
         </div>
 
@@ -157,23 +150,41 @@ export default function ReportDetailPage() {
         </div>
       </div>
 
+      {showInputWarning && (
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-5 text-amber-100">
+          This report was generated with limited scoring input, so some metrics
+          may stay near the neutral baseline. For final manual testing, generate
+          one report with full financial, emotional, work-stress, and life-event
+          data.
+        </div>
+      )}
+
       {summary && (
         <div className="bg-gray-900 p-6 rounded-xl shadow-md space-y-4">
           <h2 className="text-xl font-semibold">Executive Brief</h2>
-          {summary.summary && <p className="text-gray-300 leading-7">{summary.summary}</p>}
+          {summary.summary && (
+            <p className="text-gray-300 leading-7">{summary.summary}</p>
+          )}
           {summary.key_strength && (
             <p>
-              <span className="text-emerald-400 font-semibold">Key strength:</span> {summary.key_strength}
+              <span className="text-emerald-400 font-semibold">
+                Key strength:
+              </span>{" "}
+              {summary.key_strength}
             </p>
           )}
           {summary.key_risk && (
             <p>
-              <span className="text-yellow-400 font-semibold">Key risk:</span> {summary.key_risk}
+              <span className="text-yellow-400 font-semibold">Key risk:</span>{" "}
+              {summary.key_risk}
             </p>
           )}
           {summary.strategic_focus && (
             <p>
-              <span className="text-indigo-400 font-semibold">Strategic focus:</span> {summary.strategic_focus}
+              <span className="text-indigo-400 font-semibold">
+                Strategic focus:
+              </span>{" "}
+              {summary.strategic_focus}
             </p>
           )}
         </div>
@@ -181,10 +192,22 @@ export default function ReportDetailPage() {
 
       {metrics && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <ScoreCard label="Life Stability" value={metrics.life_stability_index} />
-          <ScoreCard label="Financial Discipline" value={metrics.financial_discipline_index} />
-          <ScoreCard label="Emotional Regulation" value={metrics.emotional_regulation_index} />
-          <ScoreCard label="Dharma Alignment" value={metrics.dharma_alignment_score} />
+          <ScoreCard
+            label="Life Stability"
+            value={metrics.life_stability_index}
+          />
+          <ScoreCard
+            label="Financial Discipline"
+            value={metrics.financial_discipline_index}
+          />
+          <ScoreCard
+            label="Emotional Regulation"
+            value={metrics.emotional_regulation_index}
+          />
+          <ScoreCard
+            label="Dharma Alignment"
+            value={metrics.dharma_alignment_score}
+          />
           <ScoreCard label="Confidence Score" value={metrics.confidence_score} />
           <ScoreCard label="Risk Band" value={metrics.risk_band || "--"} />
         </div>
@@ -199,7 +222,7 @@ export default function ReportDetailPage() {
             {analysisEntries.map(([label, value]) => (
               <div key={label} className="bg-gray-800 p-4 rounded-lg">
                 <h3 className="text-sm uppercase tracking-wide text-gray-400 mb-2">
-                  {label.replace(/_/g, " ")}
+                  {ANALYSIS_LABELS[label] || label.replace(/_/g, " ")}
                 </h3>
                 <p className="text-gray-200 leading-7">{value}</p>
               </div>
@@ -211,7 +234,13 @@ export default function ReportDetailPage() {
   );
 }
 
-function ScoreCard({ label, value }: { label: string; value?: number | string }) {
+function ScoreCard({
+  label,
+  value,
+}: {
+  label: string;
+  value?: number | string;
+}) {
   return (
     <div className="bg-gray-900 p-6 rounded-xl shadow-md">
       <p className="text-sm text-gray-400">{label}</p>

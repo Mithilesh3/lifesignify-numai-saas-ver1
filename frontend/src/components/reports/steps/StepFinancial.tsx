@@ -1,6 +1,9 @@
+import type { Dispatch, SetStateAction } from "react";
+import type { ReportFormData } from "../../../types/report";
+
 interface Props {
-  formData: any;
-  setFormData: any;
+  formData: ReportFormData;
+  setFormData: Dispatch<SetStateAction<ReportFormData>>;
   next: () => void;
   prev: () => void;
 }
@@ -20,7 +23,10 @@ export default function StepFinancial({
   next,
   prev,
 }: Props) {
-  const update = (field: string, value: string | number | undefined) => {
+  const update = (
+    field: keyof ReportFormData["financial"],
+    value: string | number | undefined
+  ) => {
     setFormData({
       ...formData,
       financial: {
@@ -40,6 +46,26 @@ export default function StepFinancial({
         className="input"
         value={formData.financial?.monthly_income || ""}
         onChange={(e) => update("monthly_income", toNumber(e.target.value))}
+      />
+
+      <input
+        type="number"
+        min="0"
+        max="100"
+        placeholder="Savings Ratio (%)"
+        className="input"
+        value={formData.financial?.savings_ratio || ""}
+        onChange={(e) => update("savings_ratio", toNumber(e.target.value))}
+      />
+
+      <input
+        type="number"
+        min="0"
+        max="100"
+        placeholder="Debt Ratio (%)"
+        className="input"
+        value={formData.financial?.debt_ratio || ""}
+        onChange={(e) => update("debt_ratio", toNumber(e.target.value))}
       />
 
       <select

@@ -1,6 +1,9 @@
+import type { Dispatch, SetStateAction } from "react";
+import type { ReportFormData } from "../../../types/report";
+
 interface Props {
-  formData: any;
-  setFormData: any;
+  formData: ReportFormData;
+  setFormData: Dispatch<SetStateAction<ReportFormData>>;
   next: () => void;
   prev: () => void;
 }
@@ -20,7 +23,10 @@ export default function StepEmotional({
   next,
   prev,
 }: Props) {
-  const update = (field: string, value: number | undefined) => {
+  const updateEmotional = (
+    field: keyof ReportFormData["emotional"],
+    value: number | undefined
+  ) => {
     setFormData({
       ...formData,
       emotional: {
@@ -30,9 +36,22 @@ export default function StepEmotional({
     });
   };
 
+  const updateCareer = (
+    field: keyof ReportFormData["career"],
+    value: number | undefined
+  ) => {
+    setFormData({
+      ...formData,
+      career: {
+        ...formData.career,
+        [field]: value,
+      },
+    });
+  };
+
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Emotional State</h2>
+      <h2 className="text-xl font-semibold">Emotional & Career Signals</h2>
 
       <input
         type="number"
@@ -41,7 +60,7 @@ export default function StepEmotional({
         placeholder="Anxiety Level (1-10)"
         className="input"
         value={formData.emotional?.anxiety_level || ""}
-        onChange={(e) => update("anxiety_level", toNumber(e.target.value))}
+        onChange={(e) => updateEmotional("anxiety_level", toNumber(e.target.value))}
       />
 
       <input
@@ -51,7 +70,48 @@ export default function StepEmotional({
         placeholder="Decision Confusion (1-10)"
         className="input"
         value={formData.emotional?.decision_confusion || ""}
-        onChange={(e) => update("decision_confusion", toNumber(e.target.value))}
+        onChange={(e) => updateEmotional("decision_confusion", toNumber(e.target.value))}
+      />
+
+      <input
+        type="number"
+        min="1"
+        max="10"
+        placeholder="Impulse Control (1-10)"
+        className="input"
+        value={formData.emotional?.impulse_control || ""}
+        onChange={(e) => updateEmotional("impulse_control", toNumber(e.target.value))}
+      />
+
+      <input
+        type="number"
+        min="1"
+        max="10"
+        placeholder="Emotional Stability (1-10)"
+        className="input"
+        value={formData.emotional?.emotional_stability || ""}
+        onChange={(e) =>
+          updateEmotional("emotional_stability", toNumber(e.target.value))
+        }
+      />
+
+      <input
+        type="number"
+        min="0"
+        placeholder="Years of Experience"
+        className="input"
+        value={formData.career?.years_experience || ""}
+        onChange={(e) => updateCareer("years_experience", toNumber(e.target.value))}
+      />
+
+      <input
+        type="number"
+        min="1"
+        max="10"
+        placeholder="Work Stress Level (1-10)"
+        className="input"
+        value={formData.career?.stress_level || ""}
+        onChange={(e) => updateCareer("stress_level", toNumber(e.target.value))}
       />
 
       <div className="flex justify-between">

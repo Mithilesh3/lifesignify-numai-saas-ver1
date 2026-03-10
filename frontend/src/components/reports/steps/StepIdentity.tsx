@@ -1,15 +1,41 @@
+import type { Dispatch, SetStateAction } from "react";
+import type { ReportFormData } from "../../../types/report";
+
 interface Props {
-  formData: any;
-  setFormData: any;
+  formData: ReportFormData;
+  setFormData: Dispatch<SetStateAction<ReportFormData>>;
   next: () => void;
 }
 
 export default function StepIdentity({ formData, setFormData, next }: Props) {
-  const update = (field: string, value: string) => {
+  const updateIdentity = (field: keyof ReportFormData["identity"], value: string) => {
     setFormData({
       ...formData,
       identity: {
         ...formData.identity,
+        [field]: value,
+      },
+    });
+  };
+
+  const updateContact = (mobile_number: string) => {
+    setFormData({
+      ...formData,
+      contact: {
+        ...formData.contact,
+        mobile_number,
+      },
+    });
+  };
+
+  const updatePreference = (
+    field: keyof ReportFormData["preferences"],
+    value: string
+  ) => {
+    setFormData({
+      ...formData,
+      preferences: {
+        ...formData.preferences,
         [field]: value,
       },
     });
@@ -23,13 +49,28 @@ export default function StepIdentity({ formData, setFormData, next }: Props) {
         placeholder="Full Name"
         className="input"
         value={formData.identity?.full_name || ""}
-        onChange={(e) => update("full_name", e.target.value)}
+        onChange={(e) => updateIdentity("full_name", e.target.value)}
+      />
+
+      <input
+        type="email"
+        placeholder="Email Address"
+        className="input"
+        value={formData.identity?.email || ""}
+        onChange={(e) => updateIdentity("email", e.target.value)}
+      />
+
+      <input
+        placeholder="Mobile Number"
+        className="input"
+        value={formData.contact?.mobile_number || ""}
+        onChange={(e) => updateContact(e.target.value)}
       />
 
       <select
         className="input"
         value={formData.identity?.gender || ""}
-        onChange={(e) => update("gender", e.target.value)}
+        onChange={(e) => updateIdentity("gender", e.target.value)}
       >
         <option value="">Select Gender</option>
         <option value="male">Male</option>
@@ -41,10 +82,28 @@ export default function StepIdentity({ formData, setFormData, next }: Props) {
         placeholder="Country of Residence"
         className="input"
         value={formData.identity?.country_of_residence || ""}
-        onChange={(e) => update("country_of_residence", e.target.value)}
+        onChange={(e) => updateIdentity("country_of_residence", e.target.value)}
       />
 
-      <button onClick={next} className="btn-primary">
+      <select
+        className="input"
+        value={formData.preferences?.language_preference || "hindi"}
+        onChange={(e) => updatePreference("language_preference", e.target.value)}
+      >
+        <option value="hindi">Hindi</option>
+        <option value="hinglish">Hinglish</option>
+        <option value="english">English</option>
+      </select>
+
+      <p className="text-sm text-gray-400">
+        Mobile number and language preference now feed the updated backend report engine.
+      </p>
+
+      <button
+        onClick={next}
+        className="btn-primary"
+        disabled={!formData.identity?.full_name || !formData.identity?.country_of_residence}
+      >
         Continue
       </button>
     </div>
