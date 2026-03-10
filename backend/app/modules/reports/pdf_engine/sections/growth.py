@@ -1,18 +1,17 @@
-﻿from reportlab.platypus import PageBreak, Spacer, Table, TableStyle
+from reportlab.platypus import PageBreak, Spacer, Table, TableStyle
 
 
 def build_growth(elements, renderer, styles, data):
-    growth = data.get("growth_blueprint", {})
-
-    if not growth:
+    section = data.get("execution_plan", {})
+    if not section:
         return
 
-    elements.append(renderer.section_banner("विकास खाका | Growth Blueprint"))
+    elements.append(renderer.section_banner("21-दिवसीय क्रियान्वयन योजना | 21-Day Execution Plan"))
 
     cards = [
-        renderer.insight_box("स्थिरीकरण | Stabilization", growth.get("phase_1", "Core systems को stabilize करें।"), tone="neutral"),
-        renderer.insight_box("संतुलन | Alignment", growth.get("phase_2", "Execution को strategy के साथ align करें।"), tone="info"),
-        renderer.insight_box("विस्तार | Expansion", growth.get("phase_3", "Governance के साथ scale करें।"), tone="success"),
+        renderer.insight_box("Install Rhythm", section.get("install_rhythm", ""), tone="neutral"),
+        renderer.insight_box("Deploy Anchor", section.get("deploy_anchor", ""), tone="info"),
+        renderer.insight_box("Run Protocol", section.get("run_protocol", ""), tone="success"),
     ]
 
     grid = Table([cards], colWidths=renderer.three_col_widths)
@@ -27,11 +26,13 @@ def build_growth(elements, renderer, styles, data):
             ]
         )
     )
-
     elements.append(grid)
     elements.append(Spacer(1, 8))
 
-    elements.append(renderer.insight_box("क्रियान्वयन नोट | Execution Note", "अगले phase में तभी जाएं जब current metrics stabilize हो जाएं।", tone="neutral"))
+    checkpoints = "<br/>".join(f"- {item}" for item in section.get("checkpoints", []))
+    if checkpoints:
+        elements.append(renderer.insight_box("Weekly Checkpoints", checkpoints, tone="neutral"))
+        elements.append(Spacer(1, 8))
 
+    elements.append(renderer.insight_box("Execution Summary", section.get("summary", ""), tone="info"))
     elements.append(PageBreak())
-

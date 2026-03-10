@@ -61,9 +61,12 @@ def get_report_blueprint(plan_name: Optional[str] = None) -> Dict[str, Any]:
         normalized = _normalize_plan_name(plan_name)
         return get_tier_section_blueprint(normalized)
 
+    blueprints = get_all_tier_section_blueprints()
     return {
-        "tiers": get_all_tier_section_blueprints(),
-        "total_defined_sections": 21,
+        "tiers": blueprints,
+        "total_defined_sections": max(
+            blueprint.get("section_count", 0) for blueprint in blueprints.values()
+        ),
     }
 
 # =====================================================
@@ -84,13 +87,13 @@ def enrich_report_content(report_content: dict, plan_name: str = "basic") -> dic
             "plan_tier": plan_name,
             "generated_at": datetime.utcnow().isoformat(),
             "engine_version": settings.ENGINE_VERSION,
-            "report_version": "5.3"
+            "report_version": "6.0"
         }
 
     # Attach section blueprint so frontend/export layers can inspect tier coverage.
     report_content["report_blueprint"] = get_tier_section_blueprint(plan_name)
     report_content["meta"]["section_count"] = report_content["report_blueprint"]["section_count"]
-    report_content["meta"]["blueprint_version"] = "2026-03-v1"
+    report_content["meta"]["blueprint_version"] = "2026-03-v2"
 
     
     # Executive Brief - Core summary
@@ -300,6 +303,7 @@ def get_radar_data(db: Session, current_user: User, report_id: int) -> Dict[str,
         "Dharma Alignment": metrics.get("dharma_alignment_score", 50),
         "Emotional Regulation": metrics.get("emotional_regulation_index", 50),
         "Financial Discipline": metrics.get("financial_discipline_index", 50),
+        "Karma Pressure": metrics.get("karma_pressure_index", 50),
     }
 
 

@@ -1,7 +1,9 @@
 from typing import Dict, Any
 from datetime import datetime
+import re
 import traceback
 
+from app.modules.reports.interpretation_engine import build_interpretation_report
 from app.modules.reports.scoring_engine import generate_score_summary
 from app.modules.reports.llm_engine import generate_ai_narrative
 from app.modules.numerology.core_engine import generate_numerology_profile
@@ -331,6 +333,53 @@ def flatten_input(data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # =====================================================
+# AI QUALITY + MERGE HELPERS
+# =====================================================
+
+
+def _looks_usable_text(value: Any) -> bool:
+    text = " ".join(str(value or "").split())
+    if len(text) < 24:
+        return False
+    if any(token in text for token in ("{", "}", "à¤", "à¥", "[]")):
+        return False
+    if re.search(r"(,\s*,)|(।\s*।)|(^[-,:;|]+$)", text):
+        return False
+    return True
+
+
+def _merge_narrative(base: Any, override: Any) -> Any:
+    if isinstance(base, dict):
+        merged = dict(base)
+        override = override if isinstance(override, dict) else {}
+        for key, value in merged.items():
+            merged[key] = _merge_narrative(value, override.get(key))
+        for key, value in override.items():
+            if key not in merged:
+                if isinstance(value, str) and _looks_usable_text(value):
+                    merged[key] = value
+                elif isinstance(value, list) and value:
+                    merged[key] = value
+                elif isinstance(value, dict):
+                    merged[key] = value
+        return merged
+
+    if isinstance(base, list):
+        if isinstance(override, list) and override:
+            cleaned = [item for item in override if not isinstance(item, str) or _looks_usable_text(item)]
+            if cleaned:
+                return cleaned
+        return base
+
+    if isinstance(base, str):
+        if isinstance(override, str) and _looks_usable_text(override):
+            return override
+        return base
+
+    return override if override not in (None, "", [], {}) else base
+
+
+# =====================================================
 # SAFE AI WRAPPER
 # Guarantees structure even if LLM fails
 # =====================================================
@@ -343,10 +392,16 @@ def safe_generate_ai_narrative(
     plan_name,
     token_multiplier,
     intake_context,
+    interpretation_draft,
 ):
+    baseline = interpretation_draft or _build_personalized_fallback(
+        intake_context=intake_context,
+        numerology_core=numerology_core,
+        scores=scores,
+        current_problem=current_problem,
+    )
 
     try:
-
         ai_sections = generate_ai_narrative(
             numerology_core=numerology_core,
             scores=scores,
@@ -354,24 +409,17 @@ def safe_generate_ai_narrative(
             plan_name=plan_name,
             token_multiplier=token_multiplier,
             intake_context=intake_context,
+            interpretation_draft=baseline,
         )
-
-        if isinstance(ai_sections, dict) and str(ai_sections.get("executive_brief", {}).get("summary", "")).strip():
-            ai_sections["_fallback_used"] = False
-            return ai_sections
-
+        if isinstance(ai_sections, dict) and ai_sections:
+            merged = _merge_narrative(baseline, ai_sections)
+            merged["_fallback_used"] = False
+            return merged
         raise ValueError("AI returned invalid structure")
-
     except Exception:
-
         traceback.print_exc()
-
-        return _build_personalized_fallback(
-            intake_context=intake_context,
-            numerology_core=numerology_core,
-            scores=scores,
-            current_problem=current_problem,
-        )
+        baseline["_fallback_used"] = True
+        return baseline
 
 
 # =====================================================
@@ -444,6 +492,18 @@ def generate_life_signify_report(
     )
 
     # -------------------------------------------------
+    # INTERPRETATION ENGINE
+    # -------------------------------------------------
+
+    interpretation_draft = build_interpretation_report(
+        intake_context=intake_context,
+        numerology_core=numerology_core,
+        scores=scores,
+        archetype=archetype,
+        remedies=remedies,
+    )
+
+    # -------------------------------------------------
     # AI NARRATIVE
     # -------------------------------------------------
 
@@ -454,6 +514,7 @@ def generate_life_signify_report(
         plan_name=plan_name,
         token_multiplier=features["token_multiplier"],
         intake_context=intake_context,
+        interpretation_draft=interpretation_draft,
     )
 
     # -------------------------------------------------
@@ -466,6 +527,7 @@ def generate_life_signify_report(
         "Dharma Alignment": scores.get("dharma_alignment_score", 50),
         "Emotional Regulation": scores.get("emotional_regulation_index", 50),
         "Financial Discipline": scores.get("financial_discipline_index", 50),
+        "Karma Pressure": scores.get("karma_pressure_index", 50),
     }
 
     # -------------------------------------------------
@@ -475,7 +537,7 @@ def generate_life_signify_report(
     report_output = {
 
         "meta": {
-            "report_version": "5.3",
+            "report_version": "6.0",
             "engine_version": settings.ENGINE_VERSION,
             "plan_tier": plan_name,
             "generated_at": datetime.utcnow().isoformat(),
@@ -494,11 +556,33 @@ def generate_life_signify_report(
 
         "core_metrics": scores,
 
+        "metric_explanations": ai_sections.get("metric_explanations"),
+
         "numerology_core": numerology_core,
 
         "executive_brief": ai_sections.get("executive_brief"),
 
         "analysis_sections": ai_sections.get("analysis_sections"),
+
+        "primary_insight": ai_sections.get("primary_insight"),
+
+        "numerology_architecture": ai_sections.get("numerology_architecture"),
+
+        "archetype_intelligence": ai_sections.get("archetype_intelligence"),
+
+        "loshu_diagnostic": ai_sections.get("loshu_diagnostic"),
+
+        "planetary_mapping": ai_sections.get("planetary_mapping"),
+
+        "structural_deficit_model": ai_sections.get("structural_deficit_model"),
+
+        "circadian_alignment": ai_sections.get("circadian_alignment"),
+
+        "environment_alignment": ai_sections.get("environment_alignment"),
+
+        "vedic_remedy_protocol": ai_sections.get("vedic_remedy_protocol"),
+
+        "execution_plan": ai_sections.get("execution_plan"),
 
         "strategic_guidance": ai_sections.get("strategic_guidance"),
 
@@ -522,7 +606,7 @@ def generate_life_signify_report(
 
         "disclaimer": {
             "framework": "Tiered Numerology Intelligence System",
-            "confidence_score": 88,
+            "confidence_score": scores.get("confidence_score", 0),
             "note": "Insights are probabilistic and strategic, not deterministic predictions.",
         },
     }

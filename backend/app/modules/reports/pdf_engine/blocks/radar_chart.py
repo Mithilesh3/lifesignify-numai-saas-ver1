@@ -12,6 +12,7 @@ LABELS = [
     ("धर्म संतुलन | Dharma Alignment", "Dharma Alignment"),
     ("भावनात्मक संतुलन | Emotional Regulation", "Emotional Regulation"),
     ("वित्तीय अनुशासन | Financial Discipline", "Financial Discipline"),
+    ("कर्म दबाव | Karma Pressure", "Karma Pressure"),
 ]
 
 
@@ -28,12 +29,12 @@ def radar_chart(metrics, styles, total_width):
 
     chart_width = total_width * 0.62
     legend_width = total_width - chart_width
-    drawing = Drawing(chart_width, 220)
+    drawing = Drawing(chart_width, 180)
 
     chart = LinePlot()
     chart.x = 38
-    chart.y = 34
-    chart.height = 145
+    chart.y = 26
+    chart.height = 118
     chart.width = max(220, chart_width - 56)
     chart.data = [[(index + 1, value) for index, value in enumerate(values)]]
     chart.lines[0].strokeColor = HexColor("#1b2f4b")
@@ -45,7 +46,7 @@ def radar_chart(metrics, styles, total_width):
     chart.yValueAxis.valueMax = 100
     chart.yValueAxis.valueStep = 20
     chart.xValueAxis.valueMin = 1
-    chart.xValueAxis.valueMax = 5
+    chart.xValueAxis.valueMax = len(LABELS)
     chart.xValueAxis.valueStep = 1
     chart.yValueAxis.labels.fontName = styles["SmallText"].fontName
     chart.yValueAxis.labels.fontSize = 7

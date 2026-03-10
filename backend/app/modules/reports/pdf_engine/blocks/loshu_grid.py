@@ -62,7 +62,7 @@ def build_loshu_grid(styles, grid_counts):
 
         rows.append(rendered_row)
 
-    table = Table(rows, colWidths=[150, 150, 150], rowHeights=[92, 92, 92])
+    table = Table(rows, colWidths=[126, 126, 126], rowHeights=[68, 68, 68])
 
     style_cmds = [
         ("BOX", (0, 0), (-1, -1), 1.5, HexColor("#c6a15b")),

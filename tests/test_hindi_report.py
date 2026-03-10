@@ -75,7 +75,7 @@ SAMPLE_REQUEST = {
 def _stub_ai_narrative(*_args, **_kwargs):
     return {
         "executive_brief": {
-            "summary": "राहुल शर्मा की Life Path energy बदलाव, learning और self-driven progress की तरफ मजबूत संकेत देती है। अभी career growth और financial discipline को एक साथ align करना सबसे important theme है।",
+            "summary": "राहुल शर्मा की Life Path energy बदलाव, learning और self-driven progress की तरफ मजबूत संकेत देती है। अभी career growth और financial discipline को एक साथ align करना सबसे महत्वपूर्ण theme है।",
             "key_strength": "आपकी सबसे बड़ी strength adaptability, fast learning और practical execution का blend है।",
             "key_risk": "जब stress बढ़ता है तब decision clarity थोड़ी slow हो सकती है, इसलिए structure जरूरी है।",
             "strategic_focus": "अगले 90 दिनों में career positioning, savings discipline और decision routine को same framework में लाना चाहिए।",
@@ -86,25 +86,22 @@ def _stub_ai_narrative(*_args, **_kwargs):
             "emotional_analysis": "आपकी emotional regulation ठीक है, पर recovery routine maintain न हो तो focus जल्दी टूट सकता है।",
             "financial_analysis": "Income potential अच्छा है, लेकिन wealth creation के लिए disciplined savings और planned investing की जरूरत है।",
         },
-        "strategic_guidance": {
-            "short_term": "Weekly review system शुरू करें और खर्च, workload, तथा priorities को visible बनाएं।",
-            "mid_term": "Career growth के लिए leadership-facing projects चुनें और savings ratio को stable रखें।",
-            "long_term": "Execution discipline मजबूत होने पर business-side opportunities या senior leadership track explore किया जा सकता है।",
+        "primary_insight": {
+            "narrative": "राहुल के लिए मुख्य रणनीतिक संकेत यह है कि growth को chance पर नहीं बल्कि structure पर चलाना होगा। Life Path change-friendly है, लेकिन financial और emotional rhythm को मजबूत किए बिना momentum टिकाऊ नहीं होगा।",
         },
-        "growth_blueprint": {
-            "phase_1": "Routine, budget और work priorities को stabilize करें।",
-            "phase_2": "Communication, visibility और domain depth को growth lever बनाएं।",
-            "phase_3": "Stable cash flow और strong positioning के बाद scale decisions लें।",
+        "archetype_intelligence": {
+            "signature": "यह profile analysis और adaptability का blend दिखाती है, इसलिए shallow execution की बजाय thoughtful action ज्यादा suited रहेगा।",
+            "shadow_traits": "Pressure phase में overthinking और scattered follow-through risk बन सकते हैं।",
+            "growth_path": "Repeatable systems, visible weekly review और structured communication इस archetype का best growth path है।",
         },
-        "business_block": {
-            "business_strength": "Rahul की profile strategy, systems thinking और client-facing trust building को support करती है।",
-            "risk_factor": "अगर structure कमजोर हो तो growth opportunities reactive decisions में बदल सकती हैं।",
-            "compatible_industries": ["Technology Consulting", "Product Strategy", "Digital Services"],
+        "loshu_diagnostic": {
+            "narrative": "Lo Shu grid communication, center balance और responsibility energies के बीच कुछ gaps दिखाता है, इसलिए conscious habit design यहां जरूरी है।",
         },
-        "compatibility_block": {
-            "compatible_numbers": [3, 5, 6],
-            "challenging_numbers": [4, 8],
-            "relationship_guidance": "ऐसे लोगों के साथ alignment बेहतर रहता है जो clarity, growth और emotional steadiness को support करें।",
+        "planetary_mapping": {
+            "narrative": "Primary intervention planet disciplined thinking और calmer execution की मांग कर रहा है, इसलिए remedies को daily routine से जोड़ना जरूरी है।",
+        },
+        "execution_plan": {
+            "summary": "21-day execution plan का उद्देश्य quick motivation नहीं बल्कि measurable rhythm build करना है।",
         },
     }
 
@@ -164,6 +161,14 @@ def run_hindi_report_smoke_test(output_dir: Path | None = None) -> Path:
 
     summary = report.get("executive_brief", {}).get("summary", "")
     assert re.search(r"[\u0900-\u097F]", summary), "Expected Devanagari text in the executive summary."
+    assert "à¤" not in str(report)
+    assert report.get("primary_insight", {}).get("phase_1_diagnostic")
+    assert report.get("execution_plan", {}).get("run_protocol")
+    assert report.get("environment_alignment", {}).get("mobile_number_analysis")
+
+    report_text = str(report)
+    assert not re.search(r"\{[a-zA-Z0-9_]+\}", report_text)
+    assert ", ," not in report_text
 
     pdf_buffer = generate_report_pdf(report)
     pdf_bytes = pdf_buffer.getvalue()

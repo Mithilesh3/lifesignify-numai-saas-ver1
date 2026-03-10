@@ -1,37 +1,26 @@
-﻿from reportlab.lib.colors import HexColor
+from reportlab.lib.colors import HexColor
 from reportlab.platypus import PageBreak, Paragraph, Spacer, Table, TableStyle
 
 
 def build_strategy(elements, renderer, styles, data):
-    strategy = data.get("strategic_guidance", {})
-
-    if not strategy:
+    section = data.get("structural_deficit_model", {})
+    if not section:
         return
 
-    elements.append(renderer.section_banner("रणनीतिक दिशा | Strategic Guidance"))
-
-    header = [
-        Paragraph("रणनीतिक चरण | Strategic Phase", styles["TableHeader"]),
-        Paragraph("फोकस | Focus", styles["TableHeader"]),
-    ]
+    elements.append(renderer.section_banner("संरचनात्मक कमी मॉडल | Structural Deficit Model"))
 
     rows = [
         [
-            Paragraph("चरण 1 | Stabilization", styles["BodyText"]),
-            Paragraph(strategy.get("short_term", "Stabilize operations and priorities."), styles["BodyText"]),
+            Paragraph("मॉडल | Model", styles["TableHeader"]),
+            Paragraph("व्याख्या | Interpretation", styles["TableHeader"]),
         ],
-        [
-            Paragraph("चरण 2 | Restructuring", styles["BodyText"]),
-            Paragraph(strategy.get("mid_term", "Restructure systems and leverage points."), styles["BodyText"]),
-        ],
-        [
-            Paragraph("चरण 3 | Expansion", styles["BodyText"]),
-            Paragraph(strategy.get("long_term", "Scale high-performing patterns."), styles["BodyText"]),
-        ],
+        [Paragraph("Structural Deficit", styles["BodyText"]), Paragraph(section.get("structural_deficit", ""), styles["BodyText"])],
+        [Paragraph("Behavioral Symptom", styles["BodyText"]), Paragraph(section.get("behavioral_symptom", ""), styles["BodyText"])],
+        [Paragraph("Engineered Patch", styles["BodyText"]), Paragraph(section.get("engineered_patch", ""), styles["BodyText"])],
     ]
 
-    timeline = Table([header] + rows, colWidths=renderer.proportional_widths(1.45, 3.35), repeatRows=1)
-    timeline.setStyle(
+    table = Table(rows, colWidths=renderer.proportional_widths(1.3, 3.7), repeatRows=1)
+    table.setStyle(
         TableStyle(
             [
                 ("BACKGROUND", (0, 0), (-1, 0), HexColor("#1b2f4b")),
@@ -46,16 +35,8 @@ def build_strategy(elements, renderer, styles, data):
             ]
         )
     )
-
-    elements.append(timeline)
+    elements.append(table)
     elements.append(Spacer(1, 8))
-
-    elements.append(
-        renderer.insight_box(
-            "रणनीतिक अर्थ | Strategic Interpretation",
-            "Phases में execute करें: पहले stabilize करें, फिर systems redesign करें, और scale वहीं करें जहां metrics resilience confirm करें।",
-            tone="neutral",
-        )
-    )
+    elements.append(renderer.insight_box("Rationale", section.get("rationale", ""), tone="neutral"))
 
     elements.append(PageBreak())

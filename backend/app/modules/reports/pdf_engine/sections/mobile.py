@@ -1,37 +1,42 @@
-from reportlab.platypus import PageBreak, Spacer
+from reportlab.platypus import PageBreak, Spacer, Table, TableStyle
 
 
 def build_mobile(elements, renderer, styles, data):
-    mobile_analysis = data.get("numerology_core", {}).get("mobile_analysis", {})
-    mobile = data.get("mobile_remedies", {})
-
-    if not mobile_analysis and not mobile:
+    section = data.get("environment_alignment", {})
+    if not section:
         return
 
-    elements.append(renderer.section_banner("मोबाइल नंबर ऊर्जा विश्लेषण | Mobile Number Energy Analysis"))
+    elements.append(renderer.section_banner("पर्यावरण संरेखण | Environment Alignment"))
 
-    vibration = mobile_analysis.get("mobile_vibration", "N/A")
-    status = str(mobile_analysis.get("compatibility_status", "neutral")).title()
-    summary = mobile_analysis.get(
-        "compatibility_summary",
-        "Mobile vibration आपके day-to-day communication और response pattern पर subtle effect डालता है।",
+    cards = Table(
+        [
+            [
+                renderer.insight_box("Physical Space", section.get("physical_space", ""), tone="neutral", width=renderer.two_col_inner_width),
+                renderer.insight_box("Color Alignment", section.get("color_alignment", ""), tone="info", width=renderer.two_col_inner_width),
+            ],
+            [
+                renderer.insight_box("Mobile Number Analysis", section.get("mobile_number_analysis", ""), tone="success", width=renderer.full_width - 4),
+                "",
+            ],
+        ],
+        colWidths=renderer.two_col_widths,
     )
-    correction = mobile_analysis.get(
-        "correction_suggestion",
-        mobile.get("number_energy_hint", "अगर optimize करना हो तो supportive ending energies consider की जा सकती हैं।"),
+    cards.setStyle(
+        TableStyle(
+            [
+                ("SPAN", (0, 1), (1, 1)),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 2),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ]
+        )
     )
-
-    elements.append(renderer.insight_box("मोबाइल कंपन | Mobile Vibration", f"Vibration: {vibration} | Alignment: {status}", tone="info"))
+    elements.append(cards)
     elements.append(Spacer(1, 8))
-    elements.append(renderer.insight_box("अनुकूलता संकेत | Compatibility Insight", summary, tone="neutral"))
+    elements.append(renderer.insight_box("Digital Behavior", section.get("digital_behavior", ""), tone="neutral"))
     elements.append(Spacer(1, 8))
-    elements.append(renderer.insight_box("सुधार सुझाव | Correction Suggestion", correction, tone="success"))
-    elements.append(Spacer(1, 8))
-
-    usage = mobile.get("mobile_usage_timing", "Heavy decisions रात में avoid करें और high-focus tasks morning में रखें।")
-    focus = mobile.get("whatsapp_dp", "Digital identity को simple और clear रखें।")
-    environment = mobile.get("charging_direction", "Phone charging spot को stable और clutter-free रखें।")
-
-    elements.append(renderer.bullet_block("दैनिक डिजिटल संतुलन | Daily Digital Alignment", [usage, focus, environment]))
+    elements.append(renderer.insight_box("Environment Narrative", section.get("narrative", ""), tone="info"))
 
     elements.append(PageBreak())

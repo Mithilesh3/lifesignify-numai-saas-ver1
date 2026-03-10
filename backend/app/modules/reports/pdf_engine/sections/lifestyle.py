@@ -1,39 +1,40 @@
-from reportlab.platypus import PageBreak, Spacer
+from reportlab.platypus import PageBreak, Spacer, Table, TableStyle
 
 
 def build_lifestyle(elements, renderer, styles, data):
-    life = data.get("lifestyle_remedies", {})
-    daily_alignment = data.get("daily_energy_alignment", {})
-
-    if not life and not daily_alignment:
+    section = data.get("circadian_alignment", {})
+    if not section:
         return
 
-    elements.append(renderer.section_banner("जीवन संतुलन मार्गदर्शन | Lifestyle Alignment"))
+    elements.append(renderer.section_banner("दैनिक लय संरेखण | Circadian Alignment"))
 
-    if life:
-        elements.append(renderer.insight_box("रंग संतुलन | Color Alignment", life.get("color_alignment", "Environment में balancing tones रखें।"), tone="info"))
-        elements.append(Spacer(1, 8))
+    schedule = Table(
+        [
+            [
+                renderer.insight_box("Morning Routine", section.get("morning_routine", ""), tone="success", width=renderer.two_col_inner_width),
+                renderer.insight_box("Work Alignment", section.get("work_alignment", ""), tone="info", width=renderer.two_col_inner_width),
+            ],
+            [
+                renderer.insight_box("Evening Shutdown", section.get("evening_shutdown", ""), tone="neutral", width=renderer.full_width - 4),
+                "",
+            ],
+        ],
+        colWidths=renderer.two_col_widths,
+    )
+    schedule.setStyle(
+        TableStyle(
+            [
+                ("SPAN", (0, 1), (1, 1)),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 2),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ]
+        )
+    )
 
-        habits = [
-            life.get("daily_routine", "Daily consistency build करें।"),
-            life.get("meditation", "हर दिन mindful reset practice करें।"),
-            life.get("bracelet_suggestion", "Habit identity को reinforce करने के लिए symbolic anchors use करें।"),
-            life.get("habit_recommendation", "ऐसा repeatable ritual बनाएं जो आपकी weakest area को support करे।"),
-        ]
-        elements.append(renderer.bullet_block("दैनिक आदतें | Daily Habits", habits))
-        elements.append(Spacer(1, 8))
-
-    if daily_alignment:
-        alignment_points = [
-            daily_alignment.get("morning", "Morning sunlight exposure लें।"),
-            daily_alignment.get("breathing", "Short breathing routine करें।"),
-            daily_alignment.get("focus_routine", "Focused work block से पहले clear intention set करें।"),
-            daily_alignment.get("evening_reset", "Evening reset के साथ दिन close करें।"),
-        ]
-        elements.append(renderer.bullet_block("संतुलन रूटीन | Alignment Routine", alignment_points))
-        elements.append(Spacer(1, 8))
-
-    environment = "Environment, rhythm और routine को align रखने से numerology guidance practical daily action में convert होती है।"
-    elements.append(renderer.insight_box("पर्यावरण संतुलन | Environment Alignment", environment, tone="neutral"))
-
+    elements.append(schedule)
+    elements.append(Spacer(1, 8))
+    elements.append(renderer.insight_box("Circadian Narrative", section.get("narrative", ""), tone="neutral"))
     elements.append(PageBreak())

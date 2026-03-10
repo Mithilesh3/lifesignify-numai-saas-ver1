@@ -58,23 +58,29 @@ def generate_ai_narrative(
     plan_name: str,
     token_multiplier: float = 1.0,
     intake_context: Optional[Dict[str, Any]] = None,
+    interpretation_draft: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
 
     plan_name = (plan_name or "basic").lower()
     intake_context = intake_context or {}
+    interpretation_draft = interpretation_draft or {}
     preferences = intake_context.get("preferences") or {}
     language_preference = str(preferences.get("language_preference") or "hindi").lower()
 
     base_tokens = PLAN_TOKEN_BASE.get(plan_name, 1600)
     max_tokens = int(base_tokens * token_multiplier)
     business_signals = numerology_core.get("business_analysis", {})
+    numerology_json = json.dumps(numerology_core, ensure_ascii=False)
+    scores_json = json.dumps(scores, ensure_ascii=False)
+    intake_json = json.dumps(intake_context, ensure_ascii=False)
+    draft_json = json.dumps(interpretation_draft, ensure_ascii=False)
 
     prompt = f"""
 You are an elite numerology strategist and behavioral intelligence advisor.
 
 Do NOT calculate numerology numbers.
 All numerology calculations are already provided.
-Your task is to interpret them and generate a strategic life intelligence report.
+Your task is to refine an already-generated deterministic interpretation into a more natural strategic life intelligence report.
 
 Writing style requirements:
 - The report must be written in Hindi-major language using Devanagari script.
@@ -86,6 +92,8 @@ Writing style requirements:
 - Make the report feel clearly different for each user by grounding every section in the user's name, numerology values, strongest or weakest scores, and stated life focus.
 - If data is missing, acknowledge the gap instead of inventing facts.
 - If confidence_score is low or behavioral inputs are sparse, explicitly say that some intelligence metrics are based on limited inputs.
+- Never leave blanks, placeholders, token fragments, empty commas, or partially stitched grammar.
+- Do not output templated filler. Every paragraph must mention concrete deterministic signals such as life path, missing numbers, metric behavior, mobile vibration, or dominant planet.
 
 --------------------------------------------------
 
@@ -95,22 +103,27 @@ USER CURRENT PROBLEM
 --------------------------------------------------
 
 USER PROFILE INPUT
-{intake_context}
+{intake_json}
 
 --------------------------------------------------
 
 NUMEROLOGY CORE DATA
-{numerology_core}
+{numerology_json}
 
 --------------------------------------------------
 
 BUSINESS NUMEROLOGY SIGNALS
-{business_signals}
+{json.dumps(business_signals, ensure_ascii=False)}
 
 --------------------------------------------------
 
 BEHAVIORAL INTELLIGENCE SCORES
-{scores}
+{scores_json}
+
+--------------------------------------------------
+
+DETERMINISTIC INTERPRETATION DRAFT
+{draft_json}
 
 --------------------------------------------------
 
@@ -132,7 +145,9 @@ Return VALID JSON ONLY.
 Do NOT include markdown.
 Do NOT include explanations outside JSON.
 Keep responses structured and professional.
-- Keep each field concise but specific.
+- Rewrite only the provided narrative fields. Preserve the deterministic meaning.
+- Use natural Hindi sentences. Avoid list fragments like ", , और" or broken token sequences.
+- Keep each field specific and content-rich.
 
 --------------------------------------------------
 
@@ -153,28 +168,26 @@ REQUIRED JSON STRUCTURE
    "financial_analysis": ""
  }},
 
- "strategic_guidance": {{
-   "short_term": "",
-   "mid_term": "",
-   "long_term": ""
+ "primary_insight": {{
+   "narrative": ""
  }},
 
- "growth_blueprint": {{
-   "phase_1": "",
-   "phase_2": "",
-   "phase_3": ""
+ "archetype_intelligence": {{
+   "signature": "",
+   "shadow_traits": "",
+   "growth_path": ""
  }},
 
- "business_block": {{
-   "business_strength": "",
-   "risk_factor": "",
-   "compatible_industries": []
+ "loshu_diagnostic": {{
+   "narrative": ""
  }},
 
- "compatibility_block": {{
-   "compatible_numbers": [],
-   "challenging_numbers": [],
-   "relationship_guidance": ""
+ "planetary_mapping": {{
+   "narrative": ""
+ }},
+
+ "execution_plan": {{
+   "summary": ""
  }}
 }}
 """
@@ -190,7 +203,7 @@ REQUIRED JSON STRUCTURE
 You are an elite numerology strategist and behavioral intelligence advisor.
 Do NOT calculate numerology numbers.
 All numerology calculations are already provided.
-Interpret them into a premium life intelligence report.
+Refine the deterministic interpretation into a premium life intelligence report.
 Write the report in Hindi-major language using Devanagari script.
 Target a mix of roughly 80-90% Hindi and 10-20% English.
 English words may be used for modern concepts such as career, business, strategy, growth, leadership, and execution.
@@ -198,6 +211,7 @@ Never write Roman Hindi.
 Avoid generic astrology statements.
 Make the output meaningfully different when user profile inputs differ.
 If inputs are sparse, acknowledge that some intelligence scores are based on limited data.
+Never output empty placeholders, blank grammar fragments, or corrupted Hindi.
 """
                 },
                 {
