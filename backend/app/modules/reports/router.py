@@ -22,6 +22,7 @@ from app.modules.reports.intake_schema import LifeSignifyRequest
 from app.modules.reports.service import (
     create_report,
     generate_ai_report_service,
+    get_report_blueprint,
     get_reports,
     get_report,
     get_radar_data,
@@ -127,6 +128,21 @@ def get_usage_metrics(
     """
     return get_report_metrics(db=db, current_user=current_user)
 
+
+
+# =====================================================
+# GET TIER BLUEPRINT
+# =====================================================
+@router.get("/blueprint/tiers")
+def get_tier_blueprint(
+    plan_name: Optional[str] = Query(None, description="Optional plan name: basic/pro/premium/enterprise"),
+):
+    """
+    Get report section blueprint by plan tier
+    - Without plan_name: returns all tiers
+    - With plan_name: returns one tier blueprint
+    """
+    return get_report_blueprint(plan_name=plan_name)
 
 # =====================================================
 # GET SINGLE REPORT

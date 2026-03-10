@@ -15,6 +15,10 @@ from app.core.audit import log_action
 from app.core.config import settings
 from app.modules.reports.ai_engine import generate_life_signify_report
 from app.modules.reports.pdf_engine import generate_report_pdf
+from app.modules.reports.blueprint import (
+    get_tier_section_blueprint,
+    get_all_tier_section_blueprints,
+)
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -48,6 +52,20 @@ def _normalize_plan_name(plan_name: Optional[str]) -> str:
         "enterprise": "enterprise",
     }
     return aliases.get(plan, "basic")
+
+def get_report_blueprint(plan_name: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Return section blueprint for a specific tier or all tiers.
+    """
+    if plan_name:
+        normalized = _normalize_plan_name(plan_name)
+        return get_tier_section_blueprint(normalized)
+
+    return {
+        "tiers": get_all_tier_section_blueprints(),
+        "total_defined_sections": 21,
+    }
+
 # =====================================================
 # REPORT ENRICHMENT LAYER
 # =====================================================
@@ -68,6 +86,12 @@ def enrich_report_content(report_content: dict, plan_name: str = "basic") -> dic
             "engine_version": settings.ENGINE_VERSION,
             "report_version": "5.3"
         }
+
+    # Attach section blueprint so frontend/export layers can inspect tier coverage.
+    report_content["report_blueprint"] = get_tier_section_blueprint(plan_name)
+    report_content["meta"]["section_count"] = report_content["report_blueprint"]["section_count"]
+    report_content["meta"]["blueprint_version"] = "2026-03-v1"
+
     
     # Executive Brief - Core summary
     report_content.setdefault(

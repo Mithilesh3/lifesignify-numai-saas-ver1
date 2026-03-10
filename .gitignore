@@ -35,7 +35,7 @@ backend/.env
 # REPORT / AI OUTPUT
 # =====================================================
 
-reports/
+/reports/
 generated_reports/
 *.pdf
 *.csv
@@ -115,3 +115,4 @@ htmlcov/
 tmp/
 temp/
 *.tmp
+
