@@ -280,9 +280,88 @@ def _build_personalized_fallback(
 # =====================================================
 
 
-def flatten_input(data: Dict[str, Any]) -> Dict[str, Any]:
+def _reduce_number(value: int) -> int:
+    while value > 9 and value not in (11, 22, 33):
+        value = sum(int(char) for char in str(value))
+    return value
+
+
+def _derive_mulank(date_of_birth: str) -> int:
+    text = str(date_of_birth or "").strip()
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d", "%d.%m.%Y"):
+        try:
+            parsed = datetime.strptime(text, fmt)
+            return _reduce_number(parsed.day)
+        except ValueError:
+            continue
+    return 0
+
+
+def _derive_personal_year(date_of_birth: str) -> int:
+    text = str(date_of_birth or "").strip()
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d", "%d.%m.%Y"):
+        try:
+            parsed = datetime.strptime(text, fmt)
+            total = parsed.day + parsed.month + sum(int(char) for char in str(datetime.utcnow().year))
+            return _reduce_number(total)
+        except ValueError:
+            continue
+    return 0
+
+
+def _extract_loshu_signals(numerology_core: Dict[str, Any]) -> Dict[str, Any]:
+    loshu = (numerology_core or {}).get("loshu_grid") or {}
+    grid_counts = loshu.get("grid_counts") if isinstance(loshu, dict) else {}
+    if not isinstance(grid_counts, dict):
+        grid_counts = {}
+
+    present_digits = []
+    missing_digits = []
+    repeating_digits: Dict[int, int] = {}
+    for digit in range(1, 10):
+        raw_count = grid_counts.get(str(digit), grid_counts.get(digit, 0))
+        try:
+            count = int(raw_count)
+        except (TypeError, ValueError):
+            count = 0
+        if count > 0:
+            present_digits.append(digit)
+            if count > 1:
+                repeating_digits[digit] = count
+        else:
+            missing_digits.append(digit)
+
+    explicit_missing = loshu.get("missing_numbers") if isinstance(loshu, dict) else None
+    if isinstance(explicit_missing, list) and explicit_missing:
+        normalized_missing = []
+        for item in explicit_missing:
+            try:
+                number = int(item)
+            except (TypeError, ValueError):
+                continue
+            if 1 <= number <= 9:
+                normalized_missing.append(number)
+        if normalized_missing:
+            missing_digits = sorted(set(normalized_missing))
+            present_digits = [digit for digit in range(1, 10) if digit not in missing_digits]
+
+    return {
+        "lo_shu_present_digits": present_digits,
+        "lo_shu_missing_digits": missing_digits,
+        "repeating_digits": repeating_digits,
+    }
+
+
+def flatten_input(
+    data: Dict[str, Any],
+    *,
+    numerology_core: Dict[str, Any] | None = None,
+    intake_context: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
 
     data = data or {}
+    numerology_core = numerology_core or {}
+    intake_context = intake_context or {}
 
     financial = data.get("financial") or {}
     career = data.get("career") or {}
@@ -290,6 +369,20 @@ def flatten_input(data: Dict[str, Any]) -> Dict[str, Any]:
     focus = data.get("focus") or {}
     life_events = data.get("life_events") or {}
     calibration = data.get("calibration") or {}
+    identity = intake_context.get("identity") or data.get("identity") or {}
+    birth_details = intake_context.get("birth_details") or data.get("birth_details") or {}
+    contact = intake_context.get("contact") or data.get("contact") or {}
+
+    date_of_birth = birth_details.get("date_of_birth") or identity.get("date_of_birth")
+    pyth = numerology_core.get("pythagorean") or {}
+    chaldean = numerology_core.get("chaldean") or {}
+    mobile_analysis = numerology_core.get("mobile_analysis") or {}
+    email_analysis = numerology_core.get("email_analysis") or {}
+    loshu_signals = _extract_loshu_signals(numerology_core)
+
+    mulank = _derive_mulank(date_of_birth)
+    bhagyank = pyth.get("life_path_number")
+    personal_year = _derive_personal_year(date_of_birth)
 
     decision_confusion = emotional.get("decision_confusion")
     impulse_control = emotional.get("impulse_control")
@@ -302,7 +395,17 @@ def flatten_input(data: Dict[str, Any]) -> Dict[str, Any]:
     if impulse_control is not None:
         impulse_spending = max(1, min(10, 11 - int(impulse_control)))
 
+    setbacks = life_events.get("setback_events_years")
+    major_setbacks = len(setbacks) if isinstance(setbacks, list) else None
+
     return {
+        "full_name": identity.get("full_name"),
+        "date_of_birth": date_of_birth,
+        "gender": identity.get("gender"),
+        "birthplace_city": birth_details.get("birthplace_city"),
+        "mobile_number": contact.get("mobile_number") or identity.get("mobile_number"),
+        "email": identity.get("email"),
+        "current_problem": data.get("current_problem"),
 
         "monthly_income": financial.get("monthly_income"),
         "savings_ratio": financial.get("savings_ratio"),
@@ -322,13 +425,26 @@ def flatten_input(data: Dict[str, Any]) -> Dict[str, Any]:
         "emotional_stability": emotional.get("emotional_stability"),
 
         "life_focus": focus.get("life_focus"),
-        "major_setbacks": len(life_events.get("setback_events_years") or []),
+        "major_setbacks": major_setbacks,
 
         "stress_response": calibration.get("stress_response"),
         "money_decision_style": calibration.get("money_decision_style"),
         "biggest_weakness": calibration.get("biggest_weakness"),
         "life_preference": calibration.get("life_preference"),
         "decision_style": calibration.get("decision_style"),
+
+        "mulank": mulank,
+        "bhagyank": bhagyank,
+        "life_path_number": bhagyank,
+        "destiny_number": pyth.get("destiny_number"),
+        "expression_number": pyth.get("expression_number"),
+        "name_number": chaldean.get("name_number"),
+        "personal_year": personal_year,
+        "mobile_vibration": mobile_analysis.get("mobile_vibration") or mobile_analysis.get("mobile_number_vibration"),
+        "email_vibration": email_analysis.get("email_number"),
+        "lo_shu_present_digits": loshu_signals["lo_shu_present_digits"],
+        "lo_shu_missing_digits": loshu_signals["lo_shu_missing_digits"],
+        "repeating_digits": loshu_signals["repeating_digits"],
     }
 
 
@@ -469,7 +585,11 @@ def generate_life_signify_report(
     # BEHAVIORAL SCORING ENGINE
     # -------------------------------------------------
 
-    flat_data = flatten_input(request_data)
+    flat_data = flatten_input(
+        request_data,
+        numerology_core=numerology_core,
+        intake_context=intake_context,
+    )
 
     scores = generate_score_summary(flat_data, plan_name=plan_name) or {}
 
