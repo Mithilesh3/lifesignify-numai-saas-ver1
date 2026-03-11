@@ -28,19 +28,6 @@ export default function StepIdentity({ formData, setFormData, next }: Props) {
     });
   };
 
-  const updatePreference = (
-    field: keyof ReportFormData["preferences"],
-    value: string
-  ) => {
-    setFormData({
-      ...formData,
-      preferences: {
-        ...formData.preferences,
-        [field]: value,
-      },
-    });
-  };
-
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">Identity Details</h2>
@@ -53,25 +40,18 @@ export default function StepIdentity({ formData, setFormData, next }: Props) {
       />
 
       <input
+        placeholder="Mobile Number"
+        className="input"
+        value={formData.contact?.mobile_number || ""}
+        onChange={(e) => updateContact(e.target.value)}
+      />
+
+      <input
         type="email"
         placeholder="Email Address"
         className="input"
         value={formData.identity?.email || ""}
         onChange={(e) => updateIdentity("email", e.target.value)}
-      />
-
-      <input
-        placeholder="Signature Style (optional)"
-        className="input"
-        value={formData.identity?.signature_style || ""}
-        onChange={(e) => updateIdentity("signature_style", e.target.value)}
-      />
-
-      <input
-        placeholder="Mobile Number"
-        className="input"
-        value={formData.contact?.mobile_number || ""}
-        onChange={(e) => updateContact(e.target.value)}
       />
 
       <select
@@ -85,30 +65,14 @@ export default function StepIdentity({ formData, setFormData, next }: Props) {
         <option value="other">Other</option>
       </select>
 
-      <input
-        placeholder="Country of Residence"
-        className="input"
-        value={formData.identity?.country_of_residence || ""}
-        onChange={(e) => updateIdentity("country_of_residence", e.target.value)}
-      />
-
-      <select
-        className="input"
-        value={formData.preferences?.language_preference || "hindi"}
-        onChange={(e) => updatePreference("language_preference", e.target.value)}
-      >
-        <option value="hindi">Hindi (Hindi-major Recommended)</option>
-        <option value="english">English (Fallback)</option>
-      </select>
-
-      <p className="text-sm text-gray-400">
-        Mobile, signature style, and language now feed correction-led personalization in the report engine.
-      </p>
-
       <button
         onClick={next}
         className="btn-primary"
-        disabled={!formData.identity?.full_name || !formData.identity?.country_of_residence}
+        disabled={
+          !formData.identity?.full_name
+          || !formData.contact?.mobile_number
+          || !formData.identity?.gender
+        }
       >
         Continue
       </button>

@@ -8,12 +8,6 @@ import { useAuth } from "../../context/AuthContext";
 
 import StepIdentity from "../../components/reports/steps/StepIdentity";
 import StepBirthDetails from "../../components/reports/steps/StepBirthDetails";
-import StepFocus from "../../components/reports/steps/StepFocus";
-import StepFinancial from "../../components/reports/steps/StepFinancial";
-import StepEmotional from "../../components/reports/steps/StepEmotional";
-import StepBusiness from "../../components/reports/steps/StepBusiness";
-import StepHealth from "../../components/reports/steps/StepHealth";
-import StepCalibration from "../../components/reports/steps/StepCalibration";
 import StepReview from "../../components/reports/steps/StepReview";
 import type { ReportFormData } from "../../types/report";
 
@@ -24,11 +18,13 @@ interface ValidationErrorItem {
   msg?: string;
 }
 
-const hasValues = (value: Record<string, unknown> | undefined) =>
-  Boolean(value) && Object.values(value as Record<string, unknown>).some(Boolean);
+const hasValues = (value: Record<string, unknown> | undefined) => Boolean(value)
+  && Object.values(value as Record<string, unknown>).some(Boolean);
+
+const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 export default function GenerateReportPage() {
-  const { user, refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -36,7 +32,7 @@ export default function GenerateReportPage() {
   const [formData, setFormData] = useState<ReportFormData>({
     identity: {},
     birth_details: {},
-    focus: {},
+    focus: { life_focus: "general_alignment" },
     contact: {},
     preferences: {
       language_preference: "hindi",
@@ -49,28 +45,11 @@ export default function GenerateReportPage() {
     current_problem: "",
   });
 
-  const plan = user?.subscription?.plan_name?.toLowerCase() || "basic";
-
   const steps: Array<{ key: string; component: StepComponent }> = [
     { key: "identity", component: StepIdentity },
     { key: "birth_details", component: StepBirthDetails },
-    { key: "focus", component: StepFocus },
-    { key: "financial", component: StepFinancial },
-    { key: "emotional", component: StepEmotional },
+    { key: "review", component: StepReview },
   ];
-
-  if (plan !== "basic") {
-    steps.push({ key: "business_context", component: StepBusiness });
-  }
-
-  if (plan === "enterprise") {
-    steps.push(
-      { key: "life_events", component: StepHealth },
-      { key: "calibration", component: StepCalibration }
-    );
-  }
-
-  steps.push({ key: "review", component: StepReview });
 
   const totalSteps = steps.length;
   const CurrentStepComponent = steps[step - 1]
@@ -88,41 +67,71 @@ export default function GenerateReportPage() {
   const prev = () => step > 1 && setStep(step - 1);
 
   const handleSubmit = async () => {
+    const fullName = formData.identity?.full_name?.trim();
+    const mobileNumber = formData.contact?.mobile_number?.trim();
+    const emailAddress = formData.identity?.email?.trim();
+    const dateOfBirth = formData.birth_details?.date_of_birth;
+    const birthPlace = formData.birth_details?.birthplace_city?.trim();
+    const gender = formData.identity?.gender;
+    const currentProblem = formData.current_problem?.trim();
+
     if (
-      !formData.identity?.full_name ||
-      !formData.identity?.country_of_residence ||
-      !formData.birth_details?.date_of_birth ||
-      !formData.birth_details?.birthplace_city ||
-      !formData.birth_details?.birthplace_country ||
-      !formData.focus?.life_focus
+      !fullName ||
+      !mobileNumber ||
+      !dateOfBirth ||
+      !birthPlace ||
+      !gender ||
+      !currentProblem
     ) {
       toast.error("Please fill all required fields.");
+      return;
+    }
+
+    if (emailAddress && !isValidEmail(emailAddress)) {
+      toast.error("Please enter a valid email address.");
       return;
     }
 
     setSubmitting(true);
 
     try {
+      const fallbackCountry = formData.identity?.country_of_residence?.trim() || "Not Specified";
+
       const payload = {
         identity: {
           ...formData.identity,
-          date_of_birth: formData.birth_details.date_of_birth,
+          full_name: fullName,
+          email: emailAddress || undefined,
+          gender,
+          country_of_residence: fallbackCountry,
+          date_of_birth: dateOfBirth,
         },
-        birth_details: formData.birth_details,
-        focus: formData.focus,
-        current_problem: formData.current_problem?.trim() || undefined,
-        contact: hasValues(formData.contact) ? formData.contact : undefined,
+        birth_details: {
+          ...formData.birth_details,
+          date_of_birth: dateOfBirth,
+          birthplace_city: birthPlace,
+          birthplace_country:
+            formData.birth_details?.birthplace_country?.trim() || fallbackCountry,
+        },
+        focus: {
+          life_focus: formData.focus?.life_focus || "general_alignment",
+        },
+        current_problem: currentProblem,
+        contact: hasValues({
+          mobile_number: mobileNumber,
+        })
+          ? {
+              mobile_number: mobileNumber,
+            }
+          : undefined,
         preferences: hasValues(formData.preferences)
-          ? formData.preferences
-          : undefined,
-        career: hasValues(formData.career) ? formData.career : undefined,
-        financial: hasValues(formData.financial) ? formData.financial : undefined,
-        emotional: hasValues(formData.emotional) ? formData.emotional : undefined,
-        life_events: hasValues(formData.life_events)
-          ? formData.life_events
-          : undefined,
-        calibration: hasValues(formData.calibration)
-          ? formData.calibration
+          ? {
+              ...formData.preferences,
+              language_preference:
+                formData.preferences?.language_preference || "hindi",
+              primary_goal:
+                formData.preferences?.primary_goal?.trim() || currentProblem,
+            }
           : undefined,
       };
 
@@ -160,7 +169,7 @@ export default function GenerateReportPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-10 px-4">
+    <div className="max-w-2xl mx-auto py-10 px-4">
       <div className="w-full bg-gray-800 h-2 rounded-full mb-6">
         <div
           className="bg-indigo-600 h-2 rounded-full transition-all"
@@ -172,15 +181,17 @@ export default function GenerateReportPage() {
         Step {step} of {totalSteps}
       </p>
 
-      <CurrentStepComponent
-        formData={formData}
-        setFormData={setFormData}
-        next={next}
-        prev={prev}
-        submit={handleSubmit}
-        plan={plan}
-        submitting={submitting}
-      />
+      <div className="card border border-gray-800">
+        <CurrentStepComponent
+          formData={formData}
+          setFormData={setFormData}
+          next={next}
+          prev={prev}
+          submit={handleSubmit}
+          plan="basic"
+          submitting={submitting}
+        />
+      </div>
     </div>
   );
 }

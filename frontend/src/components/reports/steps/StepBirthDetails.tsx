@@ -36,24 +36,22 @@ export default function StepBirthDetails({
       />
 
       <input
-        placeholder="Time of Birth"
-        className="input"
-        value={formData.birth_details?.time_of_birth || ""}
-        onChange={(e) => update("time_of_birth", e.target.value)}
-      />
-
-      <input
-        placeholder="Birth City"
+        placeholder="Birth Place"
         className="input"
         value={formData.birth_details?.birthplace_city || ""}
         onChange={(e) => update("birthplace_city", e.target.value)}
       />
 
-      <input
-        placeholder="Birth Country"
-        className="input"
-        value={formData.birth_details?.birthplace_country || ""}
-        onChange={(e) => update("birthplace_country", e.target.value)}
+      <textarea
+        placeholder="Current Problem / Main Concern"
+        className="input min-h-28"
+        value={formData.current_problem || ""}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            current_problem: e.target.value,
+          })
+        }
       />
 
       <div className="flex justify-between">
@@ -66,7 +64,7 @@ export default function StepBirthDetails({
           disabled={
             !formData.birth_details?.date_of_birth ||
             !formData.birth_details?.birthplace_city ||
-            !formData.birth_details?.birthplace_country
+            !formData.current_problem?.trim()
           }
         >
           Continue

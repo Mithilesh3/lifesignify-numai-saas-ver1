@@ -17,11 +17,22 @@ export default function StepReview({ formData, submit, prev, submitting }: Props
           <span className="text-gray-400">Name:</span> {formData.identity?.full_name || "--"}
         </p>
         <p>
-          <span className="text-gray-400">Language:</span>{" "}
-          {formData.preferences?.language_preference || "hindi"}
+          <span className="text-gray-400">Mobile:</span>{" "}
+          {formData.contact?.mobile_number || "--"}
         </p>
         <p>
-          <span className="text-gray-400">Focus:</span> {formData.focus?.life_focus || "--"}
+          <span className="text-gray-400">Email:</span> {formData.identity?.email || "--"}
+        </p>
+        <p>
+          <span className="text-gray-400">Date of Birth:</span>{" "}
+          {formData.birth_details?.date_of_birth || "--"}
+        </p>
+        <p>
+          <span className="text-gray-400">Birth Place:</span>{" "}
+          {formData.birth_details?.birthplace_city || "--"}
+        </p>
+        <p>
+          <span className="text-gray-400">Gender:</span> {formData.identity?.gender || "--"}
         </p>
         <p>
           <span className="text-gray-400">Current Problem:</span>{" "}
