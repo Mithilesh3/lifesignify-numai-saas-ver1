@@ -299,6 +299,233 @@ def _fit_box_text(value: Any, max_chars: int = 280) -> str:
     return f"{trimmed}…"
 
 
+PERSONAL_YEAR_THEMES: Dict[int, Dict[str, str]] = {
+    1: {"theme": "नया आरंभ और पहल", "strength_hook": "यह वर्ष self-start decisions को तेज़ समर्थन देता है", "pressure": "जल्दबाज़ विस्तार", "protocol": "single-priority launch sprint"},
+    2: {"theme": "सहयोग और धैर्य", "strength_hook": "partnership-led progress इस cycle में बेहतर compound होती है", "pressure": "decision hesitation", "protocol": "response-pause + coordination review"},
+    3: {"theme": "अभिव्यक्ति और visibility", "strength_hook": "communication clarity को public outcomes में बदलना आसान रहता है", "pressure": "scattered focus", "protocol": "message discipline + weekly publishing cadence"},
+    4: {"theme": "संरचना और प्रणाली", "strength_hook": "process rigor के साथ execution quality जल्दी स्थिर होती है", "pressure": "rigidity loops", "protocol": "fixed routine + flexible review windows"},
+    5: {"theme": "परिवर्तन और adaptation", "strength_hook": "adaptive actions सही boundaries में बड़ा leverage देते हैं", "pressure": "context switching overload", "protocol": "bounded experimentation + closure checklist"},
+    6: {"theme": "जिम्मेदारी और stability", "strength_hook": "trust-based commitments इस समय tangible growth में बदलते हैं", "pressure": "over-responsibility fatigue", "protocol": "role-boundary guardrails + recovery rhythm"},
+    7: {"theme": "गहराई और introspection", "strength_hook": "analysis को framework में बदलने पर high-quality decisions निकलते हैं", "pressure": "analysis paralysis", "protocol": "insight-to-action checkpoint loop"},
+    8: {"theme": "परिणाम और governance", "strength_hook": "authority और disciplined scaling को मजबूत बैकिंग मिलती है", "pressure": "control-heavy execution", "protocol": "governance board + pressure audit"},
+    9: {"theme": "closure और synthesis", "strength_hook": "unfinished loops बंद करके बड़ी clarity मिलती है", "pressure": "energy leakage", "protocol": "open-loop closure + selective commitments"},
+    11: {"theme": "उच्च अंतर्दृष्टि और intuition", "strength_hook": "vision-led direction को sharp execution में बदलना संभव है", "pressure": "sensitivity overload", "protocol": "grounding rituals + decision filters"},
+    22: {"theme": "निर्माण और scale architecture", "strength_hook": "big systems build करने की क्षमता peak पर रहती है", "pressure": "execution burden", "protocol": "macro blueprint + micro accountability"},
+}
+
+METRIC_STRENGTH_CONTEXT: Dict[str, str] = {
+    "Life Stability": "आप routine से outcome निकालने की क्षमता रखते हैं और chaos में भी base structure बना सकते हैं।",
+    "Decision Clarity": "आप ambiguous inputs को practical choices में बदलने का skill-set रखते हैं।",
+    "Dharma Alignment": "आपके goals और effort की दिशा में alignment होने पर output quality तेज़ी से improve होती है।",
+    "Emotional Regulation": "pressure windows में composure बनाए रखने से आपकी performance advantage बनती है।",
+    "Financial Discipline": "money decisions में structured thinking आपकी long-term stability को support करती है।",
+    "Karma Pressure": "pressure signals को पहचानकर आप corrective action जल्दी activate कर सकते हैं।",
+}
+
+METRIC_RISK_CONTEXT: Dict[str, str] = {
+    "Life Stability": "routine breaks होने पर follow-through टूटता है और repeated restarts बढ़ते हैं।",
+    "Decision Clarity": "high-noise phases में options अधिक और commitment कम होने का risk बढ़ जाता है।",
+    "Dharma Alignment": "effort सही दिशा में न लगने पर busy रहने के बावजूद progress धीमी लगती है।",
+    "Emotional Regulation": "stress spike phases में reaction quality गिरने से relationship और decisions दोनों प्रभावित होते हैं।",
+    "Financial Discipline": "untracked spending और delayed checkpoints future flexibility को कम कर सकते हैं।",
+    "Karma Pressure": "old behavior loops activate होकर correction momentum को पीछे खींच सकते हैं।",
+}
+
+
+def _alignment_signal(vibration: int, anchors: Sequence[int], label: str) -> Tuple[str, str]:
+    clean_anchors = [value for value in anchors if isinstance(value, int) and value > 0]
+    if _safe_int(vibration, 0) <= 0:
+        return "data_limited", f"{label} signal उपलब्ध नहीं होने से alignment reading सीमित है।"
+    if not clean_anchors:
+        return "neutral", f"{label} vibration {vibration} का baseline प्रभाव neutral माना जाएगा।"
+
+    min_gap = min(abs(vibration - anchor) for anchor in clean_anchors)
+    if min_gap == 0:
+        return "supportive", f"{label} vibration {vibration} core stack के साथ directly aligned है।"
+    if min_gap == 1:
+        return "near_supportive", f"{label} vibration {vibration} core stack के काफी करीब है और partial support देता है।"
+    if min_gap >= 4:
+        return "friction", f"{label} vibration {vibration} core stack से दूर है, इसलिए communication rhythm में friction बन सकता है।"
+    return "neutral", f"{label} vibration {vibration} mixed signal देता है; disciplined usage के साथ यह workable है।"
+
+
+def _harmony_signal(mulank: int, bhagyank: int, name_number: int) -> Tuple[str, str]:
+    name_anchor = name_number or bhagyank or mulank or 5
+    gaps = [abs(mulank - bhagyank), abs(mulank - name_anchor), abs(bhagyank - name_anchor)]
+    max_gap = max(gaps) if gaps else 0
+    if max_gap <= 2:
+        return "high_harmony", "core numbers में alignment अच्छा है, इसलिए intent और execution का पुल अपेक्षाकृत मजबूत रहता है।"
+    if max_gap <= 4:
+        return "mixed_harmony", "core numbers में mixed harmony है, यानी कुछ contexts में flow और कुछ में friction उभरता है।"
+    return "friction_heavy", "core numbers में gap अधिक है, इसलिए internal push-pull और response drift का जोखिम बढ़ता है।"
+
+
+def _missing_severity_signal(loshu_missing: Sequence[int]) -> Tuple[str, str]:
+    count = len(list(loshu_missing))
+    if count >= 6:
+        return "high_gap", f"Lo Shu में missing digits ({', '.join(str(v) for v in loshu_missing)}) काफी अधिक हैं; behavioral support systems conscious रूप से बनानी होंगी।"
+    if count >= 4:
+        return "medium_gap", f"Lo Shu missing set ({', '.join(str(v) for v in loshu_missing)}) moderate gap दिखाता है, जिसे routine correction से भरा जा सकता है।"
+    if count >= 2:
+        return "light_gap", f"Lo Shu missing digits ({', '.join(str(v) for v in loshu_missing)}) सीमित हैं; targeted habits काफी प्रभावी रहेंगी।"
+    return "balanced", "Lo Shu distribution अपेक्षाकृत balanced है, इसलिए correction effort अधिक focused रखा जा सकता है।"
+
+
+def _build_profile_driven_executive_brief(
+    *,
+    full_name: str,
+    first_name: str,
+    city_hint: str,
+    focus_text: str,
+    current_problem: str,
+    mulank: int,
+    bhagyank: int,
+    life_path: int,
+    destiny: int,
+    expression: int,
+    name_number: int,
+    personal_year: int,
+    loshu_missing: Sequence[int],
+    repeating_numbers: Sequence[int],
+    strongest_metric: str,
+    strongest_score: int,
+    weakest_metric: str,
+    weakest_score: int,
+    risk_band: str,
+    mobile_vibration: int,
+    mobile_classification: str,
+    email_vibration: int,
+    compatibility_level: str,
+) -> Dict[str, str]:
+    focus_hint = _safe_text(focus_text, "जीवन संतुलन").replace("_", " ")
+    concern_hint = _safe_text(current_problem, "वर्तमान जीवन चुनौती")
+    city_display = _safe_text(city_hint, "वर्तमान शहर")
+    name_number_text = str(name_number) if name_number else "-"
+    risk_parts = [part.strip() for part in _safe_text(risk_band).split("|") if part.strip()]
+    risk_primary = risk_parts[0] if risk_parts else _safe_text(risk_band, "Correctable Zone")
+    risk_protocol = risk_parts[1] if len(risk_parts) > 1 else "protocol-led stabilization"
+    repeating_text = ", ".join(str(value) for value in repeating_numbers[:3]) if repeating_numbers else "none"
+    anchors = sorted(
+        {
+            value
+            for value in [mulank, bhagyank, life_path, destiny, expression, name_number, personal_year]
+            if isinstance(value, int) and value > 0
+        }
+    )
+
+    harmony_state, harmony_note = _harmony_signal(mulank, bhagyank, name_number)
+    harmony_brief = {
+        "high_harmony": "core numbers में alignment मजबूत है",
+        "mixed_harmony": "core numbers में mixed harmony चल रही है",
+        "friction_heavy": "core numbers में friction-heavy gap सक्रिय है",
+    }.get(harmony_state, "core numbers में mixed rhythm सक्रिय है")
+    missing_state, missing_note = _missing_severity_signal(loshu_missing)
+    mobile_state, mobile_note = _alignment_signal(mobile_vibration, anchors, "Mobile")
+    email_state, email_note = _alignment_signal(email_vibration, anchors, "Email")
+    mobile_classification_hint = _safe_text(mobile_classification, mobile_state.replace("_", " "))
+
+    year_key = personal_year if personal_year in PERSONAL_YEAR_THEMES else _reduce_number(personal_year or 0)
+    year_theme = PERSONAL_YEAR_THEMES.get(year_key, PERSONAL_YEAR_THEMES[5])
+    strength_core = METRIC_STRENGTH_CONTEXT.get(
+        strongest_metric,
+        "आपके profile में stable execution leverage मौजूद है।",
+    )
+    risk_core = METRIC_RISK_CONTEXT.get(
+        weakest_metric,
+        "यह axis अभी correction demand कर रहा है।",
+    )
+    compatibility_hint = _safe_text(compatibility_level, "moderate")
+    seed = _stable_seed(
+        full_name,
+        concern_hint,
+        focus_hint,
+        mulank,
+        bhagyank,
+        name_number_text,
+        personal_year,
+        strongest_metric,
+        weakest_metric,
+        risk_primary,
+    )
+
+    summary_templates = [
+        f"{first_name} की executive profile में {year_theme['theme']} phase के साथ {harmony_brief}। इसलिए focus '{focus_hint}' पर disciplined sequencing इस समय high-impact रहेगा।",
+        f"Core stack {mulank}/{bhagyank}/{name_number_text} और personal year {personal_year} मिलकर यह संकेत देते हैं कि growth संभव है, लेकिन {weakest_metric.lower()} को stabilize किए बिना scale uneven रहेगा।",
+        f"Risk context '{risk_primary}' के भीतर {strongest_metric.lower()} आपका leverage point है, जबकि {weakest_metric.lower()} वह axis है जहाँ drift सबसे तेज़ बनता है।",
+        f"{city_display} जैसे real-world context में profile की सफलता इस बात पर निर्भर करेगी कि आप {year_theme['pressure']} को कितनी जल्दी control कर पाते हैं।",
+    ]
+    summary_tail = [
+        f"{missing_note}",
+        f"{mobile_note} {email_note} Mobile classification '{mobile_classification_hint}' इस combined signal का practical context देता है।",
+        f"Repeating pattern ({repeating_text}) और compatibility level '{compatibility_hint}' को साथ पढ़ने पर correction order और स्पष्ट होता है।",
+        f"Concern '{concern_hint}' को measurable milestones में बदलना इस report का immediate execution pivot होना चाहिए।",
+    ]
+    summary = _fit_box_text(
+        f"{_pick_variant(seed, 'executive_brief', 'summary', summary_templates)} "
+        f"{_pick_variant(seed, 'executive_brief', 'summary_tail', summary_tail)}",
+        max_chars=560,
+    )
+
+    strength_options = [
+        f"{strongest_metric} ({strongest_score}/100) इस profile का strongest operational axis है। {strength_core} {year_theme['strength_hook']}",
+        f"मुख्य strength signal {strongest_metric} है और इसकी वजह से high-noise phase में भी आप direction lock करने की क्षमता दिखाते हैं। {harmony_note}",
+        f"{strongest_metric} score {strongest_score} बताता है कि सही system मिलने पर आपकी execution quality जल्दी compound हो सकती है, खासकर जब focus '{focus_hint}' पर clear boundaries हों।",
+    ]
+    if mobile_state in {"supportive", "near_supportive"}:
+        strength_options.append(f"{mobile_note} यह signal {strongest_metric.lower()} को day-to-day communication और follow-through में practical support देता है।")
+    key_strength = _fit_box_text(
+        _pick_variant(seed, "executive_brief", "key_strength", strength_options),
+        max_chars=420,
+    )
+
+    risk_options = [
+        f"{weakest_metric} ({weakest_score}/100) profile का current pressure-point है। {risk_core} {missing_note}",
+        f"Risk axis {weakest_metric.lower()} में drift इसलिए दिखता है क्योंकि {harmony_state.replace('_', ' ')} pattern और {year_theme['pressure']} एक साथ load बढ़ाते हैं।",
+        f"यदि इस axis पर correction delay हुआ तो {risk_primary} state की intensity बढ़ सकती है, खासकर concern '{concern_hint}' और {missing_state.replace('_', ' ')} Lo Shu profile के संदर्भ में।",
+    ]
+    if mobile_state == "friction":
+        risk_options.append(mobile_note)
+    if email_state == "friction":
+        risk_options.append(email_note)
+    key_risk = _fit_box_text(
+        _pick_variant(seed, "executive_brief", "key_risk", risk_options),
+        max_chars=420,
+    )
+
+    correction_options = [
+        f"Correction focus: पहले {year_theme['protocol']} लागू करें, फिर {weakest_metric.lower()} के लिए weekly scorecard चलाएं, और concern '{concern_hint}' को 3 measurable weekly outcomes में तोड़ें।",
+        f"Execution order रखें: (1) routine lock, (2) {weakest_metric.lower()} stabilization, (3) mobile/email identity alignment, (4) {strongest_metric.lower()} leverage scale-up।",
+        f"{risk_protocol} को daily action में बदलें: morning anchor, mid-week review, और week-end proof log के साथ correction progress visible रखें।",
+    ]
+    strategic_focus = _fit_box_text(
+        _pick_variant(seed, "executive_brief", "strategic_focus", correction_options),
+        max_chars=560,
+    )
+
+    structural_cause = _fit_box_text(
+        f"Root cause stack: {mulank}/{bhagyank}/{name_number_text} में {harmony_state.replace('_', ' ')} signal, Lo Shu gap profile ({missing_state}), और personal year {personal_year} का {year_theme['pressure']} pressure मिलकर {weakest_metric.lower()} axis पर drift बनाते हैं।",
+        max_chars=240,
+    )
+    intervention_focus = _fit_box_text(
+        f"{risk_protocol}: {year_theme['protocol']} -> {weakest_metric.lower()} baseline stabilization -> concern '{concern_hint}' पर weekly measurable correction proof।",
+        max_chars=240,
+    )
+
+    return {
+        "summary": summary,
+        "key_strength": key_strength,
+        "key_risk": key_risk,
+        "strategic_focus": strategic_focus,
+        "primary_strength": _fit_box_text(f"{strongest_metric} ({strongest_score}/100): {strength_core}", max_chars=200),
+        "primary_deficit": _fit_box_text(f"{weakest_metric} ({weakest_score}/100): {risk_core}", max_chars=200),
+        "structural_cause": structural_cause,
+        "intervention_focus": intervention_focus,
+        "short_term": _fit_box_text(f"Short term: {year_theme['protocol']} के साथ {weakest_metric.lower()} volatility को stabilize करें।", max_chars=180),
+        "mid_term": _fit_box_text(f"Mid term: Lo Shu missing और repeating pattern ({repeating_text}) पर behavior patches deploy करें।", max_chars=180),
+        "long_term": _fit_box_text(f"Long term: {strongest_metric.lower()} leverage को strategic decisions और timing-fit execution में convert करें।", max_chars=180),
+    }
+
+
 CARD_LABELS_HI: Dict[str, str] = {
     "What is happening": "क्या हो रहा है",
     "Why it is happening": "यह क्यों हो रहा है",
@@ -584,7 +811,7 @@ def _personalize_basic_payloads(
             seed,
             section_key,
             f"{slot}:lead",
-            ["", "अंक संकेत:", "प्रोफ़ाइल संकेत:", "न्यूमरोलॉजी डेटा कहता है:"],
+            ["", "अंक अवलोकन:", "प्रोफ़ाइल विश्लेषण:", "संरचना संकेत:"],
         )
         tail = ""
         if slot == "why":
@@ -593,9 +820,9 @@ def _personalize_basic_payloads(
                 section_key,
                 f"{slot}:tail",
                 [
-                    f"मुख्य कारण stack {mulank}/{bhagyank}/{name_number_text} है।",
-                    f"Background में Lo Shu missing {missing_text} और Personal Year {personal_year} काम कर रहे हैं।",
-                    f"Life Path {life_path} और Destiny {destiny} का दबाव इस कारण को मजबूत करता है।",
+                    f"कारण में Mulank {mulank}, Bhagyank {bhagyank}, Name {name_number_text} और Personal Year {personal_year} एक साथ सक्रिय हैं।",
+                    f"Lo Shu missing {missing_text} और repeating pattern इस कारण को व्यवहार में बार-बार trigger करते हैं।",
+                    f"Life Path {life_path} और Destiny {destiny} की direction इस कारण की intensity को context के हिसाब से बढ़ाती या घटाती है।",
                 ],
             )
         elif slot == "impact":
@@ -604,9 +831,9 @@ def _personalize_basic_payloads(
                 section_key,
                 f"{slot}:tail",
                 [
-                    f"इसका direct असर {weakest_metric} और confidence stability पर दिखता है।",
-                    f"यदि unchecked रहे तो {risk_band} risk profile गहरा सकता है।",
-                    f"Positive handling से {strongest_metric} का लाभ और स्पष्ट होता है।",
+                    f"इसका असर सीधे {weakest_metric} और response consistency की quality पर आता है।",
+                    f"अगर यह unchecked रहा तो {risk_band} की दिशा में risk pressure बढ़ सकता है।",
+                    f"सही handling होने पर {strongest_metric} का लाभ measurable output में जल्दी दिखता है।",
                 ],
             )
         elif slot == "action":
@@ -615,9 +842,9 @@ def _personalize_basic_payloads(
                 section_key,
                 f"{slot}:tail",
                 [
-                    f"फोकस '{focus_text}' और concern '{current_problem}' पर इसे लगातार लागू करें।",
-                    f"{city_hint} जैसे environment में disciplined routine से परिणाम तेज़ मिलेंगे।",
-                    f"21-day cycle और weekly review को साथ रखें।",
+                    f"इसे focus '{focus_text}' और concern '{current_problem}' से जोड़कर weekly measurable actions में चलाएं।",
+                    f"{city_hint} जैसे context में fixed routine, review slots और low-noise decision windows बेहतर परिणाम देंगे।",
+                    f"21-day cycle, weekly proof-log और monthly correction reset साथ रखें।",
                 ],
             )
 
@@ -965,8 +1192,8 @@ def _enrich_basic_payloads(
         ],
         "action": [
             "उपायों को 21-day discipline cycle, weekly review और measurable tracking के साथ लागू करना जरूरी है",
-            f"correction को concern '{concern_hint}' से जोड़कर करें ताकि बदलाव practical output में दिखे",
-            f"छोटे लेकिन लगातार कदम रखें, ताकि {weakest_metric} में स्थिर सुधार बने",
+            f"weekly execution map बनाकर correction को concern '{concern_hint}' के measurable outcomes से जोड़ें",
+            f"छोटे लेकिन लगातार कदम रखें ताकि {weakest_metric} axis में durable सुधार बनता जाए",
         ],
     }
 
@@ -1479,14 +1706,65 @@ def _enrich_basic_payloads(
         text = " ".join(sentences)
         return _fit_rich(text, max_chars=700)
 
+    narrative_hooks: Dict[str, List[str]] = {
+        "executive_numerology_summary": [
+            f"Strength-risk ranking में {strongest_metric} leverage और {weakest_metric} correction दोनों साथ चलाना इस profile के लिए अनिवार्य रहेगा।",
+            f"Risk band '{risk_primary}' के भीतर concern '{concern_hint}' को measurable protocol में बदलना executive priority है।",
+        ],
+        "core_numbers_analysis": [
+            f"Core architecture {mulank}/{bhagyank}/{name_number_text} तभी productive बनती है जब decision rhythm और closure rhythm एक ही sequence में चलें।",
+            f"यह stack यदि aligned रखा जाए तो {strongest_metric.lower()} को consistent growth asset में बदला जा सकता है।",
+        ],
+        "name_number_analysis": [
+            f"Identity projection layer में Name {name_number_text} और compound {name_compound} की tuning social trust और clarity दोनों पर असर डालती है।",
+            f"नाम signal की consistency से public perception और internal confidence के बीच gap कम होता है।",
+        ],
+        "number_interaction_analysis": [
+            f"Interaction layer में harmony-gap profile बताता है कि intent बनाम execution mismatch कहाँ से पैदा हो रहा है।",
+            f"यह section व्यवहारिक friction के root node की पहचान देता है, जिससे corrective sequencing आसान होती है।",
+        ],
+        "remedies_lifestyle_adjustments": [
+            f"Correction engine तभी effective होगा जब routine, mantra और behavior audit तीनों calendar-bound cadence में चलें।",
+            f"यह section केवल सलाह नहीं बल्कि daily/weekly execution protocol का practical blueprint देता है।",
+        ],
+        "closing_numerology_guidance": [
+            f"Final synthesis दिखाता है कि profile में क्षमता मौजूद है, bottleneck consistency architecture में है।",
+            f"Next-step discipline जितनी measurable होगी, उतनी जल्दी {risk_primary} pressure zone से बाहर निकला जा सकेगा।",
+        ],
+    }
+
+    def _compose_narrative(section_key: str, slots: Dict[str, List[str]]) -> str:
+        base_leads = [
+            f"{first_name} की {section_key.replace('_', ' ')} reading में profile-specific संकेत स्पष्ट हैं।",
+            f"{section_key.replace('_', ' ').title()} layer में core numbers, Lo Shu और current cycle का संयुक्त प्रभाव दिख रहा है।",
+            f"यह section {focus_hint} और concern '{concern_hint}' के संदर्भ में actionable clarity देता है।",
+        ]
+        selected_sentences: List[str] = []
+        lead = _pick_variant(seed, section_key, "narrative:lead", base_leads)
+        selected_sentences.append(_sent(_style_sentence(section_key, "what", lead, 70)))
+
+        for slot_name in ("what", "why"):
+            candidates = [item for item in slots.get(slot_name, []) if _safe_text(item)]
+            if not candidates:
+                continue
+            idx = _stable_seed(seed, section_key, slot_name, "narrative") % len(candidates)
+            selected_sentences.append(_sent(_style_sentence(section_key, slot_name, candidates[idx], idx + 80)))
+
+        hooks = narrative_hooks.get(
+            section_key,
+            [
+                f"Risk context '{risk_primary}' और year theme {personal_year} इस section की correction priority को directly influence करते हैं।",
+                f"Focused implementation होने पर {strongest_metric.lower()} leverage और {weakest_metric.lower()} stabilization साथ में संभव है।",
+            ],
+        )
+        selected_sentences.append(_sent(_pick_variant(seed, section_key, "narrative:hook", hooks)))
+        return _fit_rich(" ".join(item for item in selected_sentences if _safe_text(item)), max_chars=420)
+
     for section_key, slots in section_lines.items():
         section = basic_payloads.get(section_key)
         if not isinstance(section, dict):
             continue
-        summary = (
-            f"{first_name}: {section_key.replace('_', ' ')} | Mulank {mulank}, Bhagyank {bhagyank}, Name {name_number_text}, Personal Year {personal_year}, Risk {risk_primary}"
-        )
-        section["narrative"] = _fit_rich(summary, max_chars=420)
+        section["narrative"] = _compose_narrative(section_key, slots)
         cards = section.get("cards") or []
         if len(cards) < 4:
             continue
@@ -2109,22 +2387,50 @@ def build_interpretation_report(
     payloads = _ensure_all_payloads(plan_name, payloads)
     payloads = _localize_payloads(payloads)
 
+    profile_executive = _build_profile_driven_executive_brief(
+        full_name=full_name,
+        first_name=first_name,
+        city_hint=city,
+        focus_text=_safe_text(focus.get("life_focus"), "general_alignment"),
+        current_problem=current_problem,
+        mulank=mulank,
+        bhagyank=bhagyank,
+        life_path=life_path,
+        destiny=destiny,
+        expression=expression,
+        name_number=name_number,
+        personal_year=personal_year,
+        loshu_missing=loshu_missing,
+        repeating_numbers=repeating_numbers,
+        strongest_metric=strongest_metric,
+        strongest_score=strongest_score,
+        weakest_metric=weakest_metric,
+        weakest_score=weakest_score,
+        risk_band=risk_band,
+        mobile_vibration=mobile_vibration,
+        mobile_classification=mobile_classification,
+        email_vibration=email_vibration,
+        compatibility_level=compatibility_level,
+    )
+    structural_cause = profile_executive.get("structural_cause") or structural_cause
+    intervention_focus = profile_executive.get("intervention_focus") or intervention_focus
+
     primary_insight = {
         "core_archetype": _safe_text(archetype.get("archetype_name"), "रणनीतिक अनुकूल archetype"),
-        "strength": f"Primary strength axis: {strongest_metric}",
-        "critical_deficit": f"Primary deficit axis: {weakest_metric}",
+        "strength": profile_executive.get("primary_strength") or f"Primary strength axis: {strongest_metric}",
+        "critical_deficit": profile_executive.get("primary_deficit") or f"Primary deficit axis: {weakest_metric}",
         "stability_risk": risk_band,
         "phase_1_diagnostic": "Phase 1: deficit triggers diagnose करके baseline behaviors lock करें।",
         "phase_2_blueprint": "Phase 2: architecture-aligned identity corrections deploy करें।",
         "phase_3_intervention_protocol": "Phase 3: 90-day timing-calibrated execution protocol चलाएं।",
-        "narrative": payloads["executive_summary"]["narrative"],
+        "narrative": profile_executive.get("summary") or payloads["executive_summary"]["narrative"],
     }
 
     executive_brief = {
-        "summary": payloads["executive_summary"]["narrative"],
-        "key_strength": primary_insight["strength"],
-        "key_risk": primary_insight["critical_deficit"],
-        "strategic_focus": intervention_focus,
+        "summary": profile_executive.get("summary") or payloads["executive_summary"]["narrative"],
+        "key_strength": profile_executive.get("key_strength") or primary_insight["strength"],
+        "key_risk": profile_executive.get("key_risk") or primary_insight["critical_deficit"],
+        "strategic_focus": profile_executive.get("strategic_focus") or intervention_focus,
     }
 
     analysis_sections = {
@@ -2135,43 +2441,48 @@ def build_interpretation_report(
     }
 
     strategic_guidance = {
-        "short_term": "Short term में weakest metric को low-noise behavior protocol से stabilize करें।",
-        "mid_term": "Mid term में identity corrections deploy करके behavior delta measure करें।",
-        "long_term": "Long term scale के लिए strategic timing और quarterly recalibration रखें।",
+        "short_term": profile_executive.get("short_term") or "Short term में weakest metric को low-noise behavior protocol से stabilize करें।",
+        "mid_term": profile_executive.get("mid_term") or "Mid term में identity corrections deploy करके behavior delta measure करें।",
+        "long_term": profile_executive.get("long_term") or "Long term scale के लिए strategic timing और quarterly recalibration रखें।",
     }
 
     growth_blueprint = {
-        "phase_1": "Days 1-30: deficit behavior stabilize करके baseline lock करें।",
-        "phase_2": "Days 31-60: identity और environment पर correction stack deploy करें।",
-        "phase_3": "Days 61-90: timing-aligned growth experiments execute करें।",
+        "phase_1": f"Days 1-30: {strongest_metric} leverage बनाए रखते हुए {weakest_metric.lower()} baseline stabilize करें।",
+        "phase_2": f"Days 31-60: concern '{_safe_text(current_problem, 'current challenge')}' को measurable weekly protocols में deploy करें।",
+        "phase_3": f"Days 61-90: personal year {personal_year} theme के साथ timing-fit growth experiments चलाएं।",
     }
 
     if plan_name == "basic":
         primary_insight = {
             "core_archetype": _safe_text(archetype.get("archetype_name"), "मूल अंक व्यक्तित्व"),
-            "strength": f"मुख्य ताकत: {strongest_metric}",
-            "critical_deficit": f"मुख्य चुनौती: {weakest_metric}",
+            "strength": profile_executive.get("primary_strength") or f"{strongest_metric} profile strength",
+            "critical_deficit": profile_executive.get("primary_deficit") or f"{weakest_metric} profile challenge",
             "stability_risk": risk_band,
             "phase_1_diagnostic": "चरण 1: मूलांक और भाग्यांक pattern समझें।",
             "phase_2_blueprint": "चरण 2: missing numbers और routine correction लागू करें।",
             "phase_3_intervention_protocol": "चरण 3: 21-day numerology correction discipline चलाएं।",
-            "narrative": payloads["executive_numerology_summary"]["narrative"],
+            "narrative": profile_executive.get("summary") or payloads["executive_numerology_summary"]["narrative"],
         }
         executive_brief = {
-            "summary": payloads["executive_numerology_summary"]["narrative"],
-            "key_strength": primary_insight["strength"],
-            "key_risk": primary_insight["critical_deficit"],
-            "strategic_focus": payloads["remedies_lifestyle_adjustments"]["cards"][3]["value"] if payloads["remedies_lifestyle_adjustments"]["cards"] else intervention_focus,
+            "summary": profile_executive.get("summary") or payloads["executive_numerology_summary"]["narrative"],
+            "key_strength": profile_executive.get("key_strength") or primary_insight["strength"],
+            "key_risk": profile_executive.get("key_risk") or primary_insight["critical_deficit"],
+            "strategic_focus": profile_executive.get("strategic_focus")
+            or (
+                payloads["remedies_lifestyle_adjustments"]["cards"][3]["value"]
+                if payloads["remedies_lifestyle_adjustments"]["cards"]
+                else intervention_focus
+            ),
         }
         strategic_guidance = {
-            "short_term": "Mulank-Bhagyank understanding के साथ daily correction शुरू करें।",
-            "mid_term": "Missing numbers और repeating traits पर structured balancing करें।",
-            "long_term": "Personal year timing के साथ numerology-aligned decisions लें।",
+            "short_term": profile_executive.get("short_term") or "Mulank-Bhagyank understanding के साथ daily correction शुरू करें।",
+            "mid_term": profile_executive.get("mid_term") or "Missing numbers और repeating traits पर structured balancing करें।",
+            "long_term": profile_executive.get("long_term") or "Personal year timing के साथ numerology-aligned decisions लें।",
         }
         growth_blueprint = {
-            "phase_1": "Week 1: core numbers observation + daily log।",
-            "phase_2": "Week 2: missing number correction + routine discipline।",
-            "phase_3": "Week 3: mobile/email alignment और follow-through review।",
+            "phase_1": f"Week 1: core numbers observation + {weakest_metric.lower()} tracker + daily log।",
+            "phase_2": f"Week 2: missing number correction + concern '{_safe_text(current_problem, 'current challenge')}' action loop।",
+            "phase_3": f"Week 3: mobile/email alignment + personal year {personal_year} timing review + follow-through proof।",
         }
 
     business_block = {"business_strength": business_strength, "risk_factor": business_risk, "compatible_industries": business_industries}
