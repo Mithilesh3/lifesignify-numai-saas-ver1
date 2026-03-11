@@ -73,6 +73,7 @@ def generate_ai_narrative(
     preferences = intake_context.get("preferences") or {}
     language_preference = str(preferences.get("language_preference") or "hindi").lower()
 
+    is_basic = plan_name == "basic"
     base_tokens = PLAN_TOKEN_BASE.get(plan_name, 1600)
     max_tokens = int(base_tokens * token_multiplier)
     business_signals = numerology_core.get("business_analysis", {})
@@ -80,18 +81,49 @@ def generate_ai_narrative(
     scores_json = json.dumps(scores, ensure_ascii=False)
     intake_json = json.dumps(intake_context, ensure_ascii=False)
     draft_json = json.dumps(interpretation_draft, ensure_ascii=False)
+    basic_plan_guardrails = ""
+    if is_basic:
+        basic_plan_guardrails = """
+BASIC PLAN CONTENT MODE (STRICT):
+- Keep narration numerology-first: Mulank, Bhagyank, Name Number, Lo Shu, Personal Year, Mobile, Email.
+- Avoid enterprise consulting language, business intelligence jargon, strategic blueprint framing, and intervention-heavy wording.
+- Keep copy simple, premium, and correction-led.
+- Use short paragraphs and deterministic interpretation only.
+- Do not use words like "enterprise", "consulting framework", "operating system", "strategic execution", or "blueprint" in BASIC output.
+"""
+
+    assistant_role = (
+        "You are a senior numerology report editor focused on deterministic, correction-led narration."
+        if is_basic
+        else "You are an elite numerology strategist and behavioral intelligence advisor."
+    )
+    report_task = (
+        "Your task is to refine an already-generated deterministic interpretation into a polished BASIC numerology report."
+        if is_basic
+        else "Your task is to refine an already-generated deterministic interpretation into a natural strategic life intelligence report."
+    )
+    english_terms = (
+        "career, business, growth, leadership"
+        if is_basic
+        else "career, business, strategy, growth, leadership, execution"
+    )
+    tier_tone_line = (
+        "The wording should read like a premium North Indian numerology report with quick insight and practical correction."
+        if is_basic
+        else "The wording should read like a premium North Indian life-intelligence report."
+    )
 
     prompt = f"""
-You are an elite numerology strategist and behavioral intelligence advisor.
+{assistant_role}
 
 Do NOT calculate numerology numbers.
 All numerology calculations are already provided.
-Your task is to refine an already-generated deterministic interpretation into a more natural strategic life intelligence report.
+{report_task}
 
 Writing style requirements:
 - The report must be written in Hindi-major language using Devanagari script.
 - Keep the language ratio around 80-90% Hindi and 10-20% English.
-- English words may be used for modern terms such as career, business, strategy, growth, leadership, execution.
+- English words may be used for modern terms such as {english_terms}.
 - Never use Roman Hindi.
 - Sound psychologically insightful, practical, and premium.
 - Avoid generic astrology statements and avoid mystical exaggeration.
@@ -140,8 +172,9 @@ LEGACY LANGUAGE PREFERENCE
 {language_preference}
 
 Depth of analysis should increase with plan tier.
-The wording should read like a premium North Indian life-intelligence report.
+{tier_tone_line}
 Even if a legacy preference says "hinglish", the final narration must still be Hindi-major in Devanagari script.
+{basic_plan_guardrails}
 
 --------------------------------------------------
 
@@ -205,19 +238,20 @@ REQUIRED JSON STRUCTURE
             "messages": [
                 {
                     "role": "system",
-                    "content": """
-You are an elite numerology strategist and behavioral intelligence advisor.
+                    "content": f"""
+You are {'a senior numerology report editor' if is_basic else 'an elite numerology strategist and behavioral intelligence advisor'}.
 Do NOT calculate numerology numbers.
 All numerology calculations are already provided.
-Refine the deterministic interpretation into a premium life intelligence report.
+Refine the deterministic interpretation into a premium {'numerology report' if is_basic else 'life intelligence report'}.
 Write the report in Hindi-major language using Devanagari script.
 Target a mix of roughly 80-90% Hindi and 10-20% English.
-English words may be used for modern concepts such as career, business, strategy, growth, leadership, and execution.
+English words may be used for modern concepts such as {english_terms}.
 Never write Roman Hindi.
 Avoid generic astrology statements.
 Make the output meaningfully different when user profile inputs differ.
 If inputs are sparse, acknowledge that some intelligence scores are based on limited data.
 Never output empty placeholders, blank grammar fragments, or corrupted Hindi.
+{'Avoid consulting or enterprise wording in BASIC output.' if is_basic else ''}
 """
                 },
                 {

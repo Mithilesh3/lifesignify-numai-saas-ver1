@@ -126,6 +126,7 @@ export default function ReportDetailPage() {
   const summary = content.executive_brief;
   const metrics = content.core_metrics;
   const reportPlan = content.meta?.plan_tier || plan;
+  const isBasicPlan = reportPlan === "basic";
   const usedFallbackNarrative = Boolean(content.meta?.used_fallback_narrative);
   const decisionClarityScore = metrics?.confidence_score ?? 0;
   const dataCompletenessScore =
@@ -219,7 +220,9 @@ export default function ReportDetailPage() {
           {summary.strategic_focus && (
             <p>
                 <span className="text-indigo-400 font-semibold">
-                  रणनीतिक फोकस | Strategic focus:
+                  {isBasicPlan
+                    ? "सुधार फोकस | Correction focus:"
+                    : "रणनीतिक फोकस | Strategic focus:"}
                 </span>{" "}
                 {summary.strategic_focus}
             </p>
@@ -303,10 +306,12 @@ export default function ReportDetailPage() {
         </div>
       )}
 
-      {sectionPayloadEntries.length > 0 && reportPlan !== "basic" && (
+      {sectionPayloadEntries.length > 0 && (
         <div className="bg-gray-900 p-6 rounded-xl shadow-md">
           <h2 className="text-xl font-semibold mb-6">
-            रणनीतिक इंटेलिजेंस लेयर्स | Strategic Intelligence Layers
+            {isBasicPlan
+              ? "मूल अंक अनुभाग | Basic Numerology Sections"
+              : "रणनीतिक इंटेलिजेंस लेयर्स | Strategic Intelligence Layers"}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {sectionPayloadEntries.map(([key, section]) => (

@@ -136,6 +136,7 @@ def run_hindi_report_smoke_test(output_dir: Path | None = None) -> Path:
     html = _render_html(context)
     assert "Helvetica" not in html
     assert "Noto Sans Devanagari" in html
+    assert "BASIC NUMEROLOGY DIAGNOSTICS" in html
 
     ready, reason = _playwright_ready()
     if not ready:
@@ -155,7 +156,7 @@ def run_hindi_report_smoke_test(output_dir: Path | None = None) -> Path:
 
     text_sample = " ".join((reader.pages[index].extract_text() or "") for index in range(min(3, len(reader.pages))))
     if text_sample.strip():
-        assert any(keyword in text_sample for keyword in ("Strategic", "NumAI", "Audit"))
+        assert any(keyword in text_sample for keyword in ("NumAI", "Numerology", "Mulank", "Bhagyank"))
 
     if output_dir is None:
         output_dir = Path(tempfile.mkdtemp(prefix="html-report-"))

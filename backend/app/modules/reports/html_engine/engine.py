@@ -10,6 +10,8 @@ from typing import Any, Dict, List, Sequence
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from app.modules.reports.blueprint import BASIC_SECTION_KEYS
+
 from .svg_diagrams import (
     build_loshu_grid_svg,
     build_numerology_architecture_svg,
@@ -28,7 +30,8 @@ except Exception:  # pragma: no cover - import path depends on runtime env
 logger = logging.getLogger(__name__)
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
-TEMPLATE_NAME = "strategic_life_audit.html"
+STRATEGIC_TEMPLATE_NAME = "strategic_life_audit.html"
+BASIC_TEMPLATE_NAME = "basic_numerology_report.html"
 ASSETS_ROOT = Path(__file__).resolve().parents[3] / "assets"
 
 METRIC_CONFIG: Sequence[Dict[str, str]] = (
@@ -216,6 +219,8 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
     environment = payload.get("environment_alignment") or {}
     vedic = payload.get("vedic_remedy_protocol") or {}
     execution = payload.get("execution_plan") or {}
+    section_payloads = payload.get("section_payloads") or {}
+    report_blueprint = payload.get("report_blueprint") or {}
 
     pythagorean = numerology_core.get("pythagorean") or {}
     chaldean = numerology_core.get("chaldean") or {}
@@ -223,7 +228,7 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
 
     plan_tier = _safe_text(
         meta.get("plan_tier")
-        or (payload.get("report_blueprint") or {}).get("plan_tier"),
+        or report_blueprint.get("plan_tier"),
         "basic",
     ).lower()
 
@@ -313,19 +318,165 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
 
     full_name = _safe_text(identity.get("full_name"), "Strategic Client")
     report_date = _format_timestamp(meta.get("generated_at"))
+    cover_title = (
+        "अंक जीवन मार्गदर्शन रिपोर्ट | NumAI Basic Numerology Report"
+        if plan_tier == "basic"
+        else "रणनीतिक जीवन इंटेलिजेंस ऑडिट | Strategic Life Intelligence Audit"
+    )
+    cover_subtitle = (
+        "Pure Numerology + Quick Insight + Correction (हिंदी-प्रधान संस्करण)"
+        if plan_tier == "basic"
+        else "Numerology Intelligence x AI Strategy (हिंदी-प्रधान संस्करण)"
+    )
+
+    cover_ganesha_uri = _as_uri(ASSETS_ROOT / "cover" / "ganesha.png")
+    cover_krishna_uri = _as_uri(ASSETS_ROOT / "cover" / "krishna.png")
+    lotus_gold_uri = _as_uri(ASSETS_ROOT / "lotus" / "lotus_gold.png")
+    mandala_bg_uri = _as_uri(ASSETS_ROOT / "sacred" / "mandala_bg.png")
+    om_gold_uri = _as_uri(ASSETS_ROOT / "sacred" / "om_gold.png")
+    chakra_icon_uri = _as_uri(ASSETS_ROOT / "icons" / "chakra.png")
+
+    deity_uris = {
+        "surya": _as_uri(ASSETS_ROOT / "deities" / "surya.png"),
+        "chandra": _as_uri(ASSETS_ROOT / "deities" / "chandra.png"),
+        "guru": _as_uri(ASSETS_ROOT / "deities" / "guru.png"),
+        "rahu": _as_uri(ASSETS_ROOT / "deities" / "rahu.png"),
+        "budh": _as_uri(ASSETS_ROOT / "deities" / "budh.png"),
+        "shukra": _as_uri(ASSETS_ROOT / "deities" / "shukra.png"),
+        "ketu": _as_uri(ASSETS_ROOT / "deities" / "ketu.png"),
+        "shani": _as_uri(ASSETS_ROOT / "deities" / "shani.png"),
+        "mangal": _as_uri(ASSETS_ROOT / "deities" / "mangal.png"),
+    }
+
+    blueprint_sections = report_blueprint.get("sections") if isinstance(report_blueprint, dict) else []
+    blueprint_sections = blueprint_sections or []
+    blueprint_title_by_key = {
+        _safe_text(item.get("key")): _safe_text(item.get("title"))
+        for item in blueprint_sections
+        if isinstance(item, dict) and _safe_text(item.get("key"))
+    }
+    ordered_basic_keys = [
+        _safe_text(item.get("key"))
+        for item in blueprint_sections
+        if isinstance(item, dict) and _safe_text(item.get("key")) in BASIC_SECTION_KEYS
+    ]
+    if not ordered_basic_keys:
+        ordered_basic_keys = [key for key in BASIC_SECTION_KEYS if key in section_payloads]
+
+    icon_by_section = {
+        "executive_numerology_summary": cover_ganesha_uri,
+        "core_numbers_analysis": cover_krishna_uri,
+        "mulank_description": deity_uris["surya"],
+        "bhagyank_description": deity_uris["guru"],
+        "name_number_analysis": deity_uris["budh"],
+        "number_interaction_analysis": chakra_icon_uri,
+        "loshu_grid_interpretation": deity_uris["rahu"],
+        "missing_numbers_analysis": deity_uris["ketu"],
+        "repeating_numbers_impact": deity_uris["shani"],
+        "mobile_number_numerology": deity_uris["budh"],
+        "mobile_life_number_compatibility": deity_uris["chandra"],
+        "email_numerology": deity_uris["budh"],
+        "numerology_personality_profile": deity_uris["mangal"],
+        "current_life_phase_insight": deity_uris["guru"],
+        "career_financial_tendencies": deity_uris["shukra"],
+        "relationship_compatibility_patterns": deity_uris["chandra"],
+        "health_tendencies_from_numbers": deity_uris["surya"],
+        "personal_year_forecast": deity_uris["guru"],
+        "lucky_numbers_favorable_dates": lotus_gold_uri,
+        "color_alignment": chakra_icon_uri,
+        "remedies_lifestyle_adjustments": om_gold_uri,
+        "closing_numerology_guidance": lotus_gold_uri,
+    }
+    diagram_by_section = {
+        "core_numbers_analysis": "numerology_architecture",
+        "number_interaction_analysis": "numerology_architecture",
+        "loshu_grid_interpretation": "loshu_grid",
+        "missing_numbers_analysis": "loshu_grid",
+        "repeating_numbers_impact": "loshu_grid",
+        "personal_year_forecast": "planetary_orbit",
+        "lucky_numbers_favorable_dates": "planetary_orbit",
+        "remedies_lifestyle_adjustments": "structural_deficit",
+        "closing_numerology_guidance": "structural_deficit",
+    }
+    diagram_svg_by_key = {
+        "numerology_architecture": architecture_svg,
+        "loshu_grid": loshu_svg,
+        "planetary_orbit": planetary_svg,
+        "structural_deficit": deficit_svg,
+    }
+
+    basic_sections: List[Dict[str, Any]] = []
+    for key in ordered_basic_keys:
+        section = section_payloads.get(key)
+        if not isinstance(section, dict):
+            continue
+
+        cards = []
+        for card in _safe_list(section.get("cards"))[:6]:
+            if not isinstance(card, dict):
+                continue
+            label = _hindi_major_text(_safe_text(card.get("label"), "-"), "-")
+            value = _hindi_major_text(
+                _clip_text(card.get("value"), max_chars=card_limit, default="इनपुट उपलब्ध नहीं"),
+                "इनपुट उपलब्ध नहीं",
+            )
+            cards.append({"label": label, "value": value})
+
+        bullets = [
+            _hindi_major_text(_clip_text(item, max_chars=card_limit))
+            for item in _safe_list(section.get("bullets"))
+            if _safe_text(item)
+        ][:4]
+
+        diagram_key = diagram_by_section.get(key)
+        basic_sections.append(
+            {
+                "key": key,
+                "title": _safe_text(
+                    section.get("title"),
+                    blueprint_title_by_key.get(key, key.replace("_", " ").title()),
+                ),
+                "narrative": _hindi_major_text(
+                    _clip_text(section.get("narrative"), max_chars=narrative_limit, default="इनपुट उपलब्ध नहीं"),
+                    "इनपुट उपलब्ध नहीं",
+                ),
+                "cards": cards,
+                "bullets": bullets,
+                "icon_uri": icon_by_section.get(key, chakra_icon_uri),
+                "diagram_key": diagram_key or "",
+                "diagram_svg": diagram_svg_by_key.get(diagram_key or "", ""),
+            }
+        )
+
+    intro_keys = {"executive_numerology_summary", "core_numbers_analysis"}
+    basic_intro_sections = [section for section in basic_sections if section["key"] in intro_keys]
+    if len(basic_intro_sections) < 2:
+        for section in basic_sections:
+            if section not in basic_intro_sections:
+                basic_intro_sections.append(section)
+            if len(basic_intro_sections) == 2:
+                break
+    intro_key_set = {section["key"] for section in basic_intro_sections}
+    basic_remaining_sections = [section for section in basic_sections if section["key"] not in intro_key_set]
+    basic_section_pages = [
+        basic_remaining_sections[index : index + 2]
+        for index in range(0, len(basic_remaining_sections), 2)
+    ]
 
     return {
         "watermark": watermark,
         "report": payload,
         "meta": {
+            "plan_tier": plan_tier,
             "report_date": report_date,
-            "plan": _safe_text(meta.get("plan_tier"), "basic").upper(),
+            "plan": plan_tier.upper(),
             "version": _safe_text(meta.get("report_version"), "6.0"),
             "engine_version": _safe_text(meta.get("engine_version"), "1.0.0"),
+            "section_count": _safe_int(report_blueprint.get("section_count"), len(basic_sections)),
         },
         "cover": {
-            "title": "रणनीतिक जीवन इंटेलिजेंस ऑडिट | Strategic Life Intelligence Audit",
-            "subtitle": "Numerology Intelligence x AI Strategy (हिंदी-प्रधान संस्करण)",
+            "title": cover_title,
+            "subtitle": cover_subtitle,
             "name": full_name,
             "dob": _safe_text(
                 birth_details.get("date_of_birth") or identity.get("date_of_birth"),
@@ -608,10 +759,22 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
             "structural_deficit": deficit_svg,
             "planetary_orbit": planetary_svg,
         },
+        "basic_report": {
+            "intro_sections": basic_intro_sections,
+            "section_pages": basic_section_pages,
+            "all_sections": basic_sections,
+        },
         "assets": {
             "brand_logo_uri": brand_logo_uri,
             "deva_font_regular": deva_font_regular,
             "deva_font_bold": deva_font_bold,
+            "cover_ganesha_uri": cover_ganesha_uri,
+            "cover_krishna_uri": cover_krishna_uri,
+            "lotus_gold_uri": lotus_gold_uri,
+            "mandala_bg_uri": mandala_bg_uri,
+            "om_gold_uri": om_gold_uri,
+            "chakra_icon_uri": chakra_icon_uri,
+            "deity_uris": deity_uris,
         },
     }
 
@@ -621,7 +784,9 @@ def _render_html(context: Dict[str, Any]) -> str:
         loader=FileSystemLoader(str(TEMPLATE_DIR)),
         autoescape=select_autoescape(["html", "xml"]),
     )
-    template = env.get_template(TEMPLATE_NAME)
+    plan_tier = _safe_text((context.get("meta") or {}).get("plan_tier"), "basic").lower()
+    template_name = BASIC_TEMPLATE_NAME if plan_tier == "basic" else STRATEGIC_TEMPLATE_NAME
+    template = env.get_template(template_name)
     return template.render(context)
 
 

@@ -676,6 +676,252 @@ def build_interpretation_report(
     payloads["strategic_execution_roadmap"] = _section_payload("strategic_execution_roadmap", "Execution roadmap converts intelligence into a 90-day operating system.", "Multiple interventions need coordinated sequencing.", "Correction outcomes compound only in operational order.", "Unsequenced action wastes effort and obscures ROI.", "Days 1-30 stabilize, 31-60 optimize, 61-90 scale tests.", bullets=["Days 1-30: metric deficit stabilization and behavior lock.", "Days 31-60: identity corrections (name/mobile/email/signature).", "Days 61-90: timing alignment and controlled scale tests."])
     payloads["closing_synthesis"] = _section_payload("closing_synthesis", f"Final synthesis: {full_name} में clear leverage potential है, यदि correction priorities को disciplined execution के साथ चलाया जाए।", "Profile calibration-sensitive है, fundamentally blocked नहीं।", "Strength-deficit architecture स्पष्ट है और सही sequence से correct की जा सकती है।", "Protocol-led execution constraints को strategic advantage में बदल सकता है।", "Correction stack, timing control, और quarterly recalibration पर committed रहें।")
 
+    if plan_name == "basic":
+        mulank = _reduce_number(day)
+        bhagyank = life_path or _reduce_number(day + month + _reduce_number(year))
+        interaction_gap = abs((mulank or 0) - (bhagyank or 0))
+        interaction_state = "संतुलित" if interaction_gap <= 2 else "विरोधी संकेत"
+        repeating_numbers = [
+            number
+            for number in range(1, 10)
+            if _safe_int(grid_counts.get(str(number), grid_counts.get(number, 0)), 0) > 1
+        ]
+        repeating_text = ", ".join(str(number) for number in repeating_numbers) if repeating_numbers else "कोई प्रमुख पुनरावृत्ति नहीं"
+        mobile_classification = "supportive" if mobile_vibration in {mulank, bhagyank, destiny} else "neutral"
+        email_available = bool(email_value)
+        color_base = (name_number or bhagyank or mulank or 5)
+        color_map = {
+            1: ("gold, saffron", "dark grey"),
+            2: ("white, silver", "muddy brown"),
+            3: ("yellow, honey", "dull black"),
+            4: ("smoky blue, graphite", "neon red"),
+            5: ("green, mint", "overly dark maroon"),
+            6: ("cream, rose", "charcoal black"),
+            7: ("sea green, turquoise", "rust orange"),
+            8: ("navy, steel blue", "faded yellow"),
+            9: ("maroon, crimson", "pale grey"),
+        }
+        favorable_colors, caution_colors = color_map.get(color_base, ("green, blue", "muddy grey"))
+
+        basic_payloads: Dict[str, Any] = {}
+        basic_payloads["executive_numerology_summary"] = _section_payload(
+            "executive_numerology_summary",
+            f"{full_name} की numerology profile का मूल स्वर {mulank}-{bhagyank}-{name_number or '-'} संयोजन पर आधारित है। मुख्य ताकत {strongest_metric} और चुनौती {weakest_metric} है।",
+            "Core number stack से quick nature signal स्पष्ट है।",
+            "मूलांक, भाग्यांक और नामांक का संयुक्त प्रभाव baseline behavior तय करता है।",
+            "इसका असर निर्णय, संबंध, दिनचर्या और execution consistency पर पड़ता है।",
+            f"पहली correction priority: {weakest_metric.lower()} stabilization और missing number discipline।",
+        )
+        basic_payloads["core_numbers_analysis"] = _section_payload(
+            "core_numbers_analysis",
+            f"Mulank {mulank}, Bhagyank {bhagyank}, Destiny {destiny}, Expression {expression}.",
+            "ये चार संख्या आपकी आधार संरचना दिखाती हैं।",
+            "जन्मतिथि और नाम vibration से ये numbers deterministic तरीके से निकलते हैं।",
+            "व्यक्तित्व, अवसर और चुनौतियों का मुख्य pattern यही तय करता है।",
+            "हर weekly review में इन numbers के basis पर self-observation करें।",
+        )
+        basic_payloads["name_number_analysis"] = _section_payload(
+            "name_number_analysis",
+            f"नामांक {name_number} और compound {name_compound} आपके पहचान संकेत को प्रभावित करते हैं।",
+            "नाम संख्या आपके social impression और communication tone को दर्शाती है।",
+            "अक्षर-वाइब्रेशन से बना total आपकी पहचान की स्थिरता और trust signal तय करता है।",
+            "नाम और मूलांक/भाग्यांक में mismatch होने पर clarity और confidence प्रभावित हो सकते हैं।",
+            "नाम उपयोग में consistency रखें और practical होने पर target-friendly spelling अपनाएं।",
+            [
+                {"label": "Current Name Number", "value": str(name_number)},
+                {"label": "Strength", "value": name_trait["strength"]},
+                {"label": "Risk", "value": name_trait["risk"]},
+            ],
+            [f"विकल्प {index + 1}: {item['option']} -> {item['number']}" for index, item in enumerate(name_options)],
+        )
+        basic_payloads["mulank_description"] = _section_payload(
+            "mulank_description",
+            f"Mulank {mulank} आपकी instinctive response style और daily behavior tone को दर्शाता है।",
+            "मूलांक आपकी natural प्रतिक्रिया और प्राथमिकता pattern दिखाता है।",
+            "दिनांक जन्म का root number सीधे personality reflexes से जुड़ता है।",
+            "Strengths और blind spots दैनिक फैसलों में बार-बार दिखते हैं।",
+            "मूलांक strength को routine में उपयोग करें और weakness पर habit correction लगाएं।",
+        )
+        basic_payloads["bhagyank_description"] = _section_payload(
+            "bhagyank_description",
+            f"Bhagyank {bhagyank} life path theme, growth direction और recurring lesson cycle को define करता है।",
+            "भाग्यांक long-term direction और opportunity flow का संकेत देता है।",
+            "पूरा जन्मांक योग (life path) से destiny pattern निकलता है।",
+            "गलत timing या discipline gap होने पर growth धीमी हो सकती है।",
+            "व्यक्तिगत वर्ष और भाग्यांक को जोड़कर yearly focus तय करें।",
+        )
+        basic_payloads["number_interaction_analysis"] = _section_payload(
+            "number_interaction_analysis",
+            f"Mulank {mulank}, Bhagyank {bhagyank}, Name Number {name_number or '-'} के बीच {interaction_state} pattern दिखाई देता है।",
+            "Numbers में harmony या conflict execution style बदलता है।",
+            "जब root numbers दूर होते हैं तो behavior में friction बढ़ता है।",
+            "फोकस, confidence और consistency पर सीधा प्रभाव पड़ता है।",
+            "अगर conflict है तो routine, mantra और number-aligned habit से correction करें।",
+        )
+        basic_payloads["loshu_grid_interpretation"] = _section_payload(
+            "loshu_grid_interpretation",
+            f"Lo Shu present: {', '.join(str(v) for v in loshu_present) or 'none'} | missing: {', '.join(str(v) for v in loshu_missing) or 'none'}.",
+            "Lo Shu grid ऊर्जा layout को practical रूप से दिखाता है।",
+            "जन्मांक digit distribution से present और missing energies निकलती हैं।",
+            "Present numbers natural strengths और missing numbers correction areas बताते हैं।",
+            "Grid reading को weekly behavior tracking से validate करें।",
+        )
+        basic_payloads["missing_numbers_analysis"] = _section_payload(
+            "missing_numbers_analysis",
+            f"Missing numbers: {', '.join(str(v) for v in loshu_missing) if loshu_missing else 'none'}.",
+            "Missing numbers संभावित behavior gaps को दिखाते हैं।",
+            "इन digits की कमी communication, flexibility या discipline gaps में दिख सकती है।",
+            "गैप untreated रहे तो repeat friction बनता है।",
+            "हर missing digit के लिए एक micro-habit correction निर्धारित करें।",
+            [f"Missing {number}: structured correction routine आवश्यक." for number in loshu_missing[:5]],
+        )
+        basic_payloads["repeating_numbers_impact"] = _section_payload(
+            "repeating_numbers_impact",
+            f"Repeating numbers pattern: {repeating_text}.",
+            "Repeated digits amplified traits दिखाते हैं।",
+            "एक ही digit का बार-बार आना excess tendency को मजबूत करता है।",
+            "Overuse होने पर rigidity, impulsivity या overthinking उभर सकता है।",
+            "Amplified trait को balance करने के लिए opposite habit anchor जोड़ें।",
+        )
+        basic_payloads["mobile_number_numerology"] = _section_payload(
+            "mobile_number_numerology",
+            f"Mobile vibration {mobile_vibration} का classification: {mobile_classification}.",
+            "मोबाइल vibration daily communication tone को प्रभावित करता है।",
+            "Digit sum vibration profile numbers के साथ resonance बनाता या घटाता है।",
+            "Conflicting vibration होने पर distraction और clarity drop हो सकती है।",
+            "Supportive ending pattern चुनें और usage discipline maintain रखें।",
+            [{"label": "Current Mobile", "value": mobile_value or "इनपुट उपलब्ध नहीं"}],
+        )
+        basic_payloads["mobile_life_number_compatibility"] = _section_payload(
+            "mobile_life_number_compatibility",
+            f"Mobile vibration {mobile_vibration} बनाम life numbers {mulank}/{bhagyank}: {mobile_classification}.",
+            "यह सेक्शन mobile और life-number relationship को simple तरीके से पढ़ता है।",
+            "Compatibility resonance जितनी बेहतर होगी, communication clarity उतनी smooth रहती है।",
+            "Mismatch होने पर response fatigue या decision delay बढ़ सकता है।",
+            "यदि mismatch है तो अगली SIM update में supportive digit logic चुनें।",
+        )
+        basic_payloads["email_numerology"] = _section_payload(
+            "email_numerology",
+            f"Email vibration {email_vibration or 0} trust, clarity और digital identity signal को प्रभावित करता है।" if email_available else "ईमेल इनपुट उपलब्ध नहीं है, इसलिए अभी detailed email numerology analysis सीमित है।",
+            "Email local-part भी एक numerology identity layer मानी जाती है।",
+            "Vibration authority perception और response quality पर प्रभाव डालती है।",
+            "Weak pattern होने पर digital signal dilute हो सकता है।",
+            "Email उपलब्ध होने पर clean pattern के साथ optimized सुझाव generate करें।",
+            [{"label": "Current Email", "value": email_value or "इनपुट उपलब्ध नहीं"}],
+        )
+        basic_payloads["numerology_personality_profile"] = _section_payload(
+            "numerology_personality_profile",
+            f"Personality profile में {name_strength} प्रमुख है, जबकि {name_risk} internal blind spot की तरह दिखता है।",
+            "Numbers social style, inner nature और reaction pattern को summarize करते हैं।",
+            "Mulank + Name Number का मिश्रण interpersonal tone तय करता है।",
+            "Blind spots unmanaged रहें तो relationship और confidence दोनों प्रभावित होते हैं।",
+            "Strength-driven behavior रखें और blind spot पर conscious pause rule लगाएं।",
+        )
+        basic_payloads["current_life_phase_insight"] = _section_payload(
+            "current_life_phase_insight",
+            f"Current life phase theme: personal year {personal_year} और risk band {risk_band}.",
+            "यह phase correction-led stabilization और clarity building का संकेत देता है।",
+            "Personal year और number interaction इस समय की priority तय करते हैं।",
+            "Wrong focus चुनने पर effort high और output low रह सकता है।",
+            "इस phase में consistency, timing और disciplined decisions पर फोकस रखें।",
+        )
+        basic_payloads["career_financial_tendencies"] = _section_payload(
+            "career_financial_tendencies",
+            f"Career tendency {career_industry} orientation के साथ और financial discipline score {_safe_int(scores.get('financial_discipline_index'), 50)} के आसपास है।",
+            "यह section केवल numerology-based tendencies बताता है, consulting strategy नहीं।",
+            "Work style, routine discipline और number resonance earning pattern को shape करते हैं।",
+            "Reactive style होने पर income consistency प्रभावित हो सकती है।",
+            "Skill depth, role-fit और money routine पर steady focus रखें।",
+        )
+        basic_payloads["relationship_compatibility_patterns"] = _section_payload(
+            "relationship_compatibility_patterns",
+            compatibility_summary,
+            "Relationship pattern में emotional style और number resonance दोनों काम करते हैं।",
+            "Compatibility tendency communication pace और expectation alignment से बनती है।",
+            "Mismatch होने पर repeated misunderstanding cycle बन सकता है।",
+            "Clear boundaries, calm communication और timing awareness रखें।",
+        )
+        basic_payloads["health_tendencies_from_numbers"] = _section_payload(
+            "health_tendencies_from_numbers",
+            f"Emotional regulation score {_safe_int(scores.get('emotional_regulation_index'), 50)} और karma pressure {_safe_int(scores.get('karma_pressure_index'), 50)} stress tendency की दिशा दिखाते हैं।",
+            "यह numerology-based wellness tendency है, medical diagnosis नहीं।",
+            "Number imbalance sleep rhythm, stress response और recovery pattern प्रभावित कर सकता है।",
+            "अवहेलना करने पर fatigue और decision quality दोनों गिर सकते हैं।",
+            "Breath reset, sleep discipline और low-noise routine अपनाएं।",
+        )
+        basic_payloads["personal_year_forecast"] = _section_payload(
+            "personal_year_forecast",
+            f"वर्तमान personal year {personal_year} इस वर्ष की गति और प्राथमिकता तय करता है।",
+            f"Year {personal_year} में focus theme correction + consistency है।",
+            "Personal year जन्म दिन, माह और वर्तमान वर्ष के योग से बनता है।",
+            "सही timing चुनने पर effort का परिणाम बेहतर मिलता है।",
+            "महत्वपूर्ण decisions और launches को favorable date windows में रखें।",
+            [
+                {"label": "Current Personal Year", "value": str(personal_year)},
+                {"label": "Favorable Dates", "value": ", ".join(str(v) for v in lucky_dates)},
+            ],
+        )
+        basic_payloads["lucky_numbers_favorable_dates"] = _section_payload(
+            "lucky_numbers_favorable_dates",
+            f"Supportive numbers: {', '.join(str(v) for v in name_targets[:4]) or '3, 5, 9'} | favorable dates: {', '.join(str(v) for v in lucky_dates)}.",
+            "यह superstition नहीं, बल्कि numerology timing utility है।",
+            "मूलांक, भाग्यांक और नामांक resonance से कुछ तिथियां अधिक supportive रहती हैं।",
+            "गलत timing में वही प्रयास धीमा या थकाऊ लग सकता है।",
+            "महत्वपूर्ण meeting, outreach और नई शुरुआत supportive dates पर करें।",
+            [
+                {"label": "Lucky Numbers", "value": ", ".join(str(v) for v in name_targets[:4]) or "3, 5, 9"},
+                {"label": "Favorable Dates", "value": ", ".join(str(v) for v in lucky_dates)},
+            ],
+        )
+        basic_payloads["color_alignment"] = _section_payload(
+            "color_alignment",
+            f"Favorable colors: {favorable_colors}. Caution colors: {caution_colors}.",
+            "Color alignment numerology support layer की तरह काम करती है।",
+            "Dominant number vibration से aligned tones focus और steadiness बढ़ा सकते हैं।",
+            "Mismatched color overuse से energy tone dull हो सकती है।",
+            "Primary wardrobe/workspace में favorable tones का controlled use करें।",
+        )
+        basic_payloads["remedies_lifestyle_adjustments"] = _section_payload(
+            "remedies_lifestyle_adjustments",
+            "Basic correction layer = simple mantra + disciplined habit + lifestyle alignment.",
+            "Remedies को practical routine के साथ जोड़ना सबसे प्रभावी रहता है।",
+            "Consistency के बिना remedy signal कमजोर हो जाता है।",
+            "Irregular practice से correction outcome धीमा पड़ता है।",
+            "Daily short mantra, fixed routine, और weekly review रखें।",
+            [
+                f"Mantra: {vedic_code}",
+                f"Practice: {vedic_parameter}",
+                f"Lifestyle: {lifestyle_protocol}",
+            ],
+        )
+        basic_payloads["closing_numerology_guidance"] = _section_payload(
+            "closing_numerology_guidance",
+            f"Main life theme: {bhagyank} path refinement with {mulank} day-expression. Primary correction: {weakest_metric}.",
+            "आपकी numerology profile workable और correctable है।",
+            "Core numbers, Lo Shu gaps और daily habits का जोड़ final outcome तय करता है।",
+            "Correction priority ignore करने पर repeat cycle बन सकता है।",
+            "Next best step: 21-day correction routine + monthly numerology review.",
+        )
+
+        payloads.update(basic_payloads)
+
+        # Backward-compatible aliases consumed by current template/context layers.
+        payloads["executive_summary"] = basic_payloads["executive_numerology_summary"]
+        payloads["core_numerology_numbers"] = basic_payloads["core_numbers_analysis"]
+        payloads["birth_date_numerology"] = basic_payloads["current_life_phase_insight"]
+        payloads["loshu_grid_intelligence"] = basic_payloads["loshu_grid_interpretation"]
+        payloads["mobile_number_intelligence"] = basic_payloads["mobile_number_numerology"]
+        payloads["email_identity_intelligence"] = basic_payloads["email_numerology"]
+        payloads["archetype_intelligence"] = basic_payloads["numerology_personality_profile"]
+        payloads["career_intelligence"] = basic_payloads["career_financial_tendencies"]
+        payloads["financial_intelligence"] = basic_payloads["career_financial_tendencies"]
+        payloads["decision_intelligence"] = basic_payloads["number_interaction_analysis"]
+        payloads["emotional_intelligence"] = basic_payloads["health_tendencies_from_numbers"]
+        payloads["compatibility_intelligence"] = basic_payloads["relationship_compatibility_patterns"]
+        payloads["lifestyle_alignment"] = basic_payloads["remedies_lifestyle_adjustments"]
+        payloads["basic_remedies"] = basic_payloads["remedies_lifestyle_adjustments"]
+        payloads["closing_synthesis"] = basic_payloads["closing_numerology_guidance"]
+
     payloads = _ensure_all_payloads(plan_name, payloads)
     payloads = _localize_payloads(payloads)
 
@@ -716,6 +962,34 @@ def build_interpretation_report(
         "phase_3": "Days 61-90: timing-aligned growth experiments execute करें।",
     }
 
+    if plan_name == "basic":
+        primary_insight = {
+            "core_archetype": _safe_text(archetype.get("archetype_name"), "मूल अंक व्यक्तित्व"),
+            "strength": f"मुख्य ताकत: {strongest_metric}",
+            "critical_deficit": f"मुख्य चुनौती: {weakest_metric}",
+            "stability_risk": risk_band,
+            "phase_1_diagnostic": "चरण 1: मूलांक और भाग्यांक pattern समझें।",
+            "phase_2_blueprint": "चरण 2: missing numbers और routine correction लागू करें।",
+            "phase_3_intervention_protocol": "चरण 3: 21-day numerology correction discipline चलाएं।",
+            "narrative": payloads["executive_numerology_summary"]["narrative"],
+        }
+        executive_brief = {
+            "summary": payloads["executive_numerology_summary"]["narrative"],
+            "key_strength": primary_insight["strength"],
+            "key_risk": primary_insight["critical_deficit"],
+            "strategic_focus": payloads["remedies_lifestyle_adjustments"]["cards"][3]["value"] if payloads["remedies_lifestyle_adjustments"]["cards"] else intervention_focus,
+        }
+        strategic_guidance = {
+            "short_term": "Mulank-Bhagyank understanding के साथ daily correction शुरू करें।",
+            "mid_term": "Missing numbers और repeating traits पर structured balancing करें।",
+            "long_term": "Personal year timing के साथ numerology-aligned decisions लें।",
+        }
+        growth_blueprint = {
+            "phase_1": "Week 1: core numbers observation + daily log।",
+            "phase_2": "Week 2: missing number correction + routine discipline।",
+            "phase_3": "Week 3: mobile/email alignment और follow-through review।",
+        }
+
     business_block = {"business_strength": business_strength, "risk_factor": business_risk, "compatible_industries": business_industries}
     compatibility_block = {"compatible_numbers": [value for value in [life_path, destiny, expression] if value], "challenging_numbers": loshu_missing[:3], "relationship_guidance": compatibility_summary}
 
@@ -738,7 +1012,26 @@ def build_interpretation_report(
         "growth_blueprint": growth_blueprint,
         "business_block": business_block,
         "compatibility_block": compatibility_block,
-        "personal_year_forecast": {"current_personal_year": personal_year, "theme": "Consolidate structure and improve correction adoption.", "opportunities": "Aligned launches, cleaner partnerships, stronger authority signal.", "caution_areas": "Reactive decisions in high-noise windows.", "favorable_dates": lucky_dates},
+        "personal_year_forecast": {"current_personal_year": personal_year, "theme": "वर्तमान वर्ष में structure consolidation और correction adoption पर फोकस रखें।", "opportunities": "Aligned launches, cleaner partnerships, और stronger authority signal.", "caution_areas": "High-noise windows में reactive decisions से बचें।", "favorable_dates": lucky_dates},
+        "executive_numerology_summary": payloads.get("executive_numerology_summary"),
+        "core_numbers_analysis": payloads.get("core_numbers_analysis"),
+        "mulank_description": payloads.get("mulank_description"),
+        "bhagyank_description": payloads.get("bhagyank_description"),
+        "number_interaction_analysis": payloads.get("number_interaction_analysis"),
+        "loshu_grid_interpretation": payloads.get("loshu_grid_interpretation"),
+        "missing_numbers_analysis": payloads.get("missing_numbers_analysis"),
+        "repeating_numbers_impact": payloads.get("repeating_numbers_impact"),
+        "mobile_number_numerology": payloads.get("mobile_number_numerology"),
+        "mobile_life_number_compatibility": payloads.get("mobile_life_number_compatibility"),
+        "email_numerology": payloads.get("email_numerology"),
+        "numerology_personality_profile": payloads.get("numerology_personality_profile"),
+        "current_life_phase_insight": payloads.get("current_life_phase_insight"),
+        "career_financial_tendencies": payloads.get("career_financial_tendencies"),
+        "relationship_compatibility_patterns": payloads.get("relationship_compatibility_patterns"),
+        "health_tendencies_from_numbers": payloads.get("health_tendencies_from_numbers"),
+        "color_alignment": payloads.get("color_alignment"),
+        "remedies_lifestyle_adjustments": payloads.get("remedies_lifestyle_adjustments"),
+        "closing_numerology_guidance": payloads.get("closing_numerology_guidance"),
         "name_vibration_optimization": payloads["name_vibration_optimization"],
         "mobile_number_intelligence": payloads["mobile_number_intelligence"],
         "email_identity_intelligence": payloads["email_identity_intelligence"],
