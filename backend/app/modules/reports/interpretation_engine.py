@@ -936,7 +936,7 @@ def _enrich_basic_payloads(
             return clean
         return f"{clean}।"
 
-    def _fit_rich(value: str, max_chars: int = 520) -> str:
+    def _fit_rich(value: str, max_chars: int = 700) -> str:
         text = _safe_text(value)
         if len(text) <= max_chars:
             return text
@@ -949,7 +949,7 @@ def _enrich_basic_payloads(
 
     global_fillers: Dict[str, List[str]] = {
         "what": [
-            f"यह संकेत {first_name} के रोज़मर्रा के व्यवहार, communication tone और execution pace में व्यावहारिक रूप से दिखता है",
+            f"यह संकेत {first_name} के रोज़मर्रा के व्यवहार, communication tone और execution pace में स्पष्ट तौर पर दिखता है",
             f"फोकस '{focus_hint}' और concern '{concern_hint}' के संदर्भ में यह pattern अभी सक्रिय है",
             f"{city_display} जैसे वर्तमान वातावरण में भी यही tendency बार-बार उभरती है",
         ],
@@ -973,13 +973,13 @@ def _enrich_basic_payloads(
     dynamic_fillers: Dict[str, List[str]] = {
         "what": [
             f"Core stack {mulank}/{bhagyank}/{name_number_text} और personal year {personal_year} का संयुक्त पैटर्न अभी मुख्य संचालन संकेत दे रहा है",
-            f"Lo Shu present ({present_text}) बनाम missing ({missing_text}) की वजह से behavior architecture uneven दिखाई दे रहा है",
-            f"mobile vibration {mobile_vibration} और email vibration {email_vibration or 0} की combined frequency भी daily response style बदल रही है",
+            f"फोकस '{focus_hint}' और concern '{concern_hint}' के कारण यह संकेत इस समय और अधिक visible है",
+            f"{city_display} जैसे वातावरण में भी यही प्रवृत्ति दोहरकर सामने आती है, इसलिए इसे स्थायी behavior signal माना जा सकता है",
         ],
         "why": [
             f"current root कारण में missing cluster ({missing_line}) और repeating cluster ({repeating_line}) दोनों का परस्पर दबाव शामिल है",
             f"risk context '{risk_primary}' होने से वही कारण सामान्य दिनों की तुलना में अधिक स्पष्ट दिखाई दे रहे हैं",
-            f"focus '{focus_hint}' और concern '{concern_hint}' पर बार-बार लौटना बताता है कि कारण depth-level पर है, surface-level पर नहीं",
+            f"stack {mulank}/{bhagyank}/{name_number_text} और personal year {personal_year} साथ आने पर कारण केवल surface-level नहीं रहता",
         ],
         "impact": [
             f"असर की रेंज decision clarity से लेकर relationship pacing और money discipline तक जाती है, इसलिए इसे एक single-issue न समझें",
@@ -995,11 +995,35 @@ def _enrich_basic_payloads(
 
     def _style_sentence(section_key: str, slot: str, sentence: str, idx: int) -> str:
         styled = _safe_text(sentence)
+        style_modes: Sequence[Dict[str, str]] = (
+            {},
+            {
+                "बताता है": "स्पष्ट करता है",
+                "दिखता है": "नज़र आता है",
+                "प्रभावित करता है": "असर डालता है",
+                "प्रभावित हो सकता है": "असर में आ सकता है",
+                "जरूरी": "अनिवार्य",
+                "सुधार": "बेहतर बदलाव",
+            },
+            {
+                "बताता है": "संकेत देता है",
+                "दिखता है": "उभरता है",
+                "प्रभावित करता है": "गहरा असर डालता है",
+                "प्रभावित हो सकता है": "काफी प्रभावित हो सकता है",
+                "जरूरी": "अत्यावश्यक",
+                "सुधार": "करेक्टिव बदलाव",
+            },
+        )
+        style_mode = (_stable_seed(seed, section_key, slot) + idx) % len(style_modes)
+        for source, target in style_modes[style_mode].items():
+            styled = styled.replace(source, target)
         prefix_options = [
             "",
-            "व्यावहारिक रूप से",
-            "गहराई से देखें तो,",
-            "इस प्रोफ़ाइल में,",
+            "",
+            "",
+            "संख्यात्मक दृष्टि से,",
+            "स्पष्ट संकेत यह है कि,",
+            "अवलोकन से स्पष्ट है कि,",
         ]
         prefix_index = (_stable_seed(seed, section_key, slot) + idx) % len(prefix_options)
         prefix = _safe_text(prefix_options[prefix_index])
@@ -1436,15 +1460,24 @@ def _enrich_basic_payloads(
 
         ordered_fillers = sorted(dynamic_pool, key=lambda text: _stable_seed(seed, section_key, slot, "fill", text))
         for idx, filler in enumerate(ordered_fillers):
-            if not ((len(sentences) < 4 or len(" ".join(sentences)) < 260) and len(sentences) < 5):
+            if not ((len(sentences) < 5 or len(" ".join(sentences)) < 450) and len(sentences) < 7):
                 break
             pick = _sent(_style_sentence(section_key, slot, filler, idx + 10))
             if pick and pick not in used:
                 sentences.append(pick)
                 used.add(pick)
 
+        emergency_pool = ordered_fillers + ordered_seeds
+        for idx, filler in enumerate(emergency_pool):
+            if not ((len(sentences) < 4 or len(" ".join(sentences)) < 350) and len(sentences) < 7):
+                break
+            pick = _sent(_style_sentence(section_key, slot, filler, idx + 40))
+            if pick and pick not in used:
+                sentences.append(pick)
+                used.add(pick)
+
         text = " ".join(sentences)
-        return _fit_rich(text, max_chars=520)
+        return _fit_rich(text, max_chars=700)
 
     for section_key, slots in section_lines.items():
         section = basic_payloads.get(section_key)
