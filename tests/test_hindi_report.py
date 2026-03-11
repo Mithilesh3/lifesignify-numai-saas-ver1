@@ -136,7 +136,7 @@ def run_hindi_report_smoke_test(output_dir: Path | None = None) -> Path:
     html = _render_html(context)
     assert "Helvetica" not in html
     assert "Noto Sans Devanagari" in html
-    assert "BASIC NUMEROLOGY DIAGNOSTICS" in html
+    assert "Basic Numerology Section" in html
 
     ready, reason = _playwright_ready()
     if not ready:
@@ -152,7 +152,7 @@ def run_hindi_report_smoke_test(output_dir: Path | None = None) -> Path:
     assert len(pdf_bytes) > 6000
 
     reader = PdfReader(BytesIO(pdf_bytes))
-    assert len(reader.pages) == 12
+    assert len(reader.pages) >= 23
 
     text_sample = " ".join((reader.pages[index].extract_text() or "") for index in range(min(3, len(reader.pages))))
     if text_sample.strip():

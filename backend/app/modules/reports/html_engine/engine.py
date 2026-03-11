@@ -232,9 +232,9 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
         "basic",
     ).lower()
 
-    # Slightly tighter truncation on basic so we stay exactly at 12 physical pages.
-    narrative_limit = 420 if plan_tier == "basic" else 580
-    card_limit = 110 if plan_tier == "basic" else 140
+    # BASIC no longer targets a fixed 12-page cap; keep richer per-section content.
+    narrative_limit = 780 if plan_tier == "basic" else 580
+    card_limit = 180 if plan_tier == "basic" else 140
 
     foundation = architecture_text.get("foundation") or pythagorean.get("life_path_number")
     left_pillar = architecture_text.get("left_pillar") or pythagorean.get("destiny_number")
@@ -448,20 +448,14 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
             }
         )
 
-    intro_keys = {"executive_numerology_summary", "core_numbers_analysis"}
-    basic_intro_sections = [section for section in basic_sections if section["key"] in intro_keys]
-    if len(basic_intro_sections) < 2:
-        for section in basic_sections:
-            if section not in basic_intro_sections:
-                basic_intro_sections.append(section)
-            if len(basic_intro_sections) == 2:
-                break
-    intro_key_set = {section["key"] for section in basic_intro_sections}
-    basic_remaining_sections = [section for section in basic_sections if section["key"] not in intro_key_set]
     basic_section_pages = [
-        basic_remaining_sections[index : index + 2]
-        for index in range(0, len(basic_remaining_sections), 2)
+        {
+            "page_number": index + 2,
+            "section": section,
+        }
+        for index, section in enumerate(basic_sections)
     ]
+    basic_total_pages = 1 + len(basic_sections)
 
     return {
         "watermark": watermark,
@@ -760,9 +754,10 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
             "planetary_orbit": planetary_svg,
         },
         "basic_report": {
-            "intro_sections": basic_intro_sections,
+            "intro_sections": basic_sections[:2],
             "section_pages": basic_section_pages,
             "all_sections": basic_sections,
+            "total_pages": basic_total_pages,
         },
         "assets": {
             "brand_logo_uri": brand_logo_uri,

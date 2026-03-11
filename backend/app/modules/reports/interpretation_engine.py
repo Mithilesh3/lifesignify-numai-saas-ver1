@@ -702,14 +702,20 @@ def build_interpretation_report(
             9: ("maroon, crimson", "pale grey"),
         }
         favorable_colors, caution_colors = color_map.get(color_base, ("green, blue", "muddy grey"))
+        mulank_trait = NUMBER_TRAITS.get(mulank, NUMBER_TRAITS[5])
+        bhagyank_trait = NUMBER_TRAITS.get(bhagyank, NUMBER_TRAITS[5])
+        focus_key = _safe_text((intake_context.get("focus") or {}).get("life_focus"), "general_alignment")
+        focus_text = focus_key.replace("_", " ")
+        city_hint = _safe_text(birth_details.get("birthplace_city") or identity.get("city"), "local environment")
+        compatibility_level = _safe_text((numerology_core.get("compatibility") or {}).get("compatibility_level"), "Moderate")
 
         basic_payloads: Dict[str, Any] = {}
         basic_payloads["executive_numerology_summary"] = _section_payload(
             "executive_numerology_summary",
-            f"{full_name} की numerology profile का मूल स्वर {mulank}-{bhagyank}-{name_number or '-'} संयोजन पर आधारित है। मुख्य ताकत {strongest_metric} और चुनौती {weakest_metric} है।",
+            f"{full_name} की numerology profile का मूल स्वर {mulank}-{bhagyank}-{name_number or '-'} संयोजन पर आधारित है। मुख्य ताकत {strongest_metric} और चुनौती {weakest_metric} है। वर्तमान focus: {focus_text}.",
             "Core number stack से quick nature signal स्पष्ट है।",
             "मूलांक, भाग्यांक और नामांक का संयुक्त प्रभाव baseline behavior तय करता है।",
-            "इसका असर निर्णय, संबंध, दिनचर्या और execution consistency पर पड़ता है।",
+            f"इसका असर निर्णय, संबंध, दिनचर्या और execution consistency पर पड़ता है, खासकर {city_hint} जैसे environment में।",
             f"पहली correction priority: {weakest_metric.lower()} stabilization और missing number discipline।",
         )
         basic_payloads["core_numbers_analysis"] = _section_payload(
@@ -736,7 +742,7 @@ def build_interpretation_report(
         )
         basic_payloads["mulank_description"] = _section_payload(
             "mulank_description",
-            f"Mulank {mulank} आपकी instinctive response style और daily behavior tone को दर्शाता है।",
+            f"Mulank {mulank} आपकी instinctive response style और daily behavior tone को दर्शाता है। यह {mulank_trait['strength']} को बढ़ाता है और {mulank_trait['risk']} tendency दिखा सकता है।",
             "मूलांक आपकी natural प्रतिक्रिया और प्राथमिकता pattern दिखाता है।",
             "दिनांक जन्म का root number सीधे personality reflexes से जुड़ता है।",
             "Strengths और blind spots दैनिक फैसलों में बार-बार दिखते हैं।",
@@ -744,15 +750,15 @@ def build_interpretation_report(
         )
         basic_payloads["bhagyank_description"] = _section_payload(
             "bhagyank_description",
-            f"Bhagyank {bhagyank} life path theme, growth direction और recurring lesson cycle को define करता है।",
+            f"Bhagyank {bhagyank} life path theme, growth direction और recurring lesson cycle को define करता है। इसका core strength {bhagyank_trait['strength']} है।",
             "भाग्यांक long-term direction और opportunity flow का संकेत देता है।",
             "पूरा जन्मांक योग (life path) से destiny pattern निकलता है।",
-            "गलत timing या discipline gap होने पर growth धीमी हो सकती है।",
-            "व्यक्तिगत वर्ष और भाग्यांक को जोड़कर yearly focus तय करें।",
+            f"गलत timing या discipline gap होने पर growth धीमी हो सकती है और {bhagyank_trait['risk']} बढ़ सकता है।",
+            f"व्यक्तिगत वर्ष {personal_year} और भाग्यांक को जोड़कर yearly focus तय करें।",
         )
         basic_payloads["number_interaction_analysis"] = _section_payload(
             "number_interaction_analysis",
-            f"Mulank {mulank}, Bhagyank {bhagyank}, Name Number {name_number or '-'} के बीच {interaction_state} pattern दिखाई देता है।",
+            f"Mulank {mulank}, Bhagyank {bhagyank}, Name Number {name_number or '-'} के बीच {interaction_state} pattern दिखाई देता है (gap {interaction_gap}).",
             "Numbers में harmony या conflict execution style बदलता है।",
             "जब root numbers दूर होते हैं तो behavior में friction बढ़ता है।",
             "फोकस, confidence और consistency पर सीधा प्रभाव पड़ता है।",
@@ -827,7 +833,7 @@ def build_interpretation_report(
         )
         basic_payloads["career_financial_tendencies"] = _section_payload(
             "career_financial_tendencies",
-            f"Career tendency {career_industry} orientation के साथ और financial discipline score {_safe_int(scores.get('financial_discipline_index'), 50)} के आसपास है।",
+            f"Career tendency {career_industry} orientation के साथ और financial discipline score {_safe_int(scores.get('financial_discipline_index'), 50)} के आसपास है। यह {focus_text} लक्ष्य के लिए उपयोगी संकेत देता है।",
             "यह section केवल numerology-based tendencies बताता है, consulting strategy नहीं।",
             "Work style, routine discipline और number resonance earning pattern को shape करते हैं।",
             "Reactive style होने पर income consistency प्रभावित हो सकती है।",
@@ -835,7 +841,7 @@ def build_interpretation_report(
         )
         basic_payloads["relationship_compatibility_patterns"] = _section_payload(
             "relationship_compatibility_patterns",
-            compatibility_summary,
+            f"{compatibility_summary} Current compatibility level: {compatibility_level}.",
             "Relationship pattern में emotional style और number resonance दोनों काम करते हैं।",
             "Compatibility tendency communication pace और expectation alignment से बनती है।",
             "Mismatch होने पर repeated misunderstanding cycle बन सकता है।",
@@ -843,7 +849,7 @@ def build_interpretation_report(
         )
         basic_payloads["health_tendencies_from_numbers"] = _section_payload(
             "health_tendencies_from_numbers",
-            f"Emotional regulation score {_safe_int(scores.get('emotional_regulation_index'), 50)} और karma pressure {_safe_int(scores.get('karma_pressure_index'), 50)} stress tendency की दिशा दिखाते हैं।",
+            f"Emotional regulation score {_safe_int(scores.get('emotional_regulation_index'), 50)} और karma pressure {_safe_int(scores.get('karma_pressure_index'), 50)} stress tendency की दिशा दिखाते हैं। सबसे संवेदनशील axis: {weakest_metric}.",
             "यह numerology-based wellness tendency है, medical diagnosis नहीं।",
             "Number imbalance sleep rhythm, stress response और recovery pattern प्रभावित कर सकता है।",
             "अवहेलना करने पर fatigue और decision quality दोनों गिर सकते हैं।",
@@ -883,7 +889,7 @@ def build_interpretation_report(
         )
         basic_payloads["remedies_lifestyle_adjustments"] = _section_payload(
             "remedies_lifestyle_adjustments",
-            "Basic correction layer = simple mantra + disciplined habit + lifestyle alignment.",
+            f"Basic correction layer = simple mantra + disciplined habit + lifestyle alignment. Dominant planet support: {dominant_planet}.",
             "Remedies को practical routine के साथ जोड़ना सबसे प्रभावी रहता है।",
             "Consistency के बिना remedy signal कमजोर हो जाता है।",
             "Irregular practice से correction outcome धीमा पड़ता है।",
@@ -896,7 +902,7 @@ def build_interpretation_report(
         )
         basic_payloads["closing_numerology_guidance"] = _section_payload(
             "closing_numerology_guidance",
-            f"Main life theme: {bhagyank} path refinement with {mulank} day-expression. Primary correction: {weakest_metric}.",
+            f"Main life theme: {bhagyank} path refinement with {mulank} day-expression and name signal {name_number}. Primary correction: {weakest_metric}.",
             "आपकी numerology profile workable और correctable है।",
             "Core numbers, Lo Shu gaps और daily habits का जोड़ final outcome तय करता है।",
             "Correction priority ignore करने पर repeat cycle बन सकता है।",

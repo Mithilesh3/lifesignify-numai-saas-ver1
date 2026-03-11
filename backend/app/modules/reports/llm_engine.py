@@ -128,6 +128,7 @@ Writing style requirements:
 - Sound psychologically insightful, practical, and premium.
 - Avoid generic astrology statements and avoid mystical exaggeration.
 - Make the report feel clearly different for each user by grounding every section in the user's name, numerology values, strongest or weakest scores, and stated life focus.
+- Avoid sentence-level repetition across users; vary phrasing using the actual number combinations and profile signals.
 - If data is missing, acknowledge the gap instead of inventing facts.
 - If confidence_score is low or behavioral inputs are sparse, explicitly say that some intelligence metrics are based on limited inputs.
 - Never leave blanks, placeholders, token fragments, empty commas, or partially stitched grammar.
@@ -251,6 +252,7 @@ Avoid generic astrology statements.
 Make the output meaningfully different when user profile inputs differ.
 If inputs are sparse, acknowledge that some intelligence scores are based on limited data.
 Never output empty placeholders, blank grammar fragments, or corrupted Hindi.
+Avoid repetitive template phrasing; write section text that clearly reflects this exact profile.
 {'Avoid consulting or enterprise wording in BASIC output.' if is_basic else ''}
 """
                 },

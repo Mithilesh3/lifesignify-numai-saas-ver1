@@ -25,16 +25,16 @@
     {% endif %}
 
     :root {
-      --bg-1: #040d1f;
-      --bg-2: #0a1f43;
-      --panel: rgba(12, 31, 67, 0.84);
-      --panel-soft: rgba(8, 25, 54, 0.74);
-      --ink: #edf3ff;
-      --muted: #b6c8e7;
-      --accent: #d6b45f;
-      --accent-soft: rgba(214, 180, 95, 0.2);
-      --line: rgba(214, 180, 95, 0.32);
-      --radius: 14px;
+      --paper: #fbf6ea;
+      --paper-2: #f7efdf;
+      --ink: #3a2f1a;
+      --ink-soft: #5d4a23;
+      --gold: #b88a2d;
+      --gold-soft: rgba(184, 138, 45, 0.14);
+      --line: rgba(184, 138, 45, 0.35);
+      --panel: rgba(255, 255, 255, 0.74);
+      --panel-2: rgba(255, 255, 255, 0.58);
+      --radius: 13px;
     }
 
     * { box-sizing: border-box; }
@@ -43,211 +43,210 @@
       padding: 0;
       font-family: "Noto Sans Devanagari", "Inter", sans-serif;
       color: var(--ink);
-      background: radial-gradient(circle at 12% 8%, #11316a 0%, #040b18 64%);
-      font-size: 13px;
-      line-height: 1.55;
+      background: #efe6d3;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
+      line-height: 1.55;
+      font-size: 13px;
     }
 
     @page { size: A4; margin: 0; }
 
-    .report-shell { width: 210mm; margin: 0 auto; }
+    .report-shell {
+      width: 210mm;
+      margin: 0 auto;
+    }
+
     .page {
       position: relative;
       width: 210mm;
       min-height: 297mm;
-      padding: 14mm 12mm 12mm;
-      background:
-        linear-gradient(160deg, rgba(12, 34, 72, 0.96), rgba(4, 11, 25, 0.98)),
-        radial-gradient(circle at 84% 18%, rgba(214, 180, 95, 0.12), transparent 54%);
+      padding: 12mm 12mm 10mm;
+      background: linear-gradient(180deg, var(--paper), var(--paper-2));
       page-break-after: always;
       overflow: hidden;
+    }
+
+    .page::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        {% if assets.mandala_bg_uri %}url("{{ assets.mandala_bg_uri }}"),{% endif %}
+        radial-gradient(circle at 50% 42%, rgba(184, 138, 45, 0.08), transparent 60%);
+      background-repeat: no-repeat;
+      background-position: center center, center center;
+      background-size: 100% auto, cover;
+      opacity: 0.36;
+      pointer-events: none;
+      z-index: 0;
     }
 
     .page::after {
       content: "";
       position: absolute;
       inset: 6mm;
-      border: 1px solid rgba(214, 180, 95, 0.2);
-      border-radius: 14px;
+      border: 1px solid rgba(184, 138, 45, 0.3);
+      border-radius: 12px;
       pointer-events: none;
+      z-index: 1;
+    }
+
+    .layer {
+      position: relative;
+      z-index: 2;
     }
 
     .watermark {
       position: absolute;
       right: 10mm;
       bottom: 8mm;
-      color: rgba(255, 255, 255, 0.4);
-      letter-spacing: 0.08em;
-      font-size: 10px;
-      text-transform: uppercase;
       z-index: 3;
+      font-size: 10px;
+      color: rgba(70, 56, 28, 0.6);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
-    .cover-page { padding-top: 18mm; }
-    .cover-bg {
-      position: absolute;
-      width: 75mm;
-      right: -8mm;
-      top: -4mm;
-      opacity: 0.18;
-      filter: saturate(1.15);
+    .cover {
+      padding-top: 16mm;
     }
     .cover-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      position: relative;
-      z-index: 2;
+      margin-bottom: 18mm;
     }
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       font-weight: 700;
-      letter-spacing: 0.04em;
+      color: var(--ink-soft);
+      letter-spacing: 0.03em;
     }
     .brand img {
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       object-fit: contain;
     }
-    .plan-pill {
+    .pill {
       border: 1px solid var(--line);
       border-radius: 999px;
       padding: 5px 12px;
-      color: #e9d9ae;
+      background: var(--gold-soft);
+      color: var(--ink-soft);
       font-size: 11px;
-      background: var(--accent-soft);
     }
-
-    .cover-main {
+    .cover-grid {
       display: grid;
-      grid-template-columns: 1.25fr 0.75fr;
-      gap: 16px;
-      margin-top: 16mm;
-      position: relative;
-      z-index: 2;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 14px;
+      align-items: start;
     }
-    .cover-main h1 {
+    .cover h1 {
       margin: 0;
-      font-size: 34px;
-      line-height: 1.16;
-      letter-spacing: 0.015em;
-      max-width: 120mm;
-      color: #fff5d8;
+      color: #4a3512;
+      font-size: 32px;
+      line-height: 1.18;
     }
     .cover-sub {
-      margin-top: 10px;
-      color: #d7e6ff;
+      margin: 10px 0 0;
+      color: #6c562a;
       font-size: 15px;
-      max-width: 116mm;
     }
-    .identity-grid {
+    .identity {
+      margin-top: 16px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 16px;
+      gap: 9px;
     }
-    .identity-card {
+    .identity .card {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      padding: 10px 11px;
-      min-height: 56px;
+      padding: 9px 10px;
+      min-height: 60px;
     }
-    .identity-card h4 {
-      margin: 0 0 6px;
-      color: #ecd69d;
+    .identity .card h4 {
+      margin: 0 0 5px;
+      color: var(--gold);
       font-size: 11px;
-      letter-spacing: 0.03em;
       text-transform: uppercase;
+      letter-spacing: 0.03em;
     }
-    .identity-card p {
+    .identity .card p {
       margin: 0;
-      color: #f6fbff;
-      font-size: 15px;
+      font-size: 14px;
+      color: #4a3512;
       font-weight: 700;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
-    .cover-images {
+    .cover-art {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
-      align-content: start;
       justify-items: center;
+      gap: 7px;
     }
-    .cover-images img.main {
-      width: 100%;
-      max-width: 120px;
+    .cover-art img.main {
+      width: 120px;
       max-height: 150px;
       object-fit: contain;
-      filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.4));
     }
-    .cover-images img.secondary {
-      width: 100%;
-      max-width: 110px;
-      max-height: 140px;
+    .cover-art img.secondary {
+      width: 108px;
+      max-height: 130px;
       object-fit: contain;
-      opacity: 0.88;
+      opacity: 0.86;
     }
-    .cover-lotus {
-      width: 68px;
+    .cover-art img.lotus {
+      width: 66px;
       opacity: 0.9;
-      margin-top: 3px;
     }
 
-    .page-header {
+    .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 8px;
-      position: relative;
-      z-index: 2;
     }
     .kicker {
-      color: #efd59a;
-      letter-spacing: 0.03em;
+      margin: 0;
+      color: var(--gold);
       font-size: 11px;
       text-transform: uppercase;
-      margin: 0;
+      letter-spacing: 0.03em;
     }
     .title {
       margin: 3px 0 0;
       font-size: 24px;
-      color: #fff7e0;
+      color: #4a3512;
+      line-height: 1.2;
     }
-    .header-right {
+    .page-meta {
       display: flex;
       align-items: center;
       gap: 7px;
-      color: #d4e4ff;
+      color: #6f592c;
       font-size: 11px;
     }
-    .header-right img {
-      width: 24px;
-      height: 24px;
+    .page-meta img {
+      width: 23px;
+      height: 23px;
       object-fit: contain;
-      opacity: 0.95;
     }
 
-    .intro-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 8px;
-    }
-    .section-card {
+    .section-shell {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 10px 10px 8px;
+      border-radius: 14px;
+      padding: 11px;
+      margin-top: 8px;
+      min-height: 252mm;
       display: grid;
-      grid-template-rows: auto auto 1fr;
-      gap: 8px;
-      page-break-inside: avoid;
-      overflow: hidden;
+      grid-template-rows: auto auto auto 1fr;
+      gap: 10px;
     }
     .section-top {
       display: grid;
@@ -256,254 +255,212 @@
       align-items: center;
     }
     .section-top img {
-      width: 24px;
-      height: 24px;
-      object-fit: contain;
+      width: 25px;
+      height: 25px;
       border-radius: 50%;
-      background: rgba(214, 180, 95, 0.16);
+      object-fit: contain;
+      background: rgba(184, 138, 45, 0.12);
       padding: 2px;
     }
     .section-title {
       margin: 0;
-      font-size: 15px;
-      color: #fcecc5;
-      line-height: 1.35;
+      color: #4c3614;
+      font-size: 20px;
+      line-height: 1.3;
     }
     .narrative {
       margin: 0;
-      color: #e6f0ff;
-      font-size: 12px;
+      color: #4f3b1b;
       word-break: break-word;
       overflow-wrap: anywhere;
     }
-    .cards-grid {
+    .cards {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
+      gap: 8px;
       align-content: start;
     }
-    .mini-card {
-      background: var(--panel-soft);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+    .mini {
+      background: var(--panel-2);
+      border: 1px solid rgba(184, 138, 45, 0.27);
       border-radius: 10px;
-      padding: 6px 7px;
-      min-height: 54px;
+      padding: 7px 8px;
+      min-height: 56px;
     }
-    .mini-card h5 {
+    .mini h5 {
       margin: 0 0 4px;
       font-size: 10px;
-      color: #e6d09b;
+      color: #8b651f;
       letter-spacing: 0.02em;
     }
-    .mini-card p {
+    .mini p {
       margin: 0;
       font-size: 11px;
-      color: #e7f0ff;
-      line-height: 1.35;
+      color: #49361a;
       word-break: break-word;
       overflow-wrap: anywhere;
+      line-height: 1.35;
     }
-    .bullet-list {
+    .bullets {
       margin: 0;
       padding-left: 16px;
-      color: #ddecff;
+      color: #4b3a1d;
       font-size: 11px;
     }
-    .bullet-list li { margin-bottom: 3px; }
-    .diagram-shell {
-      margin-top: 4px;
-      border: 1px solid rgba(214, 180, 95, 0.26);
+    .bullets li { margin-bottom: 3px; }
+
+    .diagram {
+      border: 1px solid rgba(184, 138, 45, 0.28);
       border-radius: 10px;
-      background: rgba(8, 21, 44, 0.86);
-      padding: 6px;
-      max-height: 138px;
+      background: rgba(255, 255, 255, 0.55);
+      padding: 7px;
+      max-height: 170px;
       overflow: hidden;
     }
-    .diagram-shell svg {
+    .diagram svg {
       width: 100%;
       height: auto;
-      max-height: 124px;
+      max-height: 152px;
       display: block;
     }
 
-    .metrics-zone {
+    .metrics-wrap {
       display: grid;
-      grid-template-columns: 0.85fr 1.15fr;
-      gap: 10px;
-      margin-top: 10px;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 9px;
     }
-    .chart-box, .metrics-box {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 10px;
+    .metrics-left, .metrics-right {
+      border: 1px solid rgba(184, 138, 45, 0.3);
+      border-radius: 11px;
+      background: rgba(255, 255, 255, 0.54);
+      padding: 8px;
     }
-    .chart-box canvas { width: 100% !important; height: 240px !important; }
+    .metrics-left canvas {
+      width: 100% !important;
+      height: 205px !important;
+    }
     .metric-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 7px;
     }
-    .metric {
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 10px;
-      background: rgba(8, 21, 44, 0.74);
-      padding: 7px;
+    .metric-item {
+      border: 1px solid rgba(184, 138, 45, 0.22);
+      border-radius: 9px;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.55);
     }
-    .metric h5 {
+    .metric-item h5 {
       margin: 0;
-      color: #dfc884;
       font-size: 10px;
+      color: #8b651f;
     }
-    .metric .value {
+    .metric-item .value {
       margin-top: 2px;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
-      color: #ffffff;
+      color: #4c3614;
     }
     .spine {
       margin-top: 8px;
-      border: 1px solid rgba(214, 180, 95, 0.28);
+      border: 1px solid rgba(184, 138, 45, 0.28);
       border-radius: 10px;
-      padding: 8px;
-      background: rgba(214, 180, 95, 0.08);
+      padding: 7px;
+      background: rgba(184, 138, 45, 0.11);
       font-size: 11px;
-      color: #f3f8ff;
+      color: #4a3718;
     }
-    .spine p { margin: 0 0 5px; }
+    .spine p { margin: 0 0 4px; }
     .spine p:last-child { margin-bottom: 0; }
-
-    .pair-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 8px;
-      align-content: start;
-    }
   </style>
 </head>
 <body>
   <main class="report-shell">
-    <section class="page cover-page">
-      {% if assets.mandala_bg_uri %}<img class="cover-bg" src="{{ assets.mandala_bg_uri }}" alt="" />{% endif %}
-      <div class="cover-top">
-        <div class="brand">
-          {% if assets.brand_logo_uri %}<img src="{{ assets.brand_logo_uri }}" alt="NumAI" />{% endif %}
-          <span>Life Signify NumAI</span>
+    <section class="page cover">
+      <div class="layer">
+        <div class="cover-top">
+          <div class="brand">
+            {% if assets.brand_logo_uri %}<img src="{{ assets.brand_logo_uri }}" alt="NumAI" />{% endif %}
+            <span>Life Signify NumAI</span>
+          </div>
+          <span class="pill">{{ meta.plan }} • {{ meta.report_date }}</span>
         </div>
-        <span class="plan-pill">{{ meta.plan }} • {{ meta.report_date }}</span>
-      </div>
 
-      <div class="cover-main">
-        <div>
-          <h1>{{ cover.title }}</h1>
-          <p class="cover-sub">{{ cover.subtitle }}</p>
+        <div class="cover-grid">
+          <div>
+            <h1>{{ cover.title }}</h1>
+            <p class="cover-sub">{{ cover.subtitle }}</p>
 
-          <div class="identity-grid">
-            <div class="identity-card"><h4>क्लाइंट | Client</h4><p>{{ cover.name }}</p></div>
-            <div class="identity-card"><h4>जन्म तिथि | Date of Birth</h4><p>{{ cover.dob }}</p></div>
-            <div class="identity-card"><h4>रिस्क बैंड | Risk Band</h4><p>{{ cover.risk_band }}</p></div>
-            <div class="identity-card"><h4>सेक्शन | Sections</h4><p>{{ meta.section_count }}</p></div>
+            <div class="identity">
+              <div class="card"><h4>क्लाइंट | Client</h4><p>{{ cover.name }}</p></div>
+              <div class="card"><h4>जन्म तिथि | DOB</h4><p>{{ cover.dob }}</p></div>
+              <div class="card"><h4>रिस्क बैंड | Risk</h4><p>{{ cover.risk_band }}</p></div>
+              <div class="card"><h4>सेक्शंस | Sections</h4><p>{{ report.report_blueprint.section_count if report.report_blueprint else meta.section_count }}</p></div>
+            </div>
+          </div>
+
+          <div class="cover-art">
+            {% if assets.cover_ganesha_uri %}<img class="main" src="{{ assets.cover_ganesha_uri }}" alt="Ganesha" />{% endif %}
+            {% if assets.cover_krishna_uri %}<img class="secondary" src="{{ assets.cover_krishna_uri }}" alt="Krishna" />{% endif %}
+            {% if assets.lotus_gold_uri %}<img class="lotus" src="{{ assets.lotus_gold_uri }}" alt="Lotus" />{% endif %}
           </div>
         </div>
-
-        <div class="cover-images">
-          {% if assets.cover_ganesha_uri %}<img class="main" src="{{ assets.cover_ganesha_uri }}" alt="Ganesha" />{% endif %}
-          {% if assets.cover_krishna_uri %}<img class="secondary" src="{{ assets.cover_krishna_uri }}" alt="Krishna" />{% endif %}
-          {% if assets.lotus_gold_uri %}<img class="cover-lotus" src="{{ assets.lotus_gold_uri }}" alt="Lotus" />{% endif %}
-        </div>
       </div>
-
       {% if watermark %}<div class="watermark">Preview</div>{% endif %}
     </section>
 
+    {% for page in basic_report.section_pages %}
+    {% set section = page.section %}
     <section class="page">
-      <header class="page-header">
-        <div>
-          <p class="kicker">BASIC NUMEROLOGY DIAGNOSTICS</p>
-          <h2 class="title">Executive Summary + Intelligence Metrics</h2>
-        </div>
-        <div class="header-right">
-          {% if assets.om_gold_uri %}<img src="{{ assets.om_gold_uri }}" alt="" />{% endif %}
-          <span>Page 2 / 12</span>
-        </div>
-      </header>
-
-      <div class="intro-grid">
-        {% for section in basic_report.intro_sections %}
-        <article class="section-card">
-          <div class="section-top">
-            {% if section.icon_uri %}<img src="{{ section.icon_uri }}" alt="" />{% endif %}
-            <h3 class="section-title">{{ section.title }}</h3>
+      <div class="layer">
+        <header class="header">
+          <div>
+            <p class="kicker">Basic Numerology Section</p>
+            <h2 class="title">{{ section.title }}</h2>
           </div>
-          <p class="narrative">{{ section.narrative }}</p>
-          <div class="cards-grid">
-            {% for card in section.cards[:4] %}
-            <div class="mini-card">
-              <h5>{{ card.label }}</h5>
-              <p>{{ card.value }}</p>
-            </div>
-            {% endfor %}
+          <div class="page-meta">
+            {% if assets.lotus_gold_uri %}<img src="{{ assets.lotus_gold_uri }}" alt="" />{% endif %}
+            <span>Page {{ page.page_number }} / {{ basic_report.total_pages }}</span>
           </div>
-        </article>
-        {% endfor %}
-      </div>
+        </header>
 
-      <div class="metrics-zone">
-        <div class="chart-box">
-          <canvas id="radarChart"></canvas>
-        </div>
-
-        <div class="metrics-box">
-          <div class="metric-grid">
-            {% for metric in metrics.rows %}
-            <div class="metric">
-              <h5>{{ metric.label }}</h5>
-              <div class="value">{{ metric.value }}</div>
-            </div>
-            {% endfor %}
-          </div>
-
-          <div class="spine">
-            <p><strong>मुख्य ताकत:</strong> {{ metrics.spine.primary_strength }}</p>
-            <p><strong>मुख्य चुनौती:</strong> {{ metrics.spine.primary_deficit }}</p>
-            <p><strong>संरचनात्मक कारण:</strong> {{ metrics.spine.structural_cause }}</p>
-            <p><strong>Correction Focus:</strong> {{ metrics.spine.intervention_focus }}</p>
-            <p><strong>Risk Band:</strong> {{ metrics.risk_band }}</p>
-          </div>
-        </div>
-      </div>
-
-      {% if watermark %}<div class="watermark">Preview</div>{% endif %}
-    </section>
-
-    {% for pair in basic_report.section_pages %}
-    <section class="page">
-      <header class="page-header">
-        <div>
-          <p class="kicker">BASIC NUMEROLOGY SECTIONS</p>
-          <h2 class="title">Section Layer {{ loop.index + 2 }}</h2>
-        </div>
-        <div class="header-right">
-          {% if assets.lotus_gold_uri %}<img src="{{ assets.lotus_gold_uri }}" alt="" />{% endif %}
-          <span>Page {{ loop.index + 2 }} / 12</span>
-        </div>
-      </header>
-
-      <div class="pair-grid">
-        {% for section in pair %}
-        <article class="section-card">
+        <article class="section-shell">
           <div class="section-top">
             {% if section.icon_uri %}<img src="{{ section.icon_uri }}" alt="" />{% endif %}
             <h3 class="section-title">{{ section.title }}</h3>
           </div>
 
           <p class="narrative">{{ section.narrative }}</p>
+
+          {% if section.key == "executive_numerology_summary" %}
+          <div class="metrics-wrap">
+            <div class="metrics-left">
+              <canvas id="radarChart"></canvas>
+            </div>
+            <div class="metrics-right">
+              <div class="metric-grid">
+                {% for metric in metrics.rows %}
+                <div class="metric-item">
+                  <h5>{{ metric.label }}</h5>
+                  <div class="value">{{ metric.value }}</div>
+                </div>
+                {% endfor %}
+              </div>
+              <div class="spine">
+                <p><strong>मुख्य ताकत:</strong> {{ metrics.spine.primary_strength }}</p>
+                <p><strong>मुख्य चुनौती:</strong> {{ metrics.spine.primary_deficit }}</p>
+                <p><strong>संरचनात्मक कारण:</strong> {{ metrics.spine.structural_cause }}</p>
+                <p><strong>Correction Focus:</strong> {{ metrics.spine.intervention_focus }}</p>
+                <p><strong>Risk Band:</strong> {{ metrics.risk_band }}</p>
+              </div>
+            </div>
+          </div>
+          {% endif %}
 
           {% if section.cards %}
-          <div class="cards-grid">
-            {% for card in section.cards[:4] %}
-            <div class="mini-card">
+          <div class="cards">
+            {% for card in section.cards %}
+            <div class="mini">
               <h5>{{ card.label }}</h5>
               <p>{{ card.value }}</p>
             </div>
@@ -512,7 +469,7 @@
           {% endif %}
 
           {% if section.bullets %}
-          <ul class="bullet-list">
+          <ul class="bullets">
             {% for bullet in section.bullets %}
             <li>{{ bullet }}</li>
             {% endfor %}
@@ -520,12 +477,10 @@
           {% endif %}
 
           {% if section.diagram_svg %}
-          <div class="diagram-shell">{{ section.diagram_svg | safe }}</div>
+          <div class="diagram">{{ section.diagram_svg | safe }}</div>
           {% endif %}
         </article>
-        {% endfor %}
       </div>
-
       {% if watermark %}<div class="watermark">Preview</div>{% endif %}
     </section>
     {% endfor %}
@@ -553,12 +508,12 @@
             datasets: [{
               data: values,
               label: "Numerology Metrics",
-              borderColor: "#d6b45f",
-              backgroundColor: "rgba(214, 180, 95, 0.22)",
+              borderColor: "#b88a2d",
+              backgroundColor: "rgba(184, 138, 45, 0.22)",
               borderWidth: 2,
-              pointRadius: 2.5,
-              pointBackgroundColor: "#fff7de",
-              pointBorderColor: "#d6b45f"
+              pointRadius: 2.2,
+              pointBackgroundColor: "#fdf5e3",
+              pointBorderColor: "#a9781d"
             }]
           },
           options: {
@@ -569,18 +524,22 @@
               r: {
                 min: 0,
                 max: 100,
-                ticks: { stepSize: 20, color: "#b8c9e8", backdropColor: "transparent" },
-                angleLines: { color: "rgba(255,255,255,0.15)" },
-                grid: { color: "rgba(255,255,255,0.15)" },
-                pointLabels: { color: "#edf4ff", font: { size: 10 } }
+                ticks: {
+                  stepSize: 20,
+                  color: "#7a6027",
+                  backdropColor: "transparent"
+                },
+                angleLines: { color: "rgba(122, 96, 39, 0.25)" },
+                grid: { color: "rgba(122, 96, 39, 0.25)" },
+                pointLabels: { color: "#5a4520", font: { size: 10 } }
               }
             }
           }
         });
       } else {
-        ctx.fillStyle = "#edf4ff";
+        ctx.fillStyle = "#6c5526";
         ctx.font = "14px sans-serif";
-        ctx.fillText("Chart.js unavailable", 16, 26);
+        ctx.fillText("Chart.js unavailable", 14, 24);
       }
       window.__numaiReady = true;
     })();
