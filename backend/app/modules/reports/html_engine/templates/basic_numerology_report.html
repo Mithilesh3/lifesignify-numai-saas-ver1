@@ -54,6 +54,7 @@
 
     .report-shell {
       width: 210mm;
+      max-width: 100%;
       margin: 0 auto;
     }
 
@@ -137,6 +138,44 @@
       background: var(--gold-soft);
       color: var(--ink-soft);
       font-size: 11px;
+    }
+    .image-shell {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(184, 138, 45, 0.12);
+      border: 1px solid rgba(184, 138, 45, 0.28);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .image-shell img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .image-shell--brand {
+      width: 28px;
+      height: 28px;
+    }
+    .image-shell--icon {
+      width: 25px;
+      height: 25px;
+    }
+    .image-shell--meta {
+      width: 22px;
+      height: 22px;
+    }
+    .image-fallback {
+      font-size: 11px;
+      color: #7b5d22;
+      line-height: 1;
+      font-weight: 700;
+      padding-top: 1px;
+    }
+    .image-fallback.hidden {
+      display: none;
     }
     .cover-grid {
       display: grid;
@@ -241,11 +280,11 @@
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 14px;
-      padding: 11px;
+      padding: 12px;
       margin-top: 8px;
       min-height: 252mm;
-      display: grid;
-      grid-template-rows: auto auto auto 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 10px;
     }
     .section-top {
@@ -253,14 +292,6 @@
       grid-template-columns: auto 1fr;
       gap: 8px;
       align-items: center;
-    }
-    .section-top img {
-      width: 25px;
-      height: 25px;
-      border-radius: 50%;
-      object-fit: contain;
-      background: rgba(184, 138, 45, 0.12);
-      padding: 2px;
     }
     .section-title {
       margin: 0;
@@ -276,16 +307,24 @@
     }
     .cards {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      align-content: start;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+      align-content: stretch;
+      grid-auto-rows: minmax(84px, 1fr);
+      flex: 1 1 auto;
+    }
+    .cards > .mini:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
     }
     .mini {
       background: var(--panel-2);
       border: 1px solid rgba(184, 138, 45, 0.27);
-      border-radius: 10px;
-      padding: 7px 8px;
-      min-height: 56px;
+      border-radius: 11px;
+      padding: 8px 9px;
+      min-height: 72px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
     }
     .mini h5 {
       margin: 0 0 4px;
@@ -316,6 +355,7 @@
       padding: 7px;
       max-height: 170px;
       overflow: hidden;
+      margin-top: auto;
     }
     .diagram svg {
       width: 100%;
@@ -372,6 +412,30 @@
     }
     .spine p { margin: 0 0 4px; }
     .spine p:last-child { margin-bottom: 0; }
+
+    @media screen and (max-width: 1200px) {
+      .report-shell {
+        width: 100%;
+      }
+      .page {
+        width: 100%;
+      }
+    }
+
+    @media screen and (max-width: 920px) {
+      .cover-grid {
+        grid-template-columns: 1fr;
+      }
+      .metrics-wrap,
+      .cards,
+      .metric-grid,
+      .identity {
+        grid-template-columns: 1fr;
+      }
+      .section-shell {
+        min-height: auto;
+      }
+    }
   </style>
 </head>
 <body>
@@ -380,7 +444,17 @@
       <div class="layer">
         <div class="cover-top">
           <div class="brand">
-            {% if assets.brand_logo_uri %}<img src="{{ assets.brand_logo_uri }}" alt="NumAI" />{% endif %}
+            <span class="image-shell image-shell--brand" aria-hidden="true">
+              {% if assets.brand_logo_uri %}
+              <img
+                src="{{ assets.brand_logo_uri }}"
+                alt="NumAI logo"
+                loading="eager"
+                onerror="window.__numaiImageFallback(this)"
+              />
+              {% endif %}
+              <span class="image-fallback{% if assets.brand_logo_uri %} hidden{% endif %}">N</span>
+            </span>
             <span>Life Signify NumAI</span>
           </div>
           <span class="pill">{{ meta.plan }} • {{ meta.report_date }}</span>
@@ -400,9 +474,42 @@
           </div>
 
           <div class="cover-art">
-            {% if assets.cover_ganesha_uri %}<img class="main" src="{{ assets.cover_ganesha_uri }}" alt="Ganesha" />{% endif %}
-            {% if assets.cover_krishna_uri %}<img class="secondary" src="{{ assets.cover_krishna_uri }}" alt="Krishna" />{% endif %}
-            {% if assets.lotus_gold_uri %}<img class="lotus" src="{{ assets.lotus_gold_uri }}" alt="Lotus" />{% endif %}
+            <span class="image-shell" style="width:120px;height:150px;" aria-hidden="true">
+              {% if assets.cover_ganesha_uri %}
+              <img
+                class="main"
+                src="{{ assets.cover_ganesha_uri }}"
+                alt="Ganesha"
+                loading="eager"
+                onerror="window.__numaiImageFallback(this)"
+              />
+              {% endif %}
+              <span class="image-fallback{% if assets.cover_ganesha_uri %} hidden{% endif %}">ॐ</span>
+            </span>
+            <span class="image-shell" style="width:108px;height:130px;" aria-hidden="true">
+              {% if assets.cover_krishna_uri %}
+              <img
+                class="secondary"
+                src="{{ assets.cover_krishna_uri }}"
+                alt="Krishna"
+                loading="eager"
+                onerror="window.__numaiImageFallback(this)"
+              />
+              {% endif %}
+              <span class="image-fallback{% if assets.cover_krishna_uri %} hidden{% endif %}">✶</span>
+            </span>
+            <span class="image-shell" style="width:66px;height:66px;" aria-hidden="true">
+              {% if assets.lotus_gold_uri %}
+              <img
+                class="lotus"
+                src="{{ assets.lotus_gold_uri }}"
+                alt="Lotus"
+                loading="eager"
+                onerror="window.__numaiImageFallback(this)"
+              />
+              {% endif %}
+              <span class="image-fallback{% if assets.lotus_gold_uri %} hidden{% endif %}">❋</span>
+            </span>
           </div>
         </div>
       </div>
@@ -419,14 +526,34 @@
             <h2 class="title">{{ section.title }}</h2>
           </div>
           <div class="page-meta">
-            {% if assets.lotus_gold_uri %}<img src="{{ assets.lotus_gold_uri }}" alt="" />{% endif %}
+            <span class="image-shell image-shell--meta" aria-hidden="true">
+              {% if assets.lotus_gold_uri %}
+              <img
+                src="{{ assets.lotus_gold_uri }}"
+                alt="Lotus icon"
+                loading="eager"
+                onerror="window.__numaiImageFallback(this)"
+              />
+              {% endif %}
+              <span class="image-fallback{% if assets.lotus_gold_uri %} hidden{% endif %}">❋</span>
+            </span>
             <span>Page {{ page.page_number }} / {{ basic_report.total_pages }}</span>
           </div>
         </header>
 
         <article class="section-shell">
           <div class="section-top">
-            {% if section.icon_uri %}<img src="{{ section.icon_uri }}" alt="" />{% endif %}
+            <span class="image-shell image-shell--icon" aria-hidden="true">
+              {% if section.icon_uri %}
+              <img
+                src="{{ section.icon_uri }}"
+                alt="Section icon"
+                loading="eager"
+                onerror="window.__numaiImageFallback(this)"
+              />
+              {% endif %}
+              <span class="image-fallback{% if section.icon_uri %} hidden{% endif %}">◎</span>
+            </span>
             <h3 class="section-title">{{ section.title }}</h3>
           </div>
 
@@ -488,6 +615,19 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
   <script>
+    window.__numaiImageFallback = function (img) {
+      if (!img) {
+        return;
+      }
+      img.style.display = "none";
+      const fallback = img.parentElement
+        ? img.parentElement.querySelector(".image-fallback")
+        : null;
+      if (fallback) {
+        fallback.classList.remove("hidden");
+      }
+    };
+
     window.__numaiReady = false;
     (function renderRadarChart() {
       const canvas = document.getElementById("radarChart");

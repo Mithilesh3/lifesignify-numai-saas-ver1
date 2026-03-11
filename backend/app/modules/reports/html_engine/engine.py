@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import base64
 from datetime import datetime
 from io import BytesIO
 import json
 import logging
+import mimetypes
 from pathlib import Path
 import re
 from typing import Any, Dict, List, Sequence
@@ -198,6 +200,51 @@ def _as_uri(path: Path) -> str:
     return ""
 
 
+def _as_image_src(path: Path) -> str:
+    if not path.exists():
+        return ""
+    try:
+        from PIL import Image
+
+        with Image.open(path) as image:
+            image = image.convert("RGBA")
+            max_dim = 320
+            image.thumbnail((max_dim, max_dim))
+            buffer = BytesIO()
+            image.save(buffer, format="PNG", optimize=True)
+            encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
+    except Exception:
+        mime, _ = mimetypes.guess_type(str(path))
+        mime = mime or "image/png"
+        try:
+            encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+        except OSError:
+            return _as_uri(path)
+        return f"data:{mime};base64,{encoded}"
+
+    if not encoded:
+        return _as_uri(path)
+    return f"data:image/png;base64,{encoded}"
+
+
+def _as_background_src(path: Path) -> str:
+    if not path.exists():
+        return ""
+    try:
+        from PIL import Image
+
+        with Image.open(path) as image:
+            image = image.convert("RGBA")
+            max_dim = 1400
+            image.thumbnail((max_dim, max_dim))
+            buffer = BytesIO()
+            image.save(buffer, format="PNG", optimize=True)
+            encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
+            return f"data:image/png;base64,{encoded}"
+    except Exception:
+        return _as_uri(path)
+
+
 def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
     payload = data or {}
     identity = payload.get("identity") or {}
@@ -309,9 +356,9 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
     deficit_svg = build_structural_deficit_svg(deficit_model)
     planetary_svg = build_planetary_orbit_svg(planetary, numerology_core)
 
-    brand_logo_uri = _as_uri(ASSETS_ROOT / "branding" / "numai_logo.png")
+    brand_logo_uri = _as_image_src(ASSETS_ROOT / "branding" / "numai_logo.png")
     if not brand_logo_uri:
-        brand_logo_uri = _as_uri(ASSETS_ROOT / "branding" / "logo.png")
+        brand_logo_uri = _as_image_src(ASSETS_ROOT / "branding" / "logo.png")
 
     deva_font_regular = _as_uri(ASSETS_ROOT / "fonts" / "NotoSansDevanagari-Regular.ttf")
     deva_font_bold = _as_uri(ASSETS_ROOT / "fonts" / "NotoSansDevanagari-Bold.ttf")
@@ -329,23 +376,23 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
         else "Numerology Intelligence x AI Strategy (हिंदी-प्रधान संस्करण)"
     )
 
-    cover_ganesha_uri = _as_uri(ASSETS_ROOT / "cover" / "ganesha.png")
-    cover_krishna_uri = _as_uri(ASSETS_ROOT / "cover" / "krishna.png")
-    lotus_gold_uri = _as_uri(ASSETS_ROOT / "lotus" / "lotus_gold.png")
-    mandala_bg_uri = _as_uri(ASSETS_ROOT / "sacred" / "mandala_bg.png")
-    om_gold_uri = _as_uri(ASSETS_ROOT / "sacred" / "om_gold.png")
-    chakra_icon_uri = _as_uri(ASSETS_ROOT / "icons" / "chakra.png")
+    cover_ganesha_uri = _as_image_src(ASSETS_ROOT / "cover" / "ganesha.png")
+    cover_krishna_uri = _as_image_src(ASSETS_ROOT / "cover" / "krishna.png")
+    lotus_gold_uri = _as_image_src(ASSETS_ROOT / "lotus" / "lotus_gold.png")
+    mandala_bg_uri = _as_background_src(ASSETS_ROOT / "sacred" / "mandala_bg.png")
+    om_gold_uri = _as_image_src(ASSETS_ROOT / "sacred" / "om_gold.png")
+    chakra_icon_uri = _as_image_src(ASSETS_ROOT / "icons" / "chakra.png")
 
     deity_uris = {
-        "surya": _as_uri(ASSETS_ROOT / "deities" / "surya.png"),
-        "chandra": _as_uri(ASSETS_ROOT / "deities" / "chandra.png"),
-        "guru": _as_uri(ASSETS_ROOT / "deities" / "guru.png"),
-        "rahu": _as_uri(ASSETS_ROOT / "deities" / "rahu.png"),
-        "budh": _as_uri(ASSETS_ROOT / "deities" / "budh.png"),
-        "shukra": _as_uri(ASSETS_ROOT / "deities" / "shukra.png"),
-        "ketu": _as_uri(ASSETS_ROOT / "deities" / "ketu.png"),
-        "shani": _as_uri(ASSETS_ROOT / "deities" / "shani.png"),
-        "mangal": _as_uri(ASSETS_ROOT / "deities" / "mangal.png"),
+        "surya": _as_image_src(ASSETS_ROOT / "deities" / "surya.png"),
+        "chandra": _as_image_src(ASSETS_ROOT / "deities" / "chandra.png"),
+        "guru": _as_image_src(ASSETS_ROOT / "deities" / "guru.png"),
+        "rahu": _as_image_src(ASSETS_ROOT / "deities" / "rahu.png"),
+        "budh": _as_image_src(ASSETS_ROOT / "deities" / "budh.png"),
+        "shukra": _as_image_src(ASSETS_ROOT / "deities" / "shukra.png"),
+        "ketu": _as_image_src(ASSETS_ROOT / "deities" / "ketu.png"),
+        "shani": _as_image_src(ASSETS_ROOT / "deities" / "shani.png"),
+        "mangal": _as_image_src(ASSETS_ROOT / "deities" / "mangal.png"),
     }
 
     blueprint_sections = report_blueprint.get("sections") if isinstance(report_blueprint, dict) else []
