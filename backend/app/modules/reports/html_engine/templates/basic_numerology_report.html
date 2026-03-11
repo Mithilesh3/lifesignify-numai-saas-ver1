@@ -35,13 +35,13 @@
       --panel: rgba(255, 255, 255, 0.74);
       --panel-2: rgba(255, 255, 255, 0.58);
       --radius: 13px;
-      --box-label-size: 13.1px;
-      --box-body-size: 12.45px;
-      --box-body-line-height: 1.58;
-      --box-pad-x: 12px;
-      --box-pad-top: 13px;
-      --box-pad-bottom: 14px;
-      --box-label-gap: 7px;
+      --box-label-size: 14.2px;
+      --box-body-size: 12.9px;
+      --box-body-line-height: 1.62;
+      --box-pad-x: 13px;
+      --box-pad-top: 15px;
+      --box-pad-bottom: 16px;
+      --box-label-gap: 8px;
     }
 
     * { box-sizing: border-box; }
@@ -336,10 +336,10 @@
     .mini h5 {
       margin: 0 0 var(--box-label-gap);
       font-size: var(--box-label-size);
-      font-weight: 680;
+      font-weight: 700;
       color: #34230e;
       letter-spacing: 0.02em;
-      line-height: 1.28;
+      line-height: 1.3;
     }
     .mini p {
       margin: 0;
@@ -348,24 +348,27 @@
       word-break: break-word;
       overflow-wrap: anywhere;
       line-height: var(--box-body-line-height);
+      text-wrap: pretty;
     }
     .mini--tight,
     .mini--dense {
       justify-content: flex-start;
+      padding-top: 12px;
+      padding-bottom: 13px;
     }
     .mini--tight h5 {
-      font-size: 12.7px;
+      font-size: 13.6px;
     }
     .mini--tight p {
-      font-size: 11.85px;
-      line-height: 1.5;
+      font-size: 12.3px;
+      line-height: 1.54;
     }
     .mini--dense h5 {
-      font-size: 12.2px;
+      font-size: 13px;
     }
     .mini--dense p {
-      font-size: 11.3px;
-      line-height: 1.46;
+      font-size: 11.9px;
+      line-height: 1.5;
     }
     .bullets {
       margin: 0;
@@ -616,9 +619,9 @@
             {% for card in section.cards %}
             {% set card_text_len = (card.value | default('') | length) %}
             {% set mini_class = "mini" %}
-            {% if card_text_len > 760 %}
+            {% if card_text_len > 700 %}
             {% set mini_class = "mini mini--dense" %}
-            {% elif card_text_len > 620 %}
+            {% elif card_text_len > 560 %}
             {% set mini_class = "mini mini--tight" %}
             {% endif %}
             <div class="{{ mini_class }}">
