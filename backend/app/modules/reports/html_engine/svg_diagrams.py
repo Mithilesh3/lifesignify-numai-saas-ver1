@@ -95,17 +95,17 @@ def build_numerology_architecture_svg(
 <svg viewBox="0 0 960 360" role="img" aria-label="Numerology architecture model" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="archBg" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0%" stop-color="#0b1f3b"/>
-      <stop offset="100%" stop-color="#183d6f"/>
+      <stop offset="0%" stop-color="#f7fbff"/>
+      <stop offset="100%" stop-color="#e8f1ff"/>
     </linearGradient>
     <linearGradient id="archNode" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0%" stop-color="#f0cc88"/>
-      <stop offset="100%" stop-color="#c79c4a"/>
+      <stop offset="0%" stop-color="#f4e7c8"/>
+      <stop offset="100%" stop-color="#d4b070"/>
     </linearGradient>
   </defs>
   <rect x="0" y="0" width="960" height="360" rx="22" fill="url(#archBg)"/>
 
-  <g fill="none" stroke="#cfa969" stroke-width="2.6" stroke-linecap="round">
+  <g fill="none" stroke="#b08b49" stroke-width="2.6" stroke-linecap="round">
     <path d="M130 260 H830"/>
     <path d="M240 140 L130 260"/>
     <path d="M720 140 L830 260"/>
@@ -114,24 +114,24 @@ def build_numerology_architecture_svg(
 
   <g font-family="Inter, Noto Sans Devanagari, sans-serif" text-anchor="middle">
     <rect x="70" y="230" width="120" height="68" rx="12" fill="url(#archNode)"/>
-    <text x="130" y="255" font-size="12" font-weight="700" fill="#102544">Foundation</text>
-    <text x="130" y="279" font-size="24" font-weight="800" fill="#0a1730">{f_val}</text>
+    <text x="130" y="255" font-size="11" font-weight="700" fill="#17355b">Foundation</text>
+    <text x="130" y="279" font-size="24" font-weight="800" fill="#102544">{f_val}</text>
 
     <rect x="180" y="106" width="120" height="68" rx="12" fill="url(#archNode)"/>
-    <text x="240" y="131" font-size="12" font-weight="700" fill="#102544">Left Pillar</text>
-    <text x="240" y="155" font-size="24" font-weight="800" fill="#0a1730">{l_val}</text>
+    <text x="240" y="131" font-size="11" font-weight="700" fill="#17355b">Left Pillar</text>
+    <text x="240" y="155" font-size="24" font-weight="800" fill="#102544">{l_val}</text>
 
     <rect x="420" y="58" width="120" height="68" rx="12" fill="url(#archNode)"/>
-    <text x="480" y="83" font-size="12" font-weight="700" fill="#102544">Facade</text>
-    <text x="480" y="107" font-size="24" font-weight="800" fill="#0a1730">{c_val}</text>
+    <text x="480" y="83" font-size="11" font-weight="700" fill="#17355b">Facade</text>
+    <text x="480" y="107" font-size="24" font-weight="800" fill="#102544">{c_val}</text>
 
     <rect x="660" y="106" width="120" height="68" rx="12" fill="url(#archNode)"/>
-    <text x="720" y="131" font-size="12" font-weight="700" fill="#102544">Right Pillar</text>
-    <text x="720" y="155" font-size="24" font-weight="800" fill="#0a1730">{r_val}</text>
+    <text x="720" y="131" font-size="11" font-weight="700" fill="#17355b">Right Pillar</text>
+    <text x="720" y="155" font-size="24" font-weight="800" fill="#102544">{r_val}</text>
   </g>
 
-  <text x="480" y="328" text-anchor="middle" font-family="Inter, Noto Sans Devanagari, sans-serif" font-size="13" fill="#d6e4ff">
-    Deterministic structure: Life Path -> Destiny / Expression -> Name Number
+  <text x="480" y="328" text-anchor="middle" font-family="Inter, Noto Sans Devanagari, sans-serif" font-size="13" fill="#35557f">
+    निर्धारित संरचना: Life Path -> Destiny / Expression -> Name Number
   </text>
 </svg>
 """.strip()
@@ -157,27 +157,27 @@ def build_loshu_grid_svg(grid_counts: Dict[str, Any], missing_numbers: Sequence[
             count = normalized[number]
             is_missing = number in missing
 
-            fill = "#3a1632" if is_missing else "#0f2d54"
-            stroke = "#f3a8c3" if is_missing else "#cda45f"
-            count_color = "#ffd2e0" if is_missing else "#d8e5ff"
+            fill = "#fff1f4" if is_missing else "#edf4ff"
+            stroke = "#d3899d" if is_missing else "#b08a46"
+            count_color = "#7d4e5f" if is_missing else "#2f4f78"
 
             cells.append(
                 f"""
 <g>
   <rect x="{x}" y="{y}" width="{cell_size}" height="{cell_size}" rx="14" fill="{fill}" stroke="{stroke}" stroke-width="2.4"/>
-  <text x="{x + (cell_size / 2)}" y="{y + 52}" text-anchor="middle" font-family="Cinzel, serif" font-size="34" font-weight="700" fill="#f3d197">{number}</text>
+  <text x="{x + (cell_size / 2)}" y="{y + 52}" text-anchor="middle" font-family="Cinzel, serif" font-size="34" font-weight="700" fill="#8f6c31">{number}</text>
   <text x="{x + (cell_size / 2)}" y="{y + 96}" text-anchor="middle" font-family="Inter, Noto Sans Devanagari, sans-serif" font-size="14" fill="{count_color}">Count: {count}</text>
-  <text x="{x + (cell_size / 2)}" y="{y + 124}" text-anchor="middle" font-family="Inter, Noto Sans Devanagari, sans-serif" font-size="11" fill="{count_color}">{'Missing' if is_missing else 'Present'}</text>
+  <text x="{x + (cell_size / 2)}" y="{y + 124}" text-anchor="middle" font-family="Inter, Noto Sans Devanagari, sans-serif" font-size="11" fill="{count_color}">{'अनुपस्थित | Missing' if is_missing else 'उपस्थित | Present'}</text>
 </g>
 """.strip()
             )
 
     return f"""
 <svg viewBox="0 0 550 550" role="img" aria-label="Lo Shu grid visualization" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="550" height="550" rx="20" fill="#071a34"/>
+  <rect x="0" y="0" width="550" height="550" rx="20" fill="#f7fbff"/>
   {' '.join(cells)}
-  <text x="275" y="525" text-anchor="middle" font-family="Inter, Noto Sans Devanagari, sans-serif" font-size="12" fill="#cfdcf5">
-    Lo Shu matrix (4-9-2 / 3-5-7 / 8-1-6)
+  <text x="275" y="525" text-anchor="middle" font-family="Inter, Noto Sans Devanagari, sans-serif" font-size="12" fill="#35557f">
+    Lo Shu matrix (4-9-2 / 3-5-7 / 8-1-6) | निर्धारित ऊर्जा ग्रिड
   </text>
 </svg>
 """.strip()
@@ -191,13 +191,13 @@ def _build_flow_block(x: int, y: int, width: int, title: str, value: str) -> str
     for index, line in enumerate(content_lines):
         offset_y = y + 66 + (index * 18)
         line_markup.append(
-            f"<text x=\"{x + (width / 2)}\" y=\"{offset_y}\" text-anchor=\"middle\" font-family=\"Inter, Noto Sans Devanagari, sans-serif\" font-size=\"13\" fill=\"#d9e6ff\">{escape(line)}</text>"
+            f"<text x=\"{x + (width / 2)}\" y=\"{offset_y}\" text-anchor=\"middle\" font-family=\"Inter, Noto Sans Devanagari, sans-serif\" font-size=\"13\" fill=\"#24446e\">{escape(line)}</text>"
         )
 
     return f"""
 <g>
-  <rect x="{x}" y="{y}" width="{width}" height="150" rx="14" fill="#0d274c" stroke="#cea65c" stroke-width="2"/>
-  <text x="{x + (width / 2)}" y="{y + 34}" text-anchor="middle" font-family="Cinzel, serif" font-size="16" fill="#f3cf8a">{title_text}</text>
+  <rect x="{x}" y="{y}" width="{width}" height="150" rx="14" fill="#edf4ff" stroke="#b08a46" stroke-width="2"/>
+  <text x="{x + (width / 2)}" y="{y + 34}" text-anchor="middle" font-family="Cinzel, serif" font-size="16" fill="#8f6c31">{title_text}</text>
   {' '.join(line_markup)}
 </g>
 """.strip()
@@ -223,12 +223,12 @@ def build_structural_deficit_svg(deficit_model: Dict[str, Any]) -> str:
 
     return f"""
 <svg viewBox="0 0 960 300" role="img" aria-label="Structural deficit flow diagram" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="960" height="300" rx="20" fill="#071932"/>
+  <rect x="0" y="0" width="960" height="300" rx="20" fill="#f7fbff"/>
   {left}
   {middle}
   {right}
 
-  <g stroke="#d1ab65" stroke-width="2.4" fill="none" stroke-linecap="round">
+  <g stroke="#b08a46" stroke-width="2.4" fill="none" stroke-linecap="round">
     <path d="M304 145 H338"/>
     <path d="M334 138 L344 145 L334 152"/>
     <path d="M619 145 H653"/>
@@ -269,31 +269,31 @@ def build_planetary_orbit_svg(planetary_mapping: Dict[str, Any], numerology_core
         x = center_x + (cos(angle) * radius)
         y = center_y + (sin(angle) * radius)
         circles.append(
-            f"<circle cx=\"{x:.1f}\" cy=\"{y:.1f}\" r=\"22\" fill=\"#102f59\" stroke=\"#d3ad67\" stroke-width=\"2\"/>"
+            f"<circle cx=\"{x:.1f}\" cy=\"{y:.1f}\" r=\"22\" fill=\"#edf4ff\" stroke=\"#b08a46\" stroke-width=\"2\"/>"
         )
         labels.append(
-            f"<text x=\"{x:.1f}\" y=\"{y + 40:.1f}\" text-anchor=\"middle\" font-family=\"Inter, Noto Sans Devanagari, sans-serif\" font-size=\"11\" fill=\"#d5e3ff\">{escape(_truncate(label, 32))}</text>"
+            f"<text x=\"{x:.1f}\" y=\"{y + 40:.1f}\" text-anchor=\"middle\" font-family=\"Inter, Noto Sans Devanagari, sans-serif\" font-size=\"11\" fill=\"#27466f\">{escape(_truncate(label, 32))}</text>"
         )
 
     return f"""
 <svg viewBox="0 0 720 420" role="img" aria-label="Planetary orbit map" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="720" height="420" rx="20" fill="#081c37"/>
+  <rect x="0" y="0" width="720" height="420" rx="20" fill="#f7fbff"/>
 
-  <g fill="none" stroke="#2f507f" stroke-width="1.5">
+  <g fill="none" stroke="#8fb0d7" stroke-width="1.5">
     <circle cx="360" cy="200" r="82"/>
     <circle cx="360" cy="200" r="120"/>
     <circle cx="360" cy="200" r="150"/>
   </g>
 
-  <circle cx="360" cy="200" r="42" fill="#c89e53"/>
+  <circle cx="360" cy="200" r="42" fill="#e9d5ab"/>
   <text x="360" y="194" text-anchor="middle" font-family="Cinzel, serif" font-size="14" fill="#10223f">Core</text>
   <text x="360" y="214" text-anchor="middle" font-family="Inter, Noto Sans Devanagari, sans-serif" font-size="11" fill="#10223f">{escape(_truncate(dominant_planet, 16))}</text>
 
   {' '.join(circles)}
   {' '.join(labels)}
 
-  <text x="360" y="392" text-anchor="middle" font-family="Inter, Noto Sans Devanagari, sans-serif" font-size="12" fill="#d4e1f7">
-    Planetary calibration cluster orbiting around deterministic numerology anchors
+  <text x="360" y="392" text-anchor="middle" font-family="Inter, Noto Sans Devanagari, sans-serif" font-size="12" fill="#35557f">
+    Planetary calibration cluster | निर्धारित numerology anchors
   </text>
 </svg>
 """.strip()

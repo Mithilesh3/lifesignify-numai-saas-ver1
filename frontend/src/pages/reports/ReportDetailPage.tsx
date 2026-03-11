@@ -8,10 +8,10 @@ import API from "../../services/api";
 import type { ReportResponse } from "../../types/report";
 
 const ANALYSIS_LABELS: Record<string, string> = {
-  career_analysis: "Career Analysis",
-  decision_profile: "Decision Profile",
-  emotional_analysis: "Emotional Analysis",
-  financial_analysis: "Financial Analysis",
+  career_analysis: "करियर विश्लेषण | Career Analysis",
+  decision_profile: "निर्णय प्रोफाइल | Decision Profile",
+  emotional_analysis: "भावनात्मक विश्लेषण | Emotional Analysis",
+  financial_analysis: "वित्तीय विश्लेषण | Financial Analysis",
 };
 
 export default function ReportDetailPage() {
@@ -84,8 +84,23 @@ export default function ReportDetailPage() {
       window.URL.revokeObjectURL(url);
 
       toast.success("Report downloaded successfully", { id: loadingToast });
-    } catch {
-      toast.error("Failed to download PDF", { id: loadingToast });
+    } catch (requestError: unknown) {
+      let detail: string | undefined;
+      if (axios.isAxiosError(requestError)) {
+        const payload = requestError.response?.data;
+        if (payload instanceof Blob) {
+          try {
+            const text = await payload.text();
+            const parsed = JSON.parse(text);
+            detail = parsed?.detail;
+          } catch {
+            detail = undefined;
+          }
+        } else {
+          detail = payload?.detail;
+        }
+      }
+      toast.error(detail || "Failed to download PDF", { id: loadingToast });
     } finally {
       setDownloading(false);
     }
@@ -112,8 +127,10 @@ export default function ReportDetailPage() {
   const metrics = content.core_metrics;
   const reportPlan = content.meta?.plan_tier || plan;
   const usedFallbackNarrative = Boolean(content.meta?.used_fallback_narrative);
-  const confidenceScore = metrics?.confidence_score ?? 0;
-  const showInputWarning = usedFallbackNarrative || confidenceScore <= 25;
+  const decisionClarityScore = metrics?.confidence_score ?? 0;
+  const dataCompletenessScore =
+    metrics?.data_completeness_score ?? metrics?.confidence_score ?? 0;
+  const showInputWarning = usedFallbackNarrative || dataCompletenessScore <= 45;
   const analysisEntries = Object.entries(content.analysis_sections || {});
   const metricsSpine = content.metrics_spine;
   const blueprintSections = content.report_blueprint?.sections || [];
@@ -164,10 +181,10 @@ export default function ReportDetailPage() {
 
       {showInputWarning && (
         <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-5 text-amber-100">
-          This report was generated with limited scoring input, so some metrics
-          may stay near the neutral baseline. For final manual testing, generate
-          one report with full financial, emotional, work-stress, and life-event
-          data.
+          Input completeness {dataCompletenessScore}% है। कुछ behavioral inputs
+          limited होने के कारण कुछ metrics neutral baseline के करीब रह सकते हैं।
+          Final validation के लिए एक report full financial, emotional, stress,
+          और life-event intake के साथ generate करें।
         </div>
       )}
 
@@ -181,30 +198,30 @@ export default function ReportDetailPage() {
 
       {summary && (
         <div className="bg-gray-900 p-6 rounded-xl shadow-md space-y-4">
-          <h2 className="text-xl font-semibold">Executive Brief</h2>
+          <h2 className="text-xl font-semibold">एग्जीक्यूटिव ब्रीफ | Executive Brief</h2>
           {summary.summary && (
             <p className="text-gray-300 leading-7">{summary.summary}</p>
           )}
           {summary.key_strength && (
             <p>
               <span className="text-emerald-400 font-semibold">
-                Key strength:
+                मुख्य ताकत | Key strength:
               </span>{" "}
               {summary.key_strength}
             </p>
           )}
           {summary.key_risk && (
             <p>
-              <span className="text-yellow-400 font-semibold">Key risk:</span>{" "}
+              <span className="text-yellow-400 font-semibold">मुख्य जोखिम | Key risk:</span>{" "}
               {summary.key_risk}
             </p>
           )}
           {summary.strategic_focus && (
             <p>
-              <span className="text-indigo-400 font-semibold">
-                Strategic focus:
-              </span>{" "}
-              {summary.strategic_focus}
+                <span className="text-indigo-400 font-semibold">
+                  रणनीतिक फोकस | Strategic focus:
+                </span>{" "}
+                {summary.strategic_focus}
             </p>
           )}
         </div>
@@ -213,55 +230,56 @@ export default function ReportDetailPage() {
       {metrics && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <ScoreCard
-            label="Life Stability"
+            label="जीवन स्थिरता | Life Stability"
             value={metrics.life_stability_index}
           />
           <ScoreCard
-            label="Financial Discipline"
+            label="वित्त अनुशासन | Financial Discipline"
             value={metrics.financial_discipline_index}
           />
           <ScoreCard
-            label="Emotional Regulation"
+            label="भावनात्मक संतुलन | Emotional Regulation"
             value={metrics.emotional_regulation_index}
           />
           <ScoreCard
-            label="Dharma Alignment"
+            label="धर्म संरेखण | Dharma Alignment"
             value={metrics.dharma_alignment_score}
           />
-          <ScoreCard label="Confidence Score" value={metrics.confidence_score} />
-          <ScoreCard label="Risk Band" value={metrics.risk_band || "--"} />
+          <ScoreCard label="निर्णय स्पष्टता | Decision Clarity" value={decisionClarityScore} />
+          <ScoreCard label="इनपुट पूर्णता | Input Completeness" value={dataCompletenessScore} />
+          <ScoreCard label="रिस्क बैंड | Risk Band" value={metrics.risk_band || "--"} />
         </div>
       )}
 
       {metricsSpine && (
         <div className="bg-gray-900 p-6 rounded-xl shadow-md space-y-3">
-          <h2 className="text-xl font-semibold">Metrics Diagnostic Spine</h2>
+          <h2 className="text-xl font-semibold">मेट्रिक्स डायग्नोस्टिक स्पाइन | Metrics Diagnostic Spine</h2>
           <p>
-            <span className="text-emerald-400 font-semibold">
-              Primary strength:
-            </span>{" "}
-            {metricsSpine.primary_strength || "--"}
+              <span className="text-emerald-400 font-semibold">
+                मुख्य ताकत | Primary strength:
+              </span>{" "}
+              {metricsSpine.primary_strength || "--"}
           </p>
           <p>
-            <span className="text-yellow-400 font-semibold">
-              Primary deficit:
-            </span>{" "}
-            {metricsSpine.primary_deficit || "--"}
+              <span className="text-yellow-400 font-semibold">
+                मुख्य कमी | Primary deficit:
+              </span>{" "}
+              {metricsSpine.primary_deficit || "--"}
           </p>
           <p>
-            <span className="text-sky-400 font-semibold">
-              Structural cause:
-            </span>{" "}
-            {metricsSpine.structural_cause || "--"}
+              <span className="text-sky-400 font-semibold">
+                संरचनात्मक कारण | Structural cause:
+              </span>{" "}
+              {metricsSpine.structural_cause || "--"}
           </p>
           <p>
-            <span className="text-indigo-400 font-semibold">
-              Intervention focus:
-            </span>{" "}
-            {metricsSpine.intervention_focus || "--"}
+              <span className="text-indigo-400 font-semibold">
+                इंटरवेंशन फोकस | Intervention focus:
+              </span>{" "}
+              {metricsSpine.intervention_focus || "--"}
           </p>
           <p>
-            <span className="text-rose-400 font-semibold">Risk band:</span>{" "}
+            <span className="text-rose-400 font-semibold">रिस्क बैंड | Risk band:</span>{" "}
             {metricsSpine.risk_band || "--"}
           </p>
         </div>
@@ -271,7 +289,7 @@ export default function ReportDetailPage() {
 
       {analysisEntries.length > 0 && (
         <div className="bg-gray-900 p-6 rounded-xl shadow-md">
-          <h2 className="text-xl font-semibold mb-6">Analysis</h2>
+          <h2 className="text-xl font-semibold mb-6">विश्लेषण | Analysis</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {analysisEntries.map(([label, value]) => (
               <div key={label} className="bg-gray-800 p-4 rounded-lg">
@@ -285,10 +303,10 @@ export default function ReportDetailPage() {
         </div>
       )}
 
-      {sectionPayloadEntries.length > 0 && (
+      {sectionPayloadEntries.length > 0 && reportPlan !== "basic" && (
         <div className="bg-gray-900 p-6 rounded-xl shadow-md">
           <h2 className="text-xl font-semibold mb-6">
-            Strategic Intelligence Layers
+            रणनीतिक इंटेलिजेंस लेयर्स | Strategic Intelligence Layers
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {sectionPayloadEntries.map(([key, section]) => (
@@ -296,9 +314,6 @@ export default function ReportDetailPage() {
                 <h3 className="text-sm uppercase tracking-wide text-indigo-300">
                   {section.title || key.replace(/_/g, " ")}
                 </h3>
-                {section.purpose && (
-                  <p className="text-xs text-gray-400">{section.purpose}</p>
-                )}
                 {section.narrative && (
                   <p className="text-gray-200 leading-7">{section.narrative}</p>
                 )}

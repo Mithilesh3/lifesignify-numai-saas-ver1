@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import re
 from typing import Any, Dict, List, Sequence, Tuple
 
 from app.modules.reports.blueprint import SECTION_TITLES, get_tier_section_blueprint
@@ -42,18 +43,18 @@ COMPOUND_MEANINGS: Dict[int, str] = {
 
 SECTION_META: Dict[str, Dict[str, Any]] = {
     "default": {
-        "purpose": "Deliver deterministic diagnosis with correction protocol.",
+        "purpose": "यह सेक्शन निर्धारक diagnosis और correction protocol देता है।",
         "key_inputs": ["numerology_core", "core_metrics", "intake_context"],
         "output_fields": ["cards", "bullets", "narrative"],
-        "interpretation_logic": "Map structural signals to behavior impact and protocol.",
-        "tone_guidance": "Executive and consultation-grade.",
+        "interpretation_logic": "Structural signals को behavior impact और protocol में map किया जाता है।",
+        "tone_guidance": "Executive, premium, और consultation-grade tone बनाए रखें।",
     },
     "intelligence_metrics": {
-        "purpose": "Quantify strength, deficit, and intervention focus.",
+        "purpose": "Strength, deficit, और intervention focus को measurable format में quantify करें।",
         "key_inputs": ["core_metrics", "loshu_grid", "behavioral_intake"],
         "output_fields": ["primary_strength", "primary_deficit", "structural_cause", "intervention_focus", "risk_band"],
-        "interpretation_logic": "Rank metric stack and connect with structural signals.",
-        "tone_guidance": "Diagnostic and high-authority.",
+        "interpretation_logic": "Metric stack rank करके उसे structural signals से जोड़ा जाता है।",
+        "tone_guidance": "Diagnostic, concise, और high-authority guidance दें।",
     },
 }
 
@@ -238,6 +239,160 @@ def _compound_meaning(value: int) -> str:
     return COMPOUND_MEANINGS.get(value, "composite growth-pressure cycle")
 
 
+CARD_LABELS_HI: Dict[str, str] = {
+    "What is happening": "क्या हो रहा है",
+    "Why it is happening": "यह क्यों हो रहा है",
+    "What it affects": "इसका प्रभाव",
+    "What to do about it": "क्या करना चाहिए",
+    "Current Number": "वर्तमान संख्या",
+    "Current Name Number": "वर्तमान नाम संख्या",
+    "Target Numbers": "लक्ष्य संख्याएं",
+    "Strength": "मुख्य ताकत",
+    "Risk": "मुख्य जोखिम",
+    "Current Mobile": "वर्तमान मोबाइल",
+    "Target Vibrations": "लक्ष्य वाइब्रेशन",
+    "Ending Logic": "अंतिम अंक लॉजिक",
+    "Current Email": "वर्तमान ईमेल",
+    "Email Vibration": "ईमेल वाइब्रेशन",
+    "Authority Signal": "ऑथोरिटी सिग्नल",
+    "Starting Stroke": "शुरुआती स्ट्रोक",
+    "Ending Stroke": "अंतिम स्ट्रोक",
+    "Authority Alignment": "ऑथोरिटी एलाइनमेंट",
+    "Business Name": "बिज़नेस नाम",
+    "Industry Fit": "इंडस्ट्री फिट",
+    "Social Handle": "सोशल हैंडल",
+    "Domain Handle": "डोमेन हैंडल",
+    "Current Residence Number": "वर्तमान रेजिडेंस नंबर",
+    "Residence Vibration": "रेजिडेंस वाइब्रेशन",
+    "Current Vehicle Number": "वर्तमान वाहन नंबर",
+    "Vehicle Vibration": "वाहन वाइब्रेशन",
+    "Focus": "फोकस",
+    "Code": "कोड",
+    "Parameter": "पैरामीटर",
+    "Output": "आउटपुट",
+    "Top Priority": "टॉप प्रायोरिटी",
+    "High-Impact Quick Fixes": "हाई-इम्पैक्ट क्विक फिक्स",
+    "Medium-Term Adjustments": "मिड-टर्म एडजस्टमेंट",
+    "Premium Advisory": "प्रीमियम एडवाइजरी",
+    "Current Personal Year": "वर्तमान पर्सनल ईयर",
+    "Favorable Dates": "अनुकूल तिथियां",
+    "Lucky Numbers": "सपोर्टिव नंबर",
+    "Risk Band": "रिस्क बैंड",
+    "Dominant Planet": "डॉमिनेंट ग्रह",
+}
+
+DEVANAGARI_PATTERN = re.compile(r"[\u0900-\u097F]")
+PLACEHOLDER_PATTERN = re.compile(r"\{[^{}]+\}")
+
+PHRASE_REPLACEMENTS: Sequence[Tuple[str, str]] = [
+    ("Deterministic structure", "निर्धारित संरचना"),
+    ("deterministic structure", "निर्धारित संरचना"),
+    ("Deterministic signal", "निर्धारित संकेत"),
+    ("deterministic signal", "निर्धारित संकेत"),
+    ("generated from deterministic profile synthesis", "निर्धारित प्रोफाइल synthesis से तैयार"),
+    ("Not provided", "इनपुट उपलब्ध नहीं"),
+    ("Current cycle", "वर्तमान चक्र"),
+    ("Current personal year", "वर्तमान पर्सनल ईयर"),
+    ("Personal year", "पर्सनल ईयर"),
+    ("Risk band", "रिस्क बैंड"),
+    ("Primary deficit", "मुख्य कमी"),
+    ("Primary strength", "मुख्य ताकत"),
+    ("Current ", "वर्तमान "),
+    ("Target ", "लक्ष्य "),
+    ("Option ", "विकल्प "),
+]
+
+WORD_REPLACEMENTS: Sequence[Tuple[str, str]] = [
+    (r"\bprofile\b", "प्रोफाइल"),
+    (r"\bstrategic\b", "रणनीतिक"),
+    (r"\banalysis\b", "विश्लेषण"),
+    (r"\bstructure\b", "संरचना"),
+    (r"\bindicates\b", "संकेत देता है"),
+    (r"\bshows\b", "दिखाता है"),
+    (r"\bsupports\b", "सपोर्ट करता है"),
+    (r"\bimproves\b", "बेहतर करता है"),
+    (r"\bstabilize\b", "स्थिर करें"),
+    (r"\bconsistency\b", "कंसिस्टेंसी"),
+    (r"\bdiscipline\b", "डिसिप्लिन"),
+    (r"\bstrategy\b", "स्ट्रैटेजी"),
+    (r"\brisk\b", "जोखिम"),
+    (r"\bstrength\b", "ताकत"),
+    (r"\bdeficit\b", "कमी"),
+    (r"\balignment\b", "एलाइनमेंट"),
+    (r"\bgrowth\b", "ग्रोथ"),
+]
+
+
+def _hindi_mix_text(value: Any) -> str:
+    text = _safe_text(value)
+    if not text:
+        return text
+
+    text = PLACEHOLDER_PATTERN.sub("", text)
+    text = re.sub(r"(,\s*){2,}", ", ", text)
+    text = re.sub(r"\s+[|]\s+", " | ", text)
+    text = re.sub(r"\s{2,}", " ", text).strip(" ,;|")
+
+    if not text:
+        return "इनपुट उपलब्ध नहीं"
+
+    for source, target in PHRASE_REPLACEMENTS:
+        text = text.replace(source, target)
+
+    for pattern, replacement in WORD_REPLACEMENTS:
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+
+    text = re.sub(r"\s{2,}", " ", text).strip()
+    text = re.sub(r"([|,:;])\1+", r"\1", text)
+    text = text.replace("रणनीतिक संकेत: रणनीतिक संकेत:", "रणनीतिक संकेत:")
+    text = text.replace("..", ".")
+
+    latin_letters = sum(1 for ch in text if ("a" <= ch.lower() <= "z"))
+    latin_ratio = latin_letters / max(len(text), 1)
+    has_devanagari = bool(DEVANAGARI_PATTERN.search(text))
+
+    if latin_ratio > 0.55 and not has_devanagari:
+        text = f"रणनीतिक संकेत: {text}. इसे सुधार प्रोटोकॉल और disciplined execution के साथ लागू करें।"
+
+    return text
+
+
+def _localize_payloads(payloads: Dict[str, Any]) -> Dict[str, Any]:
+    localized: Dict[str, Any] = {}
+    for key, payload in (payloads or {}).items():
+        if not isinstance(payload, dict):
+            localized[key] = payload
+            continue
+
+        entry = dict(payload)
+
+        entry["purpose"] = _hindi_mix_text(
+            entry.get("purpose") or "यह सेक्शन deterministic diagnosis और correction protocol देता है।"
+        ) or "यह सेक्शन deterministic diagnosis और correction protocol देता है।"
+        entry["interpretation_logic"] = _hindi_mix_text(entry.get("interpretation_logic")) or "Structural signal से actionable insight निकाली जाती है।"
+        entry["tone_guidance"] = _hindi_mix_text(entry.get("tone_guidance")) or "Executive और premium tone रखें।"
+        entry["narrative"] = _hindi_mix_text(entry.get("narrative")) or "इनपुट उपलब्ध नहीं"
+
+        cards = []
+        for card in entry.get("cards") or []:
+            if not isinstance(card, dict):
+                continue
+            label = _safe_text(card.get("label"))
+            cards.append(
+                {
+                    "label": CARD_LABELS_HI.get(label, _hindi_mix_text(label)),
+                    "value": _hindi_mix_text(card.get("value")) or "इनपुट उपलब्ध नहीं",
+                }
+            )
+        entry["cards"] = cards
+
+        entry["bullets"] = [_hindi_mix_text(item) for item in (entry.get("bullets") or []) if _safe_text(item)]
+
+        localized[key] = entry
+
+    return localized
+
+
 def _section_payload(
     section_key: str,
     narrative: str,
@@ -250,10 +405,10 @@ def _section_payload(
 ) -> Dict[str, Any]:
     meta = SECTION_META.get(section_key, SECTION_META["default"])
     cards = [
-        {"label": "What is happening", "value": what_happening},
-        {"label": "Why it is happening", "value": why_happening},
-        {"label": "What it affects", "value": impact},
-        {"label": "What to do about it", "value": action},
+        {"label": "क्या हो रहा है", "value": what_happening},
+        {"label": "यह क्यों हो रहा है", "value": why_happening},
+        {"label": "इसका प्रभाव", "value": impact},
+        {"label": "क्या करना चाहिए", "value": action},
     ]
     if extra_cards:
         cards.extend(extra_cards)
@@ -278,11 +433,11 @@ def _ensure_all_payloads(plan_name: str, payloads: Dict[str, Any]) -> Dict[str, 
         if key and key not in payloads:
             payloads[key] = _section_payload(
                 key,
-                narrative=f"{SECTION_TITLES.get(key, key)} generated from deterministic profile synthesis.",
-                what_happening="Deterministic signal is identified in this intelligence layer.",
-                why_happening="This layer is derived from numerology-core and intake-pattern relationships.",
-                impact="Provides a correction-aware decision lens.",
-                action="Apply this section protocol inside the integrated execution system.",
+                narrative=f"{SECTION_TITLES.get(key, key)} निर्धारित प्रोफाइल synthesis से तैयार किया गया है।",
+                what_happening="इस intelligence layer में स्पष्ट निर्धारित संकेत दिख रहा है।",
+                why_happening="यह layer numerology core और intake patterns के रिश्ते से निकला है।",
+                impact="यह correction-aware निर्णय lens उपलब्ध कराता है।",
+                action="इस protocol को integrated execution system में लागू करें।",
             )
     return payloads
 
@@ -367,8 +522,12 @@ def build_interpretation_report(
         loshu_present = [number for number in range(1, 10) if number not in loshu_missing]
 
     primary_missing = loshu_missing[0] if loshu_missing else 0
-    structural_cause = f"Weakest axis {weakest_metric} is amplified by missing Lo Shu digit {primary_missing or 'none'} and current stress load."
-    intervention_focus = f"Stabilize {weakest_metric.lower()} with rhythm protocol, then align identity corrections to architecture."
+    structural_cause = (
+        f"सबसे कमजोर अक्ष {weakest_metric} पर Lo Shu में digit {primary_missing or 'none'} की कमी और current stress load का संयुक्त प्रभाव है।"
+    )
+    intervention_focus = (
+        f"{weakest_metric.lower()} को rhythm protocol से स्थिर करें, फिर identity corrections को architecture के साथ align करें।"
+    )
 
     metric_cards: List[Dict[str, Any]] = []
     for key, score in metric_pairs:
@@ -379,9 +538,9 @@ def build_interpretation_report(
                 "label": label,
                 "score": score,
                 "status": _metric_status(score),
-                "meaning": f"{label} captures deterministic behavior-risk quality at score {score}.",
-                "risk": "Low values indicate unstable execution under pressure.",
-                "improvement": "Attach a measurable protocol and weekly review checkpoint.",
+                "meaning": f"{label} का score {score} आपकी deterministic behavior-risk quality को दिखाता है।",
+                "risk": "Low score पर pressure के समय execution unstable हो सकता है।",
+                "improvement": "Measurable protocol बनाकर weekly review checkpoint जोड़ें।",
             }
         )
 
@@ -403,8 +562,14 @@ def build_interpretation_report(
     mobile_supportive = [_safe_int(value, 0) for value in _safe_list(mobile_analysis.get("supportive_number_energies")) if _safe_int(value, 0)]
     if not mobile_supportive:
         mobile_supportive = [life_path or 1, destiny or 3, 5]
-    mobile_compatibility = _safe_text(mobile_analysis.get("compatibility_status"), "supportive" if mobile_vibration in mobile_supportive else "neutral")
-    mobile_summary = _safe_text(mobile_analysis.get("compatibility_summary"), f"Mobile vibration {mobile_vibration} with profile compatibility {mobile_compatibility}.")
+    mobile_compatibility = _safe_text(
+        mobile_analysis.get("compatibility_status"),
+        "supportive" if mobile_vibration in mobile_supportive else "neutral",
+    )
+    mobile_summary = _safe_text(
+        mobile_analysis.get("compatibility_summary"),
+        f"Mobile vibration {mobile_vibration} और profile compatibility {mobile_compatibility} का संयुक्त असर communication tone पर पड़ता है।",
+    )
 
     email_value = _safe_text(identity.get("email"))
     email_vibration = _safe_int(email_analysis.get("email_number"), _vibration_from_text(email_value.split("@")[0] if email_value else ""))
@@ -419,8 +584,14 @@ def build_interpretation_report(
     business_name = _safe_text(identity.get("business_name"))
     business_number = _safe_int(business_analysis.get("business_number"), _vibration_from_text(business_name))
     business_compound = _safe_int(business_analysis.get("compound_number"), _alpha_sum(business_name))
-    business_strength = _safe_text(business_analysis.get("business_strength"), "Business signal supports strategic positioning with disciplined execution.")
-    business_risk = _safe_text(business_analysis.get("risk_factor"), "Commercial outcome depends on discipline and clarity under pressure.")
+    business_strength = _safe_text(
+        business_analysis.get("business_strength"),
+        "Business signal disciplined execution के साथ strategic positioning को support करता है।",
+    )
+    business_risk = _safe_text(
+        business_analysis.get("risk_factor"),
+        "Commercial outcome pressure के समय discipline और clarity पर निर्भर करता है।",
+    )
     business_industries = [_safe_text(item) for item in _safe_list(business_analysis.get("compatible_industries")) if _safe_text(item)]
     if not business_industries:
         business_industries = [career_industry, "consulting", "digital services"]
@@ -438,31 +609,31 @@ def build_interpretation_report(
 
     compatibility_summary = _safe_text(
         compatibility.get("relationship_guidance"),
-        f"Compatibility is strongest with profiles reinforcing {strongest_metric.lower()} and reducing pressure on {weakest_metric.lower()}.",
+        f"Compatibility उन profiles के साथ strongest होती है जो {strongest_metric.lower()} को reinforce करें और {weakest_metric.lower()} पर pressure कम करें।",
     )
 
-    lifestyle_protocol = "Same-time morning anchor, deep-work first block, and evening shutdown checklist."
-    digital_protocol = "Notification tiering, no high-stake decisions late-night, weekly digital detox window."
-    decision_protocol = "24-hour delay for high-impact calls, written criteria, weekly assumption audit."
-    emotional_protocol = "Breath reset before key calls, fixed sleep window, and post-stress review cadence."
+    lifestyle_protocol = "Daily same-time morning anchor, deep-work first block, और evening shutdown checklist follow करें।"
+    digital_protocol = "Notification tiering रखें, late-night high-stake decisions avoid करें, और weekly digital detox window रखें।"
+    decision_protocol = "High-impact decisions में 24-hour delay rule, written criteria, और weekly assumption audit लागू करें।"
+    emotional_protocol = "Key calls से पहले breath reset, fixed sleep window, और post-stress review cadence बनाए रखें।"
 
     vedic = remedies.get("vedic_remedies") if isinstance(remedies, dict) else {}
     vedic = vedic if isinstance(vedic, dict) else {}
     vedic_code = _safe_text(vedic.get("mantra_pronunciation") or vedic.get("mantra_sanskrit"), "Om Budhaya Namah")
-    vedic_parameter = _safe_text(vedic.get("practice_guideline"), "21 days x 108 repetitions at fixed time")
-    vedic_output = _safe_text(vedic.get("recommended_donation"), "Weekly practical donation aligned with intention")
+    vedic_parameter = _safe_text(vedic.get("practice_guideline"), "21 days x 108 repetitions fixed time पर")
+    vedic_output = _safe_text(vedic.get("recommended_donation"), "Weekly practical donation with clear intention")
 
     correction_priority_lines = [
-        f"Stabilize {weakest_metric.lower()} through rhythm protocol.",
-        "Optimize name and mobile vibration alignment.",
-        "Upgrade email and signature authority signal.",
-        "Align residence and vehicle vibration if high-pressure pattern persists.",
+        f"{weakest_metric.lower()} को rhythm protocol से स्थिर करें।",
+        "Name और mobile vibration alignment optimize करें।",
+        "Email और signature authority signal upgrade करें।",
+        "अगर high-pressure pattern बना रहे तो residence और vehicle vibration align करें।",
     ]
 
     payloads: Dict[str, Any] = {}
-    payloads["executive_summary"] = _section_payload("executive_summary", f"{full_name} profile strategic but correction-sensitive hai. Risk band {risk_band}. Primary strength {strongest_metric}, primary deficit {weakest_metric}. Core concern: {current_problem}.", f"Strategic potential visible hai, but {weakest_metric.lower()} execution drag create kar raha hai.", structural_cause, f"Career momentum, financial discipline, and decision quality par impact in {career_industry}.", intervention_focus, [{"label": "Risk Band", "value": risk_band}, {"label": "Dominant Planet", "value": dominant_planet}])
-    payloads["intelligence_metrics"] = {**_section_payload("intelligence_metrics", "Metrics are used as structural diagnostics.", f"Primary Strength: {strongest_metric}. Primary Deficit: {weakest_metric}.", structural_cause, "Deficit metric introduces volatility while strength metric is leverage for growth.", intervention_focus, [{"label": "Primary Strength", "value": strongest_metric}, {"label": "Primary Deficit", "value": weakest_metric}, {"label": "Structural Cause", "value": structural_cause}, {"label": "Intervention Focus", "value": intervention_focus}, {"label": "Risk Band", "value": risk_band}]), "metric_cards": metric_cards, "show_chart": True}
-    payloads["core_numerology_numbers"] = _section_payload("core_numerology_numbers", f"Core stack: Life Path {life_path}, Destiny {destiny}, Expression {expression}, Soul Urge {soul_urge}, Personality {personality}.", "Core numbers indicate strategic-growth potential with protocol dependency.", "Direction, execution, expression, and projection are controlled by this stack.", "Role-fit, leadership style, and stress response follow this architecture.", "Leverage strongest axis and patch weakest behavior loop.")
+    payloads["executive_summary"] = _section_payload("executive_summary", f"{full_name} की प्रोफाइल रणनीतिक है, पर correction-sensitive भी है। Risk band {risk_band} दिखाता है कि primary strength {strongest_metric} और primary deficit {weakest_metric} के बीच संतुलन बनाना ज़रूरी है। Core concern: {current_problem}.", f"Strategic potential स्पष्ट है, लेकिन {weakest_metric.lower()} execution में friction ला रहा है।", structural_cause, f"इसका असर {career_industry} में career momentum, financial discipline, और decision quality पर पड़ता है।", intervention_focus, [{"label": "Risk Band", "value": risk_band}, {"label": "Dominant Planet", "value": dominant_planet}])
+    payloads["intelligence_metrics"] = {**_section_payload("intelligence_metrics", "Metrics को structural diagnostics की तरह पढ़ना चाहिए।", f"Primary Strength: {strongest_metric}. Primary Deficit: {weakest_metric}.", structural_cause, "Deficit metric volatility बढ़ाता है, जबकि strength metric growth leverage देता है।", intervention_focus, [{"label": "Primary Strength", "value": strongest_metric}, {"label": "Primary Deficit", "value": weakest_metric}, {"label": "Structural Cause", "value": structural_cause}, {"label": "Intervention Focus", "value": intervention_focus}, {"label": "Risk Band", "value": risk_band}]), "metric_cards": metric_cards, "show_chart": True}
+    payloads["core_numerology_numbers"] = _section_payload("core_numerology_numbers", f"मूल अंक संरचना: Life Path {life_path}, Destiny {destiny}, Expression {expression}, Soul Urge {soul_urge}, Personality {personality}.", "Core numbers strategic-growth potential दिखाते हैं, लेकिन protocol dependency भी दर्शाते हैं।", "Direction, execution, expression, और projection इस stack से नियंत्रित होते हैं।", "Role-fit, leadership style, और stress response इसी architecture को follow करते हैं।", "Strongest axis leverage करें और weakest behavior loop को patch करें।")
     payloads["name_number_analysis"] = _section_payload("name_number_analysis", f"Current name vibration {name_number}, compound {name_compound} ({_compound_meaning(name_compound)}).", "Name signal is active but partially optimized.", "Name frequency impacts authority and trust perception.", "Mismatch can suppress social clarity and strategic momentum.", "Move toward target-aligned spelling where practical.", [{"label": "Current Name Number", "value": str(name_number)}, {"label": "Strength", "value": name_trait['strength']}, {"label": "Risk", "value": name_trait['risk']}, {"label": "Target Numbers", "value": ', '.join(str(value) for value in name_targets)}], [f"Option {index + 1}: {item['option']} -> {item['number']}" for index, item in enumerate(name_options)])
     payloads["birth_date_numerology"] = _section_payload("birth_date_numerology", f"Birth pattern and personal year {personal_year} define timing quality.", "Birth-date rhythm indicates cycle-based opportunities and caution windows.", "Day, month, and year roots shape recurring behavior cadence.", "Cycle alignment improves clarity and reduces decision friction.", "Schedule major actions in favorable date windows.", [{"label": "Favorable Dates", "value": ', '.join(str(v) for v in lucky_dates)}])
     payloads["loshu_grid_intelligence"] = _section_payload("loshu_grid_intelligence", f"Lo Shu present: {', '.join(str(v) for v in loshu_present) or 'none'} | missing: {', '.join(str(v) for v in loshu_missing) or 'none'}.", "Lo Shu reveals naturally available energies and missing capacities.", "Digit distribution maps communication, discipline, and adaptability.", "Missing center/communication digits can amplify instability.", "Target missing number themes with habit-based correction protocol.")
@@ -472,8 +643,8 @@ def build_interpretation_report(
     payloads["lucky_numbers_favorable_dates"] = _section_payload("lucky_numbers_favorable_dates", "Lucky logic is scheduling calibration, not superstition.", "Selected numbers and dates show higher profile resonance.", "They align with life-path and destiny rhythm.", "Timing alignment can improve confidence and outcomes.", "Use these windows for high-impact actions.", [{"label": "Lucky Numbers", "value": ', '.join(str(v) for v in name_targets[:4])}, {"label": "Favorable Dates", "value": ', '.join(str(v) for v in lucky_dates)}])
     payloads["basic_remedies"] = _section_payload("basic_remedies", "Basic remedies are behavior anchors designed for consistency.", f"Weakest metric {weakest_metric.lower()} requires stabilization.", "Profile sensitivity increases when routine breaks under stress.", "Instability affects strategic clarity and follow-through.", f"{lifestyle_protocol} | {digital_protocol}", bullets=[f"Mantra code: {vedic_code}", f"Practice: {vedic_parameter}", f"Output: {vedic_output}"])
     payloads["archetype_intelligence"] = _section_payload("archetype_intelligence", f"{first_name} archetype blends {name_strength} with risk of {name_risk}.", "Archetype signature shows strategic upside with discipline dependency.", "Core numbers combine analytical depth and adaptive drive.", "Leadership impact depends on rhythm and message clarity.", name_trait["protocol"])
-    payloads["career_intelligence"] = _section_payload("career_intelligence", f"Career alignment strongest in {career_industry} with ownership-driven roles.", "Growth curve favors strategic responsibility and measurable outcomes.", "Life-path and expression alignment rewards depth over reactivity.", "Role mismatch causes effort without compounding.", "Prioritize roles with authority, visibility, and accountability.")
-    payloads["financial_intelligence"] = _section_payload("financial_intelligence", f"Financial signal: discipline score {_safe_int(scores.get('financial_discipline_index'), 50)} with protocol-first improvement path.", "Financial behavior is correction-ready but structure-dependent.", "Metric stack suggests discipline variance under stress.", "Without protocol, growth leaks through reactive decisions.", "Install budget checkpoints and monthly capital review.")
+    payloads["career_intelligence"] = _section_payload("career_intelligence", f"Career alignment {career_industry} में ownership-driven roles के साथ strongest दिखता है।", "Growth curve strategic responsibility और measurable outcomes को favor करता है।", "Life-path और expression alignment depth-based execution को reward करता है।", "Role mismatch होने पर effort तो लगता है, पर compounding नहीं बनती।", "ऐसे roles चुनें जिनमें authority, visibility, और accountability स्पष्ट हो।")
+    payloads["financial_intelligence"] = _section_payload("financial_intelligence", f"Financial signal: discipline score {_safe_int(scores.get('financial_discipline_index'), 50)} और protocol-first improvement path।", "Financial behavior correction-ready है, पर structure dependency अधिक है।", "Metric stack stress phase में discipline variance दिखाता है।", "Protocol के बिना growth reactive decisions में leak हो सकती है।", "Budget checkpoints और monthly capital review तुरंत install करें।")
     payloads["numerology_architecture"] = _section_payload("numerology_architecture", f"Architecture: Foundation {life_path}, Left Pillar {destiny}, Right Pillar {expression}, Facade {name_number}.", "Core numbers form a unified structural blueprint.", "Each pillar controls direction, execution, and projection.", "Misalignment appears as confidence drift and inconsistency.", "Align corrections (name/mobile/email) to this architecture.")
     payloads["planetary_influence"] = _section_payload("planetary_influence", f"Primary intervention planet: {dominant_planet}.", "Planetary mapping is calibration lens, not fate prediction.", "Core numbers amplify one intervention channel in current cycle.", "Ignoring it increases friction in decision and emotional domains.", "Anchor routines and remedies to intervention-planet discipline.")
     payloads["compatibility_intelligence"] = _section_payload("compatibility_intelligence", _safe_text(compatibility.get("relationship_guidance"), f"Compatibility strongest with profiles reinforcing {strongest_metric.lower()} and reducing pressure on {weakest_metric.lower()}"), "Compatibility signal highlights support and friction patterns.", "Number resonance influences communication pace and expectation alignment.", "Mismatch can drain energy in personal and business collaborations.", "Prioritize partnerships that reinforce strengths and de-risk deficits.")
@@ -491,30 +662,31 @@ def build_interpretation_report(
     payloads["brand_handle_optimization"] = _section_payload("brand_handle_optimization", f"Current handle/domain vibration {handle_vibration or 0} should align with visibility strategy.", "Public handle signal can be optimized for trust and discoverability.", "Handle vibration influences memorability and social proof perception.", "Weak naming logic lowers visibility consistency.", "Unify handle/domain root with target vibration endings.", [{"label": "Social Handle", "value": social_handle or 'Not provided'}, {"label": "Domain Handle", "value": domain_handle or 'Not provided'}, {"label": "Authority Signal", "value": 'High' if handle_vibration in {1, 8, 9, 22} else 'Moderate'}], [f"Improved pattern: {pattern}" for pattern in _handle_patterns(handle_source, name_targets)])
     payloads["residence_energy_intelligence"] = _section_payload("residence_energy_intelligence", f"Residence vibration {residence_vibration or 0} affects baseline stability signal.", "Home number creates recurring environmental energy tone.", "Repeated daily exposure amplifies behavior feedback.", "Misfit vibration can reduce recovery quality and clarity.", "Apply symbolic balancing with plate letters and entrance corrections.", [{"label": "Current Residence Number", "value": residence_number or 'Not provided'}, {"label": "Residence Vibration", "value": str(residence_vibration or 0)}])
     payloads["vehicle_number_intelligence"] = _section_payload("vehicle_number_intelligence", f"Vehicle vibration {vehicle_vibration or 0} influences movement tone and confidence expression.", "Vehicle number creates recurring movement-state signal.", "Travel frequency amplifies vibration feedback into transitions.", "Misalignment may increase urgency bias and reactive behavior.", "Prefer compatible number logic during selection or correction.", [{"label": "Current Vehicle Number", "value": vehicle_number or 'Not provided'}, {"label": "Vehicle Vibration", "value": str(vehicle_vibration or 0)}])
-    payloads["lifestyle_alignment"] = _section_payload("lifestyle_alignment", "Lifestyle alignment is strategic infrastructure, not wellness filler.", f"Weakest metric {weakest_metric.lower()} needs rhythm-led stabilization.", "Routine disruption increases cognitive noise and volatility.", "Instability affects clarity, discipline, and execution quality.", lifestyle_protocol)
-    payloads["digital_discipline"] = _section_payload("digital_discipline", "Digital behavior directly shapes decision quality and recovery.", "Notification overload is hidden performance drain.", "High-frequency context switching amplifies deficit metrics.", "Reactive decisions and reduced deep-work quality follow.", digital_protocol)
+    payloads["lifestyle_alignment"] = _section_payload("lifestyle_alignment", "Lifestyle alignment strategic infrastructure है, सिर्फ wellness filler नहीं।", f"Weakest metric {weakest_metric.lower()} को rhythm-led stabilization चाहिए।", "Routine disruption cognitive noise और volatility बढ़ाता है।", "यह instability clarity, discipline, और execution quality को प्रभावित करती है।", lifestyle_protocol)
+    payloads["digital_discipline"] = _section_payload("digital_discipline", "Digital behavior सीधे decision quality और recovery को shape करता है।", "Notification overload एक hidden performance drain है।", "High-frequency context switching deficit metrics को amplify करता है।", "इसके बाद reactive decisions और deep-work quality में गिरावट दिखती है।", digital_protocol)
     payloads["vedic_remedy"] = _section_payload("vedic_remedy", "Vedic protocol is focus-conditioning and discipline anchor.", "Current profile benefits from ritualized consistency loops.", "Weakest metric and dominant planet point to intervention need.", "Improves composure and timing discipline.", f"Code: {vedic_code} | Parameter: {vedic_parameter}", [{"label": "Focus", "value": weakest_metric}, {"label": "Code", "value": vedic_code}, {"label": "Parameter", "value": vedic_parameter}, {"label": "Output", "value": vedic_output}])
     payloads["correction_protocol_summary"] = _section_payload("correction_protocol_summary", "Correction protocol ranks interventions by impact on stability and monetizable outcomes.", "Multiple correction levers exist and must be sequenced.", "Weakest metric and identity-signal gaps define order.", "Correct sequencing improves measurable improvement speed.", "Execute 21-day and 90-day checkpoints with priority order.", [{"label": "Top Priority", "value": correction_priority_lines[0]}, {"label": "High-Impact Quick Fixes", "value": ' | '.join(correction_priority_lines[:2])}, {"label": "Medium-Term Adjustments", "value": "Email identity, signature protocol, environment alignment"}, {"label": "Premium Advisory", "value": "Run full correction audit quarterly"}], correction_priority_lines)
     payloads["business_intelligence"] = _section_payload("business_intelligence", f"Business signal: {business_strength}. Risk gate: {business_risk}.", "Commercial upside exists with correction-led governance discipline.", "Business vibration and metric stack indicate potential with pressure constraints.", "Without structure, growth can convert into volatility.", "Align offer, pricing, and positioning to cycle window.")
     payloads["wealth_energy_blueprint"] = _section_payload("wealth_energy_blueprint", f"Wealth blueprint: financial discipline {_safe_int(scores.get('financial_discipline_index'), 50)} with business vibration {business_number or 'N/A'}.", "Wealth path depends on behavior architecture.", "Financial metric and identity signals define compounding quality.", "Protocol failure causes leak in high-income phases.", "Use monthly capital governance and staged risk model.")
-    payloads["decision_intelligence"] = _section_payload("decision_intelligence", "Decision intelligence is engineered via filters, delay rules, and review loops.", "Current profile shows capability with stress-phase inconsistency.", f"Weakest metric {weakest_metric.lower()} increases noise under load.", "Fast unfiltered calls increase opportunity cost.", decision_protocol)
-    payloads["emotional_intelligence"] = _section_payload("emotional_intelligence", "Emotional regulation is strategic performance infrastructure.", "Recovery speed acts as variable risk factor.", "Metric pattern indicates reactive windows when rhythm breaks.", "Affects clarity, relationships, and financial discipline.", emotional_protocol)
+    payloads["decision_intelligence"] = _section_payload("decision_intelligence", "Decision intelligence को filters, delay rules, और review loops से engineer किया जाता है।", "Current profile में capability है, पर stress phase inconsistency भी है।", f"Weakest metric {weakest_metric.lower()} high load में decision noise बढ़ाता है।", "Fast और unfiltered calls opportunity cost बढ़ाती हैं।", decision_protocol)
+    payloads["emotional_intelligence"] = _section_payload("emotional_intelligence", "Emotional regulation strategic performance infrastructure का core हिस्सा है।", "Recovery speed एक variable risk factor की तरह काम करती है।", "Metric pattern बताता है कि rhythm टूटने पर reactive windows बढ़ती हैं।", "इसका प्रभाव clarity, relationships, और financial discipline पर पड़ता है।", emotional_protocol)
     payloads["leadership_intelligence"] = _section_payload("leadership_intelligence", "Leadership signal should combine authority with stable execution cadence.", "Leadership potential is high but governance rhythm is mandatory.", "Core numbers indicate strategic strength with overextension risk.", "Inconsistent cadence reduces trust and execution velocity.", "Weekly leadership protocol: priorities, delegation, review, recovery.")
     payloads["strategic_timing_intelligence"] = _section_payload("strategic_timing_intelligence", "Timing intelligence calibrates when to push, pause, and consolidate.", "Decision quality varies by cycle windows and date resonance.", "Personal-year and pinnacle sequences define timing intensity.", "Poor timing increases effort with lower conversion.", "Use favorable dates for launches and negotiations.", [{"label": "Current Personal Year", "value": str(personal_year)}, {"label": "Favorable Dates", "value": ', '.join(str(v) for v in lucky_dates)}])
     payloads["growth_blueprint"] = _section_payload("growth_blueprint", "Growth blueprint sequences stabilize -> optimize -> scale.", "Current phase is correction-led stabilization before aggressive expansion.", f"Risk band {risk_band} requires structural readiness before scale.", "Premature expansion can lock volatility into operations.", "Run staged roadmap with gate checks across 90 days.")
     payloads["strategic_execution_roadmap"] = _section_payload("strategic_execution_roadmap", "Execution roadmap converts intelligence into a 90-day operating system.", "Multiple interventions need coordinated sequencing.", "Correction outcomes compound only in operational order.", "Unsequenced action wastes effort and obscures ROI.", "Days 1-30 stabilize, 31-60 optimize, 61-90 scale tests.", bullets=["Days 1-30: metric deficit stabilization and behavior lock.", "Days 31-60: identity corrections (name/mobile/email/signature).", "Days 61-90: timing alignment and controlled scale tests."])
-    payloads["closing_synthesis"] = _section_payload("closing_synthesis", f"Final synthesis: {full_name} has clear leverage potential if correction priorities are executed with discipline.", "Profile is calibration-sensitive, not fundamentally blocked.", "Strength-deficit architecture is explicit and correctable.", "Protocol-led execution can convert constraints into strategic advantage.", "Commit to correction stack, timing control, and quarterly recalibration.")
+    payloads["closing_synthesis"] = _section_payload("closing_synthesis", f"Final synthesis: {full_name} में clear leverage potential है, यदि correction priorities को disciplined execution के साथ चलाया जाए।", "Profile calibration-sensitive है, fundamentally blocked नहीं।", "Strength-deficit architecture स्पष्ट है और सही sequence से correct की जा सकती है।", "Protocol-led execution constraints को strategic advantage में बदल सकता है।", "Correction stack, timing control, और quarterly recalibration पर committed रहें।")
 
     payloads = _ensure_all_payloads(plan_name, payloads)
+    payloads = _localize_payloads(payloads)
 
     primary_insight = {
-        "core_archetype": _safe_text(archetype.get("archetype_name"), "Strategic Adaptive Archetype"),
+        "core_archetype": _safe_text(archetype.get("archetype_name"), "रणनीतिक अनुकूल archetype"),
         "strength": f"Primary strength axis: {strongest_metric}",
         "critical_deficit": f"Primary deficit axis: {weakest_metric}",
         "stability_risk": risk_band,
-        "phase_1_diagnostic": "Phase 1: diagnose deficit triggers and lock baseline behaviors.",
-        "phase_2_blueprint": "Phase 2: deploy identity corrections aligned to architecture.",
-        "phase_3_intervention_protocol": "Phase 3: run timing-calibrated execution protocol for 90 days.",
+        "phase_1_diagnostic": "Phase 1: deficit triggers diagnose करके baseline behaviors lock करें।",
+        "phase_2_blueprint": "Phase 2: architecture-aligned identity corrections deploy करें।",
+        "phase_3_intervention_protocol": "Phase 3: 90-day timing-calibrated execution protocol चलाएं।",
         "narrative": payloads["executive_summary"]["narrative"],
     }
 
@@ -533,15 +705,15 @@ def build_interpretation_report(
     }
 
     strategic_guidance = {
-        "short_term": "Stabilize weakest metric with low-noise behavior protocol.",
-        "mid_term": "Deploy identity corrections and measure behavior delta.",
-        "long_term": "Scale with strategic timing and quarterly recalibration.",
+        "short_term": "Short term में weakest metric को low-noise behavior protocol से stabilize करें।",
+        "mid_term": "Mid term में identity corrections deploy करके behavior delta measure करें।",
+        "long_term": "Long term scale के लिए strategic timing और quarterly recalibration रखें।",
     }
 
     growth_blueprint = {
-        "phase_1": "Days 1-30: stabilize and baseline deficit behavior.",
-        "phase_2": "Days 31-60: deploy correction stack across identity and environment.",
-        "phase_3": "Days 61-90: execute timing-aligned growth experiments.",
+        "phase_1": "Days 1-30: deficit behavior stabilize करके baseline lock करें।",
+        "phase_2": "Days 31-60: identity और environment पर correction stack deploy करें।",
+        "phase_3": "Days 61-90: timing-aligned growth experiments execute करें।",
     }
 
     business_block = {"business_strength": business_strength, "risk_factor": business_risk, "compatible_industries": business_industries}
@@ -553,13 +725,13 @@ def build_interpretation_report(
         "metrics_spine": {"primary_strength": strongest_metric, "primary_deficit": weakest_metric, "structural_cause": structural_cause, "intervention_focus": intervention_focus, "risk_band": risk_band},
         "numerology_architecture": {"foundation": life_path, "left_pillar": destiny, "right_pillar": expression, "facade": name_number, "narrative": payloads["numerology_architecture"]["narrative"]},
         "archetype_intelligence": {"signature": payloads["archetype_intelligence"]["narrative"], "leadership_traits": name_trait["strength"], "shadow_traits": name_trait["risk"], "growth_path": name_trait["protocol"]},
-        "loshu_diagnostic": {"present_numbers": loshu_present, "missing_numbers": loshu_missing, "center_presence": 5 in loshu_present, "energy_imbalance": f"Present {len(loshu_present)} vs missing {len(loshu_missing)}.", "missing_number_meanings": [f"Missing {number}: build conscious protocol." for number in loshu_missing], "narrative": payloads["loshu_grid_intelligence"]["narrative"]},
-        "planetary_mapping": {"background_forces": f"Life Path {life_path}, Destiny {destiny}, Name {name_number} combine under {dominant_planet}.", "primary_intervention_planet": dominant_planet, "calibration_cluster": "discipline, timing, authority", "narrative": payloads["planetary_influence"]["narrative"]},
-        "structural_deficit_model": {"deficit": f"Primary deficit: {weakest_metric}", "symptom": "Inconsistent execution under stress and identity mismatch.", "patch": intervention_focus, "summary": "Deficit -> behavior risk -> protocol patch sequence."},
-        "circadian_alignment": {"morning_routine": "10-minute sunlight, breath reset, strategic priority lock.", "work_alignment": "First deep-work block before communication noise.", "evening_shutdown": "Decision freeze window, digital wind-down, short review.", "narrative": "Rhythm quality drives decision quality."},
-        "environment_alignment": {"physical_space": "Use low-clutter workspace zones for focus and recovery.", "color_alignment": "Use grounded color palette in workspace and digital surfaces.", "mobile_number_analysis": payloads["mobile_number_intelligence"]["narrative"], "digital_behavior": digital_protocol, "narrative": "Environment should reduce friction and protect clarity."},
-        "vedic_remedy_protocol": {"focus": weakest_metric, "code": vedic_code, "parameter": vedic_parameter, "output": vedic_output, "purpose": "Stabilize deficit metric through disciplined intention.", "planetary_alignment": dominant_planet, "pronunciation": vedic_code},
-        "execution_plan": {"install_rhythm": growth_blueprint["phase_1"], "deploy_anchor": growth_blueprint["phase_2"], "run_protocol": growth_blueprint["phase_3"], "checkpoints": ["Week 1: lock rhythm and metric baseline.", "Week 2: deploy identity corrections and compare behavior delta.", "Week 3: validate timing windows and scale decision quality."], "summary": "21-day execution builds stability before strategic expansion."},
+        "loshu_diagnostic": {"present_numbers": loshu_present, "missing_numbers": loshu_missing, "center_presence": 5 in loshu_present, "energy_imbalance": f"Present {len(loshu_present)} बनाम missing {len(loshu_missing)}.", "missing_number_meanings": [f"Missing {number}: conscious correction protocol बनाएं।" for number in loshu_missing], "narrative": payloads["loshu_grid_intelligence"]["narrative"]},
+        "planetary_mapping": {"background_forces": f"Life Path {life_path}, Destiny {destiny}, और Name {name_number} मिलकर {dominant_planet} influence channel बनाते हैं।", "primary_intervention_planet": dominant_planet, "calibration_cluster": "discipline, timing, authority", "narrative": payloads["planetary_influence"]["narrative"]},
+        "structural_deficit_model": {"deficit": f"Primary deficit: {weakest_metric}", "symptom": "Stress phase में execution inconsistency और identity mismatch दिखता है।", "patch": intervention_focus, "summary": "Deficit -> behavior risk -> protocol patch sequence को strict order में चलाएं।"},
+        "circadian_alignment": {"morning_routine": "10-minute sunlight, breath reset, और strategic priority lock करें।", "work_alignment": "Communication noise से पहले first deep-work block पूरा करें।", "evening_shutdown": "Decision freeze window, digital wind-down, और short review रखें।", "narrative": "Rhythm quality सीधे decision quality को drive करती है।"},
+        "environment_alignment": {"physical_space": "Focus और recovery के लिए low-clutter workspace zones बनाएं।", "color_alignment": "Workspace और digital surfaces पर grounded color palette रखें।", "mobile_number_analysis": payloads["mobile_number_intelligence"]["narrative"], "digital_behavior": digital_protocol, "narrative": "Environment का काम friction कम करना और clarity protect करना है।"},
+        "vedic_remedy_protocol": {"focus": weakest_metric, "code": vedic_code, "parameter": vedic_parameter, "output": vedic_output, "purpose": "Disciplined intention से deficit metric को stabilize करना।", "planetary_alignment": dominant_planet, "pronunciation": vedic_code},
+        "execution_plan": {"install_rhythm": growth_blueprint["phase_1"], "deploy_anchor": growth_blueprint["phase_2"], "run_protocol": growth_blueprint["phase_3"], "checkpoints": ["Week 1: rhythm और metric baseline lock करें।", "Week 2: identity corrections deploy करके behavior delta compare करें।", "Week 3: timing windows validate करके decision quality scale करें।"], "summary": "21-day execution पहले stability बनाता है, फिर strategic expansion को support करता है।"},
         "executive_brief": executive_brief,
         "analysis_sections": analysis_sections,
         "strategic_guidance": strategic_guidance,

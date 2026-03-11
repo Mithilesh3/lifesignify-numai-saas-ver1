@@ -105,6 +105,7 @@ export interface ReportContent {
     dharma_alignment_score?: number;
     karma_pressure_index?: number;
     confidence_score?: number;
+    data_completeness_score?: number;
     risk_band?: string;
   };
   analysis_sections?: Record<string, string>;

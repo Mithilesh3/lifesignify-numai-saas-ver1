@@ -28,23 +28,23 @@ PLAN_FEATURES = {
 }
 
 FOCUS_LABELS = {
-    "finance_debt": "financial pressure aur debt management",
-    "career_growth": "career growth aur positioning",
-    "relationship": "relationship patterns aur compatibility",
-    "health_stability": "health stability aur sustainable routine",
-    "emotional_confusion": "emotional clarity aur inner stability",
-    "business_decision": "business direction aur strategic decisions",
-    "general_alignment": "overall life alignment",
+    "finance_debt": "वित्तीय दबाव और debt management",
+    "career_growth": "करियर ग्रोथ और positioning",
+    "relationship": "रिलेशनशिप पैटर्न और compatibility",
+    "health_stability": "स्वास्थ्य स्थिरता और sustainable routine",
+    "emotional_confusion": "भावनात्मक स्पष्टता और inner stability",
+    "business_decision": "बिज़नेस दिशा और strategic decisions",
+    "general_alignment": "समग्र life alignment",
 }
 
 FOCUS_ACTIONS = {
-    "finance_debt": "cash flow ko stabilize karein, debt discipline ko strong banayein, aur repeatable savings habit create karein",
-    "career_growth": "aise roles aur projects choose karein jo credibility ko compound karein, energy ko scatter na karein",
-    "relationship": "close relationships me clarity, healthy boundaries, aur communication ko better karein",
-    "health_stability": "sleep, routine, aur lower-stress decision cycles ke through energy ko protect karein",
-    "emotional_confusion": "major choices se pehle internal noise kam karein aur steadier routines build karein",
-    "business_decision": "reactive expansion ke bajay disciplined execution ko priority dein",
-    "general_alignment": "priorities ko simplify karke daily action ko long-term direction ke saath align karein",
+    "finance_debt": "cash flow को stabilize करें, debt discipline मजबूत करें, और repeatable savings habit बनाएं",
+    "career_growth": "ऐसे roles और projects चुनें जो credibility को compound करें और energy को scatter न होने दें",
+    "relationship": "close relationships में clarity, healthy boundaries, और communication quality सुधारें",
+    "health_stability": "sleep, routine, और lower-stress decision cycles से energy को protect करें",
+    "emotional_confusion": "major choices से पहले internal noise कम करें और steadier routines build करें",
+    "business_decision": "reactive expansion के बजाय disciplined execution को priority दें",
+    "general_alignment": "priorities simplify करके daily action को long-term direction के साथ align करें",
 }
 
 METRIC_LABELS = {
@@ -52,7 +52,7 @@ METRIC_LABELS = {
     "financial_discipline_index": "Financial Discipline",
     "emotional_regulation_index": "Emotional Regulation",
     "dharma_alignment_score": "Dharma Alignment",
-    "confidence_score": "Decision Confidence",
+    "confidence_score": "Decision Clarity",
 }
 
 METRIC_STRENGTHS = {
@@ -177,42 +177,42 @@ def _build_personalized_fallback(
     mobile_analysis = numerology_core.get("mobile_analysis") or {}
     mobile_vibration = mobile_analysis.get("mobile_vibration")
 
-    problem_statement = current_problem or "general direction aur long-term stability"
+    problem_statement = current_problem or "समग्र दिशा और long-term stability"
     role_phrase = role.replace("_", " ")
-    industry_phrase = f" in {industry}" if industry else ""
-    income_phrase = f" Monthly income around {monthly_income} ka input available hai." if monthly_income else ""
-    risk_phrase = f" Risk tolerance abhi {str(risk_tolerance).lower()} side par hai." if risk_tolerance else ""
-    anxiety_phrase = f" Reported anxiety level {anxiety_level}/10 hai." if anxiety_level is not None else ""
+    industry_phrase = f" ({industry})" if industry else ""
+    income_phrase = f" मासिक आय लगभग {monthly_income} का इनपुट उपलब्ध है।" if monthly_income else ""
+    risk_phrase = f" Risk tolerance वर्तमान में {str(risk_tolerance).lower()} श्रेणी में है।" if risk_tolerance else ""
+    anxiety_phrase = f" Reported anxiety level {anxiety_level}/10 है।" if anxiety_level is not None else ""
     confusion_phrase = (
-        f" Decision confusion {decision_confusion}/10 hai, isliye bade choices me extra validation helpful rahega."
+        f" Decision confusion {decision_confusion}/10 है, इसलिए बड़े decisions में extra validation उपयोगी रहेगा।"
         if decision_confusion is not None
         else ""
     )
-    date_phrase = f" Date of birth input {date_of_birth} se numerology core derive hua hai." if date_of_birth else ""
+    date_phrase = f" Date of birth input {date_of_birth} से numerology core derive हुआ है।" if date_of_birth else ""
     low_data_note = (
-        " Behavioral intake limited hai, isliye kuch intelligence metrics neutral baseline par aaye hain."
-        if int(scores.get("confidence_score", 0) or 0) <= 25
+        " Behavioral intake limited है, इसलिए कुछ intelligence metrics neutral baseline पर रह सकते हैं।"
+        if int(scores.get("data_completeness_score", 0) or 0) <= 35
         else ""
     )
-    mobile_phrase = f" Mobile vibration {mobile_vibration} daily communication tone ko influence kar raha hai." if mobile_vibration else ""
+    mobile_phrase = f" Mobile vibration {mobile_vibration} daily communication tone को influence कर रहा है।" if mobile_vibration else ""
 
     business_signals = numerology_core.get("business_analysis") or {}
     business_strength = business_signals.get(
         "business_strength",
-        f"{first_name} ka profile aise strategic work ko support karta hai jahan clarity, reputation, aur disciplined follow-through reward milta hai.",
+        f"{first_name} की प्रोफाइल ऐसे strategic work को support करती है जहाँ clarity, reputation, और disciplined follow-through reward मिलता है।",
     )
     business_risk = business_signals.get(
         "risk_factor",
-        f"Main business risk yeh hai ki pressure badhne par {weakest_label.lower()} execution ko slow kar sakta hai.",
+        f"मुख्य business risk यह है कि pressure बढ़ने पर {weakest_label.lower()} execution को slow कर सकता है।",
     )
     compatible_industries = business_signals.get("compatible_industries") or []
 
     compatibility = numerology_core.get("compatibility") or {}
     compatibility_guidance = (
-        f"Current compatibility signal {compatibility.get('compatibility_level', 'Moderate')} hai "
-        f"jiska score {compatibility.get('compatibility_score', 0)}/100 hai."
+        f"Current compatibility signal {compatibility.get('compatibility_level', 'Moderate')} है "
+        f"जिसका score {compatibility.get('compatibility_score', 0)}/100 है।"
         if compatibility
-        else f"{first_name} ko aise relationships sabse zyada support karte hain jo {strongest_label.lower()} ko reinforce karein aur {weakest_label.lower()} par pressure kam karein."
+        else f"{first_name} के लिए वे relationships सबसे बेहतर हैं जो {strongest_label.lower()} को reinforce करें और {weakest_label.lower()} पर pressure कम करें।"
     )
 
     compatible_numbers = [number for number in [life_path, destiny_number] if isinstance(number, int)]
@@ -222,45 +222,45 @@ def _build_personalized_fallback(
         "_fallback_used": True,
         "executive_brief": {
             "summary": (
-                f"{full_name} ki report ka central focus {focus_label} hai. "
-                f"Life Path {life_path or 'N/A'} aur Destiny {destiny_number or 'N/A'} yeh dikhate hain ki profile me {strongest_message} present hai, "
-                f"jabki current pressure point {weakest_message} hai. "
-                f"Immediate concern {problem_statement} se juda hua hai.{date_phrase}{mobile_phrase}{low_data_note}"
+                f"{full_name} की report का central focus {focus_label} है। "
+                f"Life Path {life_path or 'N/A'} और Destiny {destiny_number or 'N/A'} से स्पष्ट होता है कि profile में {strongest_message} मौजूद है, "
+                f"जबकि current pressure point {weakest_message} है। "
+                f"Immediate concern {problem_statement} से जुड़ा हुआ है।{date_phrase}{mobile_phrase}{low_data_note}"
             ),
-            "key_strength": f"Aapka strongest signal {strongest_label} hai. Iska seedha matlab hai {strongest_message}.",
-            "key_risk": f"Sabse sensitive area {weakest_label} hai, jo yeh batata hai ki {weakest_message}.",
+            "key_strength": f"आपका strongest signal {strongest_label} है। इसका सीधा मतलब है {strongest_message}।",
+            "key_risk": f"सबसे sensitive area {weakest_label} है, जो बताता है कि {weakest_message}।",
             "strategic_focus": (
-                f"Abhi sabse pehli priority yeh honi chahiye ki aap {focus_action}. Har major decision ko stronger {weakest_label.lower()} routine ke through filter karein."
+                f"अभी पहली priority यह होनी चाहिए कि आप {focus_action}। हर major decision को stronger {weakest_label.lower()} routine के through filter करें।"
             ),
         },
         "analysis_sections": {
             "career_analysis": (
-                f"As a {role_phrase}{industry_phrase}, {first_name} un roles me better progress kar sakte hain jo "
-                f"{strongest_label.lower()} ko reward karte hain, na ki constant reactive change ko. Dharma alignment {scores.get('dharma_alignment_score', 50)}/100 hai, "
-                f"isliye work choices ko {focus_label} ke stated goal ke close rakhna better rahega."
+                f"{first_name} की {role_phrase}{industry_phrase} profile में ऐसे roles बेहतर रहते हैं जो "
+                f"{strongest_label.lower()} को reward करें, न कि constant reactive change को। Dharma alignment {scores.get('dharma_alignment_score', 50)}/100 है, "
+                f"इसलिए work choices को {focus_label} के stated goal के पास रखना बेहतर रहेगा।"
             ),
             "decision_profile": (
-                f"Current decision confidence {confidence}/100 hai aur overall risk band {risk_band} hai. "
-                f"{confusion_phrase if confusion_phrase else 'Major choices tab better honge jab aap decision speed ko thoda slow karke assumptions validate karenge.'}"
+                f"Current decision clarity {confidence}/100 है और overall risk band {risk_band} है। "
+                f"{confusion_phrase if confusion_phrase else 'Major choices बेहतर होंगे जब आप decision speed थोड़ी slow करके assumptions validate करेंगे।'}"
             ),
             "emotional_analysis": (
-                f"Emotional regulation {scores.get('emotional_regulation_index', 50)}/100 hai.{anxiety_phrase}"
-                f" Yeh signal karta hai ki recovery routine aur lower-noise environment judgment quality ko directly improve karenge."
+                f"Emotional regulation {scores.get('emotional_regulation_index', 50)}/100 है।{anxiety_phrase}"
+                f" यह signal करता है कि recovery routine और lower-noise environment judgment quality को सीधे improve करेंगे।"
             ),
             "financial_analysis": (
-                f"Financial discipline {scores.get('financial_discipline_index', 50)}/100 hai.{income_phrase}"
-                f"{risk_phrase} Abhi sabse useful shift yeh hoga ki money decisions ko zyada structured aur kam reactive banaya jaye."
+                f"Financial discipline {scores.get('financial_discipline_index', 50)}/100 है।{income_phrase}"
+                f"{risk_phrase} अभी सबसे उपयोगी बदलाव यह होगा कि money decisions को अधिक structured और कम reactive बनाया जाए।"
             ),
         },
         "strategic_guidance": {
-            "short_term": f"Short term me pehle {weakest_label.lower()} ko stabilize karein aur focus ko {focus_label} par centered rakhein.",
-            "mid_term": f"Mid term me {strongest_label.lower()} ko repeatable weekly system me convert karein, especially work aur finance decisions me.",
-            "long_term": f"Life Path {life_path or 'N/A'} ko bigger moves ke guide ke roop me use karein aur scale tabhi karein jab {weakest_label.lower()} recurring bottleneck na rahe.",
+            "short_term": f"Short term में पहले {weakest_label.lower()} को stabilize करें और focus को {focus_label} पर centered रखें।",
+            "mid_term": f"Mid term में {strongest_label.lower()} को repeatable weekly system में convert करें, खासकर work और finance decisions में।",
+            "long_term": f"Life Path {life_path or 'N/A'} को bigger moves के guide की तरह use करें और scale तभी करें जब {weakest_label.lower()} recurring bottleneck न रहे।",
         },
         "growth_blueprint": {
-            "phase_1": f"Noise kam karke {problem_statement} ke around stable base create karein.",
-            "phase_2": f"{strongest_label.lower()} ko consistency, better filters, aur cleaner routines ke through visible advantage banayein.",
-            "phase_3": f"Bigger opportunities me tab expand karein jab {focus_label} stronger execution discipline se support ho.",
+            "phase_1": f"Noise कम करके {problem_statement} के आसपास stable base create करें।",
+            "phase_2": f"{strongest_label.lower()} को consistency, better filters, और cleaner routines से visible advantage बनाएं।",
+            "phase_3": f"Bigger opportunities में तभी expand करें जब {focus_label} stronger execution discipline से support हो।",
         },
         "business_block": {
             "business_strength": business_strength,
@@ -341,7 +341,7 @@ def _looks_usable_text(value: Any) -> bool:
     text = " ".join(str(value or "").split())
     if len(text) < 24:
         return False
-    if any(token in text for token in ("{", "}", "à¤", "à¥", "[]")):
+    if any(token in text for token in ("{", "}", "Ã Â¤", "Ã Â¥", "à¤", "à¥", "�", "[]")):
         return False
     if re.search(r"(,\s*,)|(।\s*।)|(^[-,:;|]+$)", text):
         return False
@@ -471,7 +471,7 @@ def generate_life_signify_report(
 
     flat_data = flatten_input(request_data)
 
-    scores = generate_score_summary(flat_data) or {}
+    scores = generate_score_summary(flat_data, plan_name=plan_name) or {}
 
     # -------------------------------------------------
     # ARCHETYPE ENGINE
@@ -657,7 +657,7 @@ def generate_life_signify_report(
 
         "disclaimer": {
             "framework": "Tiered Numerology Intelligence System",
-            "confidence_score": scores.get("confidence_score", 0),
+            "confidence_score": scores.get("data_completeness_score", 0),
             "note": "Insights are probabilistic and strategic, not deterministic predictions.",
         },
     }

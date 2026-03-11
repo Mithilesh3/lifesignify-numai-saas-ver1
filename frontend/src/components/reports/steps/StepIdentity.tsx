@@ -97,9 +97,8 @@ export default function StepIdentity({ formData, setFormData, next }: Props) {
         value={formData.preferences?.language_preference || "hindi"}
         onChange={(e) => updatePreference("language_preference", e.target.value)}
       >
-        <option value="hindi">Hindi</option>
-        <option value="hinglish">Hinglish</option>
-        <option value="english">English</option>
+        <option value="hindi">Hindi (Hindi-major Recommended)</option>
+        <option value="english">English (Fallback)</option>
       </select>
 
       <p className="text-sm text-gray-400">

@@ -31,13 +31,19 @@ def _safe_json_parse(raw_text: str) -> Dict[str, Any]:
         return json.loads(raw_text)
 
     except Exception:
+        cleaned = str(raw_text or "").strip()
+        cleaned = cleaned.replace("```json", "").replace("```", "").strip()
+        try:
+            return json.loads(cleaned)
+        except Exception:
+            pass
 
         try:
 
-            start = raw_text.index("{")
-            end = raw_text.rindex("}") + 1
+            start = cleaned.index("{")
+            end = cleaned.rindex("}") + 1
 
-            return json.loads(raw_text[start:end])
+            return json.loads(cleaned[start:end])
 
         except Exception:
 
@@ -194,9 +200,9 @@ REQUIRED JSON STRUCTURE
 
     try:
 
-        response = azure_client.chat.completions.create(
-            model=DEPLOYMENT_NAME,
-            messages=[
+        request_payload = {
+            "model": DEPLOYMENT_NAME,
+            "messages": [
                 {
                     "role": "system",
                     "content": """
@@ -219,9 +225,17 @@ Never output empty placeholders, blank grammar fragments, or corrupted Hindi.
                     "content": prompt
                 }
             ],
-            temperature=0.2,
-            max_tokens=max_tokens,
-        )
+            "temperature": 0.2,
+            "max_tokens": max_tokens,
+            "response_format": {"type": "json_object"},
+        }
+
+        try:
+            response = azure_client.chat.completions.create(**request_payload)
+        except TypeError:
+            # Backward compatibility for SDK versions without response_format support.
+            request_payload.pop("response_format", None)
+            response = azure_client.chat.completions.create(**request_payload)
 
         raw_text = response.choices[0].message.content.strip()
         structured_output = _safe_json_parse(raw_text)

@@ -19,6 +19,21 @@ def normalize(value, min_val, max_val):
     return (value - min_val) / (max_val - min_val)
 
 
+def _present(value: Any) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    return True
+
+
+def _normalized_or_none(value, min_val, max_val, invert: bool = False):
+    if value is None:
+        return None
+    normalized = normalize(value, min_val, max_val)
+    return (1 - normalized) if invert else normalized
+
+
 
 def weighted_score(components: List[Dict[str, float]]) -> int:
     """
@@ -147,23 +162,89 @@ def karma_pressure_index(data: Dict[str, Any]) -> int:
 
 
 # ==========================================================
-# CONFIDENCE SCORE (DATA COMPLETENESS)
+# DATA COMPLETENESS SCORE
 # ==========================================================
 
-def compute_confidence_score(data: Dict[str, Any]) -> int:
+def compute_data_completeness_score(data: Dict[str, Any], plan_name: str = "basic") -> int:
 
-    required_fields = [
-        "anxiety",
-        "debt_ratio",
+    plan = (plan_name or "basic").strip().lower()
+
+    basic_fields = [
+        "life_focus",
+        "major_setbacks",
+        "decision_style",
+        "stress_response",
+        "money_decision_style",
+        "biggest_weakness",
+        "life_preference",
+    ]
+    pro_fields = basic_fields + [
         "savings_ratio",
+        "debt_ratio",
         "stress_level",
         "decision_clarity",
         "years_experience",
+        "anxiety",
+        "impulse_control",
+        "emotional_stability",
+    ]
+    enterprise_fields = pro_fields + [
+        "monthly_income",
+        "industry",
+        "role",
+        "decision_confusion",
+        "impulse_spending",
     ]
 
-    filled = sum(1 for field in required_fields if data.get(field) is not None)
+    required_fields = {
+        "basic": basic_fields,
+        "pro": pro_fields,
+        "premium": pro_fields,
+        "enterprise": enterprise_fields,
+    }.get(plan, basic_fields)
 
-    return int((filled / len(required_fields)) * 100)
+    filled = sum(1 for field in required_fields if _present(data.get(field)))
+    ratio = filled / len(required_fields)
+    score = int(ratio * 100)
+
+    # Basic plans intentionally collect lighter intake, so keep a realistic floor.
+    if plan == "basic" and score < 35:
+        return 35
+
+    return score
+
+
+# ==========================================================
+# DECISION CLARITY SCORE
+# ==========================================================
+
+def compute_decision_clarity_score(
+    data: Dict[str, Any],
+    data_completeness_score: int,
+    plan_name: str = "basic",
+) -> int:
+    plan = (plan_name or "basic").strip().lower()
+
+    direct_clarity = data.get("decision_clarity")
+    components = [
+        {"value": _normalized_or_none(direct_clarity, 1, 10), "weight": 0.40},
+        {"value": _normalized_or_none(data.get("decision_confusion"), 1, 10, invert=True), "weight": 0.25},
+        {"value": _normalized_or_none(data.get("stress_level"), 1, 10, invert=True), "weight": 0.15},
+        {"value": _normalized_or_none(data.get("impulse_control"), 1, 10), "weight": 0.10},
+        {"value": _normalized_or_none(data.get("emotional_stability"), 1, 10), "weight": 0.10},
+    ]
+
+    has_signal = any(c["value"] is not None for c in components)
+    if not has_signal:
+        return 45 if plan == "basic" else 40
+
+    score = weighted_score(components)
+
+    # If behavioral intake is sparse, prevent unrealistic collapse to zero.
+    if data_completeness_score < 30:
+        score = max(score, 42 if plan == "basic" else 38)
+
+    return score
 
 
 # ==========================================================
@@ -182,14 +263,19 @@ def risk_band(score: int) -> str:
 # MASTER SCORING FUNCTION
 # ==========================================================
 
-def generate_score_summary(data: Dict[str, Any]) -> Dict[str, Any]:
+def generate_score_summary(data: Dict[str, Any], plan_name: str = "basic") -> Dict[str, Any]:
 
     emotional = emotional_regulation_index(data)
     financial = financial_discipline_index(data)
     stability = life_stability_index(data)
     dharma = dharma_alignment_score(data, emotional)
     karma = karma_pressure_index(data)
-    confidence = compute_confidence_score(data)
+    completeness = compute_data_completeness_score(data, plan_name=plan_name)
+    decision_clarity = compute_decision_clarity_score(
+        data,
+        data_completeness_score=completeness,
+        plan_name=plan_name,
+    )
 
     return {
         "life_stability_index": stability,
@@ -197,7 +283,10 @@ def generate_score_summary(data: Dict[str, Any]) -> Dict[str, Any]:
         "financial_discipline_index": financial,
         "dharma_alignment_score": dharma,
         "karma_pressure_index": karma,
-        "confidence_score": confidence,
+        # Backward-compatible field used across renderer/UI as Decision Clarity.
+        "confidence_score": decision_clarity,
+        # Explicit completeness signal for intake-quality warnings.
+        "data_completeness_score": completeness,
         "risk_band": risk_band(stability),
     }
 

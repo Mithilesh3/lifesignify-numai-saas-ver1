@@ -5,6 +5,7 @@ from io import BytesIO
 import json
 import logging
 from pathlib import Path
+import re
 from typing import Any, Dict, List, Sequence
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -91,6 +92,56 @@ def _clip_text(value: Any, max_chars: int = 180, default: str = "") -> str:
     return f"{text[: max_chars - 1].rstrip()}…"
 
 
+def _hindi_major_text(value: Any, default: str = "") -> str:
+    text = _safe_text(value, default)
+    if not text:
+        return default
+
+    text = re.sub(r"\{[^{}]+\}", "", text)
+    text = re.sub(r"(,\s*){2,}", ", ", text)
+    text = re.sub(r"\s{2,}", " ", text).strip(" ,;|")
+    if not text:
+        return default or "इनपुट उपलब्ध नहीं"
+
+    replacements = (
+        ("Deterministic", "निर्धारित"),
+        ("deterministic", "निर्धारित"),
+        ("Current ", "वर्तमान "),
+        ("Primary ", "मुख्य "),
+        ("Risk band", "रिस्क बैंड"),
+        ("Risk Band", "रिस्क बैंड"),
+        ("strategic", "रणनीतिक"),
+        ("profile", "प्रोफाइल"),
+        ("analysis", "विश्लेषण"),
+        ("indicates", "संकेत देता है"),
+        ("shows", "दिखाता है"),
+        ("supports", "सपोर्ट करता है"),
+        ("improves", "बेहतर करता है"),
+        ("stabilize", "स्थिर करें"),
+        ("discipline", "डिसिप्लिन"),
+    )
+    for source, target in replacements:
+        text = text.replace(source, target)
+
+    latin_letters = sum(1 for ch in text if ("a" <= ch.lower() <= "z"))
+    latin_ratio = latin_letters / max(len(text), 1)
+    if latin_ratio > 0.6 and not re.search(r"[\u0900-\u097F]", text):
+        text = f"रणनीतिक संकेत: {text}. सुधार के लिए disciplined execution protocol लागू करें।"
+
+    return text
+
+
+def _status_label(status: str) -> str:
+    normalized = _safe_text(status).lower()
+    if normalized == "strong":
+        return "मजबूत | Strong"
+    if normalized == "moderate":
+        return "मध्यम | Moderate"
+    if normalized == "sensitive":
+        return "संवेदनशील | Sensitive"
+    return _hindi_major_text(status, "मध्यम | Moderate")
+
+
 def _format_timestamp(value: Any) -> str:
     text = _safe_text(value)
     if not text:
@@ -117,12 +168,12 @@ def _risk_band(metrics: Dict[str, Any]) -> str:
     weakest = min(confidence, stability, emotional, finance)
 
     if karma >= 75 or weakest <= 34:
-        return "High Risk - Structural Intervention Required"
+        return "उच्च जोखिम | High Risk - Structural Intervention Required"
     if karma >= 60 or weakest <= 49:
-        return "Watch Zone - Guided Stabilization Needed"
+        return "वॉच ज़ोन | Watch Zone - Guided Stabilization Needed"
     if weakest >= 70 and karma <= 45:
-        return "Stable Growth - Strategic Scaling Window"
-    return "Correctable - Disciplined Execution Needed"
+        return "स्थिर ग्रोथ | Stable Growth - Strategic Scaling Window"
+    return "सुधार योग्य | Correctable - Disciplined Execution Needed"
 
 
 def _status_from_score(score: int) -> str:
@@ -198,33 +249,33 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
         meaning = _clip_text(
             details.get("meaning"),
             max_chars=card_limit,
-            default="Deterministic score derived from numerology and intake data.",
+            default="यह score numerology और intake data से निकला deterministic signal है।",
         )
         driver = _clip_text(
             details.get("driver"),
             max_chars=card_limit,
-            default="Primary driver inference is based on profile and behavior signals.",
+            default="Primary driver inference profile और behavior signals पर आधारित है।",
         )
         risk = _clip_text(
             details.get("risk"),
             max_chars=card_limit,
-            default="Low score in this area can reduce execution quality.",
+            default="इस area में low score execution quality को कम कर सकता है।",
         )
         improvement = _clip_text(
             details.get("improvement"),
             max_chars=card_limit,
-            default="Install a measurable 21-day practice linked to this metric.",
+            default="इस metric के लिए measurable 21-day practice install करें।",
         )
 
         metric_rows.append(
             {
                 "label": metric["label"],
                 "value": value,
-                "status": _safe_text(details.get("status"), _status_from_score(value)),
-                "meaning": meaning,
-                "driver": driver,
-                "risk": risk,
-                "improvement": improvement,
+                "status": _status_label(_safe_text(details.get("status"), _status_from_score(value))),
+                "meaning": _hindi_major_text(meaning),
+                "driver": _hindi_major_text(driver),
+                "risk": _hindi_major_text(risk),
+                "improvement": _hindi_major_text(improvement),
             }
         )
 
@@ -273,56 +324,56 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
             "engine_version": _safe_text(meta.get("engine_version"), "1.0.0"),
         },
         "cover": {
-            "title": "Strategic Life Intelligence Audit",
-            "subtitle": "Numerology Intelligence x AI Strategy",
+            "title": "रणनीतिक जीवन इंटेलिजेंस ऑडिट | Strategic Life Intelligence Audit",
+            "subtitle": "Numerology Intelligence x AI Strategy (हिंदी-प्रधान संस्करण)",
             "name": full_name,
             "dob": _safe_text(
                 birth_details.get("date_of_birth") or identity.get("date_of_birth"),
-                "Not provided",
+                "इनपुट उपलब्ध नहीं",
             ),
             "risk_band": _risk_band(metrics),
         },
         "primary_insight": {
-            "core_archetype": _safe_text(
+            "core_archetype": _hindi_major_text(_safe_text(
                 primary_insight.get("core_archetype")
                 or (payload.get("numerology_archetype") or {}).get("archetype_name"),
                 "Strategic Adaptive Profile",
-            ),
-            "strength": _safe_text(
+            )),
+            "strength": _hindi_major_text(_safe_text(
                 primary_insight.get("strength")
                 or (payload.get("executive_brief") or {}).get("key_strength"),
                 "Pattern recognition and adaptive execution.",
-            ),
-            "critical_deficit": _safe_text(
+            )),
+            "critical_deficit": _hindi_major_text(_safe_text(
                 primary_insight.get("critical_deficit")
                 or (payload.get("executive_brief") or {}).get("key_risk"),
                 "Decision structure under pressure requires calibration.",
-            ),
-            "stability_risk": _safe_text(
+            )),
+            "stability_risk": _hindi_major_text(_safe_text(
                 primary_insight.get("stability_risk"),
                 _risk_band(metrics),
-            ),
-            "phase_1": _safe_text(
+            )),
+            "phase_1": _hindi_major_text(_safe_text(
                 primary_insight.get("phase_1_diagnostic")
                 or (payload.get("growth_blueprint") or {}).get("phase_1"),
                 "Establish baseline rhythm and signal clarity.",
-            ),
-            "phase_2": _safe_text(
+            )),
+            "phase_2": _hindi_major_text(_safe_text(
                 primary_insight.get("phase_2_blueprint")
                 or (payload.get("growth_blueprint") or {}).get("phase_2"),
                 "Build structural blueprint around weakest metric.",
-            ),
-            "phase_3": _safe_text(
+            )),
+            "phase_3": _hindi_major_text(_safe_text(
                 primary_insight.get("phase_3_intervention_protocol")
                 or (payload.get("growth_blueprint") or {}).get("phase_3"),
                 "Run 21-day intervention protocol with checkpoints.",
-            ),
-            "narrative": _clip_text(
+            )),
+            "narrative": _hindi_major_text(_clip_text(
                 primary_insight.get("narrative")
                 or (payload.get("executive_brief") or {}).get("summary"),
                 max_chars=narrative_limit,
                 default="Deterministic insight indicates that long-term scaling depends on consistency and disciplined execution.",
-            ),
+            )),
         },
         "metrics": {
             "rows": metric_rows,
@@ -330,24 +381,24 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
             "radar_values_json": json.dumps(radar_values, ensure_ascii=False),
             "risk_band": _risk_band(metrics),
             "spine": {
-                "primary_strength": _safe_text(
+                "primary_strength": _hindi_major_text(_safe_text(
                     metrics_spine.get("primary_strength"),
                     metric_rows[0]["label"] if metric_rows else "Life Stability",
-                ),
-                "primary_deficit": _safe_text(
+                )),
+                "primary_deficit": _hindi_major_text(_safe_text(
                     metrics_spine.get("primary_deficit"),
                     metric_rows[-1]["label"] if metric_rows else "Karma Pressure",
-                ),
-                "structural_cause": _clip_text(
+                )),
+                "structural_cause": _hindi_major_text(_clip_text(
                     metrics_spine.get("structural_cause"),
                     max_chars=180,
                     default="Current weakest axis is linked to structural pattern gaps and stress-reactivity.",
-                ),
-                "intervention_focus": _clip_text(
+                )),
+                "intervention_focus": _hindi_major_text(_clip_text(
                     metrics_spine.get("intervention_focus"),
                     max_chars=180,
                     default="Install 21-day rhythm and decision protocol before scale actions.",
-                ),
+                )),
             },
         },
         "architecture": {
@@ -355,198 +406,198 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
             "left_pillar": _safe_text(left_pillar, "-"),
             "right_pillar": _safe_text(right_pillar, "-"),
             "facade": _safe_text(facade, "-"),
-            "narrative": _clip_text(
+            "narrative": _hindi_major_text(_clip_text(
                 architecture_text.get("narrative"),
                 max_chars=narrative_limit,
                 default="Foundation numbers interact as a system. Life Path sets the core operating baseline, Destiny and Expression define strategic movement, and Name Number shapes social projection.",
-            ),
+            )),
         },
         "archetype": {
-            "signature": _clip_text(
+            "signature": _hindi_major_text(_clip_text(
                 archetype.get("signature"),
                 max_chars=narrative_limit,
                 default="This archetype blends analytical depth and adaptive strategy.",
-            ),
-            "leadership_traits": _clip_text(
+            )),
+            "leadership_traits": _hindi_major_text(_clip_text(
                 archetype.get("leadership_traits"),
                 max_chars=200,
                 default="Leads through pattern recognition, timing, and structured execution.",
-            ),
-            "shadow_traits": _clip_text(
+            )),
+            "shadow_traits": _hindi_major_text(_clip_text(
                 archetype.get("shadow_traits"),
                 max_chars=200,
                 default="Under pressure, this profile can over-analyze and delay decisive action.",
-            ),
-            "growth_path": _clip_text(
+            )),
+            "growth_path": _hindi_major_text(_clip_text(
                 archetype.get("growth_path"),
                 max_chars=200,
                 default="Install cadence, track behavior weekly, and refine decisions with written filters.",
-            ),
+            )),
         },
         "loshu": {
             "present_numbers": _join_numbers(present_numbers, default="-"),
             "missing_numbers": _join_numbers(missing_numbers, default="-"),
-            "center_presence": "Present" if center_present else "Missing",
-            "energy_imbalance": _clip_text(
+            "center_presence": "उपस्थित | Present" if center_present else "अनुपस्थित | Missing",
+            "energy_imbalance": _hindi_major_text(_clip_text(
                 loshu.get("energy_imbalance"),
                 max_chars=120,
                 default="Energy distribution suggests selective strength with patchable blind spots.",
-            ),
-            "narrative": _clip_text(
+            )),
+            "narrative": _hindi_major_text(_clip_text(
                 loshu.get("narrative"),
                 max_chars=narrative_limit,
                 default="Lo Shu geometry highlights where behavior is naturally stable versus where conscious design is required.",
-            ),
+            )),
             "missing_number_meanings": [
-                _clip_text(item, max_chars=100)
+                _hindi_major_text(_clip_text(item, max_chars=100))
                 for item in _safe_list(loshu.get("missing_number_meanings"))
                 if _safe_text(item)
             ][:3],
         },
         "planetary": {
-            "background_forces": _clip_text(
+            "background_forces": _hindi_major_text(_clip_text(
                 planetary.get("background_forces"),
                 max_chars=190,
                 default="Planetary map indicates background strategic pressure and momentum channels.",
-            ),
-            "primary_intervention_planet": _safe_text(
+            )),
+            "primary_intervention_planet": _hindi_major_text(_safe_text(
                 planetary.get("primary_intervention_planet"),
                 "Budh",
-            ),
-            "calibration_cluster": _clip_text(
+            )),
+            "calibration_cluster": _hindi_major_text(_clip_text(
                 planetary.get("calibration_cluster"),
                 max_chars=120,
                 default="clarity, discipline, measured response",
-            ),
-            "narrative": _clip_text(
+            )),
+            "narrative": _hindi_major_text(_clip_text(
                 planetary.get("narrative"),
                 max_chars=narrative_limit,
                 default="Planetary mapping is treated as a calibration system for intervention, not a prediction table.",
-            ),
+            )),
         },
         "deficit": {
-            "deficit": _clip_text(
+            "deficit": _hindi_major_text(_clip_text(
                 deficit_model.get("deficit") or deficit_model.get("structural_deficit"),
                 max_chars=140,
                 default="Missing center 5",
-            ),
-            "symptom": _clip_text(
+            )),
+            "symptom": _hindi_major_text(_clip_text(
                 deficit_model.get("symptom") or deficit_model.get("behavioral_symptom"),
                 max_chars=140,
                 default="Decision instability during high-noise phases.",
-            ),
-            "patch": _clip_text(
+            )),
+            "patch": _hindi_major_text(_clip_text(
                 deficit_model.get("patch") or deficit_model.get("engineered_patch"),
                 max_chars=140,
                 default="Deploy a daily protocol with measurable decision filters.",
-            ),
-            "summary": _clip_text(
+            )),
+            "summary": _hindi_major_text(_clip_text(
                 deficit_model.get("summary"),
                 max_chars=220,
                 default="Deficit-symptom-patch framework translates numerology into operational behavior.",
-            ),
+            )),
         },
         "circadian": {
-            "morning": _clip_text(
+            "morning": _hindi_major_text(_clip_text(
                 circadian.get("morning_routine"),
                 max_chars=170,
                 default="Start with light exposure, breath reset, and one strategic intention.",
-            ),
-            "work": _clip_text(
+            )),
+            "work": _hindi_major_text(_clip_text(
                 circadian.get("work_alignment"),
                 max_chars=170,
                 default="Anchor the first deep work block to the highest-leverage outcome.",
-            ),
-            "evening": _clip_text(
+            )),
+            "evening": _hindi_major_text(_clip_text(
                 circadian.get("evening_shutdown"),
                 max_chars=170,
                 default="Close with device slowdown, review, and next-day priority lock.",
-            ),
-            "narrative": _clip_text(
+            )),
+            "narrative": _hindi_major_text(_clip_text(
                 circadian.get("narrative"),
                 max_chars=220,
                 default="Rhythm quality directly affects decision quality and emotional recovery.",
-            ),
+            )),
         },
         "environment": {
-            "physical_space": _clip_text(
+            "physical_space": _hindi_major_text(_clip_text(
                 environment.get("physical_space"),
                 max_chars=170,
                 default="Use low-clutter zones for deep work, admin, and decompression.",
-            ),
-            "color_alignment": _clip_text(
+            )),
+            "color_alignment": _hindi_major_text(_clip_text(
                 environment.get("color_alignment"),
                 max_chars=170,
                 default="Use calming and grounding palettes in workspace and device themes.",
-            ),
-            "mobile_number_analysis": _clip_text(
+            )),
+            "mobile_number_analysis": _hindi_major_text(_clip_text(
                 environment.get("mobile_number_analysis"),
                 max_chars=170,
                 default="Mobile vibration signal should support focus and communication stability.",
-            ),
-            "digital_behavior": _clip_text(
+            )),
+            "digital_behavior": _hindi_major_text(_clip_text(
                 environment.get("digital_behavior"),
                 max_chars=170,
                 default="Reduce notification noise and avoid high-impact decisions late at night.",
-            ),
-            "narrative": _clip_text(
+            )),
+            "narrative": _hindi_major_text(_clip_text(
                 environment.get("narrative"),
                 max_chars=220,
                 default="Environment and digital behavior are treated as strategic levers for stability.",
-            ),
+            )),
         },
         "vedic": {
-            "focus": _clip_text(
+            "focus": _hindi_major_text(_clip_text(
                 vedic.get("focus"),
                 max_chars=120,
                 default="Primary focus: stabilize weakest intelligence metric.",
-            ),
+            )),
             "code": _safe_text(vedic.get("code"), "Om Budhaya Namah"),
-            "parameter": _clip_text(
+            "parameter": _hindi_major_text(_clip_text(
                 vedic.get("parameter"),
                 max_chars=120,
                 default="21 days x 108 chants with fixed timing.",
-            ),
-            "output": _clip_text(
+            )),
+            "output": _hindi_major_text(_clip_text(
                 vedic.get("output"),
                 max_chars=120,
                 default="Donate food or learning support weekly.",
-            ),
-            "purpose": _clip_text(
+            )),
+            "purpose": _hindi_major_text(_clip_text(
                 vedic.get("purpose"),
                 max_chars=200,
                 default="Remedy protocol aligns attention, discipline, and planetary calibration.",
-            ),
+            )),
             "pronunciation": _safe_text(vedic.get("pronunciation"), ""),
-            "planetary_alignment": _clip_text(
+            "planetary_alignment": _hindi_major_text(_clip_text(
                 vedic.get("planetary_alignment"),
                 max_chars=120,
                 default="Intervention aligned to dominant planetary pattern.",
-            ),
+            )),
         },
         "execution": {
-            "install_rhythm": _clip_text(
+            "install_rhythm": _hindi_major_text(_clip_text(
                 execution.get("install_rhythm"),
                 max_chars=140,
                 default="Days 1-7: install rhythm, reset sleep, and simplify priorities.",
-            ),
-            "deploy_anchor": _clip_text(
+            )),
+            "deploy_anchor": _hindi_major_text(_clip_text(
                 execution.get("deploy_anchor"),
                 max_chars=140,
                 default="Days 8-14: deploy metric anchor and enforce decision rules.",
-            ),
-            "run_protocol": _clip_text(
+            )),
+            "run_protocol": _hindi_major_text(_clip_text(
                 execution.get("run_protocol"),
                 max_chars=140,
                 default="Days 15-21: run intervention without breaks and track checkpoints.",
-            ),
-            "summary": _clip_text(
+            )),
+            "summary": _hindi_major_text(_clip_text(
                 execution.get("summary"),
                 max_chars=220,
                 default="Execution consistency converts insight into measurable life stability.",
-            ),
+            )),
             "checkpoints": [
-                _clip_text(item, max_chars=120)
+                _hindi_major_text(_clip_text(item, max_chars=120))
                 for item in _safe_list(execution.get("checkpoints"))
                 if _safe_text(item)
             ][:3],
@@ -601,6 +652,12 @@ def _render_pdf_with_playwright(html_content: str) -> bytes:
             browser.close()
             return pdf_bytes
     except PlaywrightError as exc:
+        message = str(exc)
+        if "Executable doesn't exist" in message:
+            raise RuntimeError(
+                "Playwright Chromium runtime is missing. Rebuild backend image so Dockerfile installs it, "
+                "or run `python -m playwright install --with-deps chromium` inside the backend container."
+            ) from exc
         raise RuntimeError(f"Playwright PDF generation failed: {exc}") from exc
 
 
@@ -611,4 +668,3 @@ def generate_report_pdf(data: Dict[str, Any], watermark: bool = False) -> BytesI
     buffer = BytesIO(pdf_bytes)
     buffer.seek(0)
     return buffer
-

@@ -30,7 +30,7 @@ if "openai" not in sys.modules:
 
 import app.modules.reports.ai_engine as report_ai_engine
 from app.modules.reports.ai_engine import generate_life_signify_report
-from app.modules.reports.html_engine.engine import _build_context
+from app.modules.reports.html_engine.engine import _build_context, _render_html
 from app.modules.reports.intake_schema import LifeSignifyRequest
 from app.modules.reports.pdf_engine import generate_report_pdf
 
@@ -76,19 +76,19 @@ SAMPLE_REQUEST = {
 def _stub_ai_narrative(*_args, **_kwargs):
     return {
         "executive_brief": {
-            "summary": "Primary deterministic signal indicates growth potential with structure-first execution.",
-            "key_strength": "Adaptability with analytical clarity.",
-            "key_risk": "Inconsistent financial and emotional rhythm under stress.",
-            "strategic_focus": "Run a 21-day discipline protocol around decision filters.",
+            "summary": "प्रोफाइल में growth potential स्पष्ट है, लेकिन structure-first execution आवश्यक है।",
+            "key_strength": "विश्लेषणात्मक स्पष्टता के साथ adaptability।",
+            "key_risk": "Stress phase में financial और emotional rhythm में अस्थिरता।",
+            "strategic_focus": "Decision filters के साथ 21-day discipline protocol चलाएं।",
         },
         "primary_insight": {
-            "narrative": "Core intervention should convert intelligence into repeatable behavior loops.",
+            "narrative": "Core intervention का लक्ष्य intelligence को repeatable behavior loops में बदलना है।",
         },
         "planetary_mapping": {
-            "narrative": "Planetary map should be treated as a calibration model, not deterministic fate.",
+            "narrative": "Planetary map को calibration model की तरह पढ़ें, fate prediction की तरह नहीं।",
         },
         "execution_plan": {
-            "summary": "Execution plan focuses on install rhythm, deploy anchor, and run protocol.",
+            "summary": "Execution plan: install rhythm, deploy anchor, और run protocol sequence में चलाएं।",
         },
     }
 
@@ -122,6 +122,8 @@ def run_hindi_report_smoke_test(output_dir: Path | None = None) -> Path:
     report_text = str(report)
     assert not re.search(r"\{[a-zA-Z0-9_]+\}", report_text)
     assert ", ," not in report_text
+    assert report.get("core_metrics", {}).get("confidence_score", 0) > 0
+    assert report.get("core_metrics", {}).get("data_completeness_score", 0) >= 35
 
     context = _build_context(report, watermark=False)
     assert "<svg" in context["diagrams"]["numerology_architecture"]
@@ -129,6 +131,11 @@ def run_hindi_report_smoke_test(output_dir: Path | None = None) -> Path:
     assert "<svg" in context["diagrams"]["structural_deficit"]
     assert "<svg" in context["diagrams"]["planetary_orbit"]
     assert context["metrics"]["radar_values_json"].startswith("[")
+    assert "Decision Clarity" in context["metrics"]["rows"][1]["label"]
+
+    html = _render_html(context)
+    assert "Helvetica" not in html
+    assert "Noto Sans Devanagari" in html
 
     ready, reason = _playwright_ready()
     if not ready:

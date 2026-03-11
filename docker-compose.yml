@@ -51,6 +51,7 @@ services:
     environment:
       PYTHONUNBUFFERED: 1
       PYTHONDONTWRITEBYTECODE: 1
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
 
     volumes:
 

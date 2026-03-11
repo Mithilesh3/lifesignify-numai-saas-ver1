@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -29,17 +29,17 @@
     {% endif %}
 
     :root {
-      --bg-0: #031127;
-      --bg-1: #082245;
-      --bg-2: #0d3567;
-      --gold-0: #f3d59a;
-      --gold-1: #c79d58;
-      --gold-2: #8f6a2c;
-      --ink-0: #eef4ff;
-      --ink-1: #d6e1f9;
-      --ink-2: #a7bbdc;
-      --card: rgba(12, 34, 67, 0.7);
-      --line: rgba(210, 169, 95, 0.42);
+      --bg-0: #f7fbff;
+      --bg-1: #eef5ff;
+      --bg-2: #e4eefb;
+      --gold-0: #b28a43;
+      --gold-1: #8f6c31;
+      --gold-2: #6f5224;
+      --ink-0: #122a4a;
+      --ink-1: #26446d;
+      --ink-2: #4a6588;
+      --card: rgba(255, 255, 255, 0.93);
+      --line: rgba(177, 142, 76, 0.48);
     }
 
     * {
@@ -53,7 +53,7 @@
 
     body {
       margin: 0;
-      background: #020c1c;
+      background: #ecf3fc;
       color: var(--ink-0);
       font-family: "LocalNotoDeva", "Noto Sans Devanagari", "Inter", sans-serif;
       -webkit-font-smoothing: antialiased;
@@ -72,9 +72,9 @@
       padding: 16mm 13mm 14mm;
       page-break-after: always;
       background:
-        radial-gradient(120% 60% at 100% 0%, rgba(243, 209, 138, 0.2), transparent 65%),
-        radial-gradient(80% 45% at 0% 100%, rgba(104, 140, 191, 0.28), transparent 60%),
-        linear-gradient(155deg, var(--bg-0), var(--bg-1) 48%, var(--bg-2));
+        radial-gradient(95% 80% at 50% 50%, rgba(183, 199, 226, 0.2), transparent 70%),
+        radial-gradient(70% 55% at 100% 0%, rgba(191, 208, 235, 0.24), transparent 66%),
+        linear-gradient(165deg, var(--bg-0), var(--bg-1) 54%, var(--bg-2));
       overflow: hidden;
     }
 
@@ -86,7 +86,7 @@
     .page::after {
       content: "";
       position: absolute;
-      border: 1px solid rgba(224, 188, 120, 0.12);
+      border: 1px solid rgba(178, 138, 67, 0.18);
       border-radius: 999px;
       pointer-events: none;
     }
@@ -114,7 +114,7 @@
       font-family: "Cinzel", serif;
       font-size: 62px;
       letter-spacing: 10px;
-      color: rgba(249, 210, 133, 0.1);
+      color: rgba(94, 114, 149, 0.14);
       transform: rotate(-24deg);
       text-transform: uppercase;
       pointer-events: none;
@@ -147,7 +147,7 @@
       width: 32px;
       height: 32px;
       object-fit: contain;
-      filter: drop-shadow(0 0 8px rgba(243, 213, 154, 0.3));
+      filter: drop-shadow(0 0 8px rgba(26, 62, 112, 0.18));
     }
 
     .section-title {
@@ -193,7 +193,7 @@
       border: 1px solid var(--line);
       border-radius: 12px;
       padding: 8px 10px;
-      backdrop-filter: blur(2px);
+      box-shadow: 0 6px 18px rgba(24, 46, 78, 0.08);
       overflow-wrap: anywhere;
     }
 
@@ -239,7 +239,7 @@
     .hero .sub {
       margin: 0;
       font-size: 13px;
-      color: var(--ink-2);
+      color: #4f688a;
       letter-spacing: 0.25px;
     }
 
@@ -264,9 +264,9 @@
       margin-top: 2mm;
       padding: 5px 11px;
       border-radius: 999px;
-      border: 1px solid rgba(243, 213, 154, 0.55);
-      background: rgba(199, 157, 88, 0.16);
-      color: var(--gold-0);
+      border: 1px solid rgba(177, 142, 76, 0.65);
+      background: rgba(241, 231, 206, 0.95);
+      color: #725421;
       font-size: 11.6px;
       font-weight: 600;
     }
@@ -283,7 +283,7 @@
       margin-top: 7px;
       border-radius: 12px;
       border: 1px solid var(--line);
-      background: rgba(6, 24, 46, 0.72);
+      background: rgba(255, 255, 255, 0.95);
       padding: 6px;
     }
 
@@ -311,7 +311,7 @@
     .metric-card {
       border-radius: 11px;
       border: 1px solid var(--line);
-      background: rgba(8, 30, 58, 0.78);
+      background: rgba(242, 248, 255, 0.96);
       padding: 7px 8px;
     }
 
@@ -355,7 +355,7 @@
       height: 200px;
       border: 1px solid var(--line);
       border-radius: 12px;
-      background: rgba(4, 22, 44, 0.78);
+      background: rgba(247, 252, 255, 0.98);
       padding: 8px;
       margin-bottom: 6px;
     }
@@ -425,16 +425,16 @@
         <p class="section-subtitle">Deterministic numerology architecture और behavioral metrics से निकला strategic diagnosis.</p>
 
         <div class="grid-2">
-          <div class="card"><h4>Core Archetype</h4><p>{{ primary_insight.core_archetype }}</p></div>
-          <div class="card"><h4>Strength</h4><p>{{ primary_insight.strength }}</p></div>
-          <div class="card"><h4>Critical Deficit</h4><p>{{ primary_insight.critical_deficit }}</p></div>
-          <div class="card"><h4>Stability Risk</h4><p>{{ primary_insight.stability_risk }}</p></div>
+          <div class="card"><h4>मुख्य आर्केटाइप | Core Archetype</h4><p>{{ primary_insight.core_archetype }}</p></div>
+          <div class="card"><h4>मुख्य ताकत | Strength</h4><p>{{ primary_insight.strength }}</p></div>
+          <div class="card"><h4>मुख्य कमी | Critical Deficit</h4><p>{{ primary_insight.critical_deficit }}</p></div>
+          <div class="card"><h4>स्थिरता जोखिम | Stability Risk</h4><p>{{ primary_insight.stability_risk }}</p></div>
         </div>
 
         <div class="grid-3" style="margin-top: 8px;">
-          <div class="card"><h4>Phase 1 Diagnostic</h4><p>{{ primary_insight.phase_1 }}</p></div>
-          <div class="card"><h4>Phase 2 Blueprint</h4><p>{{ primary_insight.phase_2 }}</p></div>
-          <div class="card"><h4>Phase 3 Intervention</h4><p>{{ primary_insight.phase_3 }}</p></div>
+          <div class="card"><h4>फेज 1 डायग्नोस्टिक | Phase 1 Diagnostic</h4><p>{{ primary_insight.phase_1 }}</p></div>
+          <div class="card"><h4>फेज 2 ब्लूप्रिंट | Phase 2 Blueprint</h4><p>{{ primary_insight.phase_2 }}</p></div>
+          <div class="card"><h4>फेज 3 इंटरवेंशन | Phase 3 Intervention</h4><p>{{ primary_insight.phase_3 }}</p></div>
         </div>
 
         <p class="narrative">{{ primary_insight.narrative }}</p>
@@ -458,11 +458,11 @@
 
         <div class="grid-2" style="margin-bottom: 6px;">
           <div class="card">
-            <h4>Risk Band Classification</h4>
+            <h4>रिस्क बैंड वर्गीकरण | Risk Band Classification</h4>
             <p>{{ metrics.risk_band }}</p>
           </div>
           <div class="card">
-            <h4>Intervention Focus</h4>
+            <h4>इंटरवेंशन फोकस | Intervention Focus</h4>
             <p>{{ metrics.spine.intervention_focus }}</p>
           </div>
         </div>
@@ -474,9 +474,9 @@
               <span class="metric-name">{{ row.label }}</span>
               <span class="metric-score">{{ row.value }}</span>
             </div>
-            <div class="metric-status">Status: {{ row.status }}</div>
+            <div class="metric-status">स्थिति | Status: {{ row.status }}</div>
             <div class="metric-copy">{{ row.meaning }}</div>
-            <div class="metric-copy">Action: {{ row.improvement }}</div>
+            <div class="metric-copy">एक्शन | Action: {{ row.improvement }}</div>
           </div>
           {% endfor %}
         </div>
@@ -494,10 +494,10 @@
         <h2 class="section-title">Structural Model</h2>
 
         <div class="grid-2">
-          <div class="card"><h4>Foundation (Life Path)</h4><p class="value">{{ architecture.foundation }}</p></div>
-          <div class="card"><h4>Facade (Name Number)</h4><p class="value">{{ architecture.facade }}</p></div>
-          <div class="card"><h4>Left Pillar (Destiny)</h4><p class="value">{{ architecture.left_pillar }}</p></div>
-          <div class="card"><h4>Right Pillar (Expression)</h4><p class="value">{{ architecture.right_pillar }}</p></div>
+          <div class="card"><h4>फाउंडेशन (Life Path)</h4><p class="value">{{ architecture.foundation }}</p></div>
+          <div class="card"><h4>फसाड (Name Number)</h4><p class="value">{{ architecture.facade }}</p></div>
+          <div class="card"><h4>लेफ्ट पिलर (Destiny)</h4><p class="value">{{ architecture.left_pillar }}</p></div>
+          <div class="card"><h4>राइट पिलर (Expression)</h4><p class="value">{{ architecture.right_pillar }}</p></div>
         </div>
 
         <div class="diagram-shell compact" style="margin-top: 8px;">{{ diagrams.numerology_architecture | safe }}</div>
@@ -516,10 +516,10 @@
         <h2 class="section-title">Behavioral Signature</h2>
 
         <div class="flow-col">
-          <div class="card"><h4>Archetype Signature</h4><p>{{ archetype.signature }}</p></div>
-          <div class="card"><h4>Leadership Traits</h4><p>{{ archetype.leadership_traits }}</p></div>
-          <div class="card"><h4>Shadow Traits</h4><p>{{ archetype.shadow_traits }}</p></div>
-          <div class="card"><h4>Growth Path</h4><p>{{ archetype.growth_path }}</p></div>
+          <div class="card"><h4>आर्केटाइप सिग्नेचर | Archetype Signature</h4><p>{{ archetype.signature }}</p></div>
+          <div class="card"><h4>लीडरशिप ट्रेट्स | Leadership Traits</h4><p>{{ archetype.leadership_traits }}</p></div>
+          <div class="card"><h4>शैडो ट्रेट्स | Shadow Traits</h4><p>{{ archetype.shadow_traits }}</p></div>
+          <div class="card"><h4>ग्रोथ पाथ | Growth Path</h4><p>{{ archetype.growth_path }}</p></div>
         </div>
       </div>
     </section>
@@ -535,10 +535,10 @@
         <h2 class="section-title">Energy Matrix</h2>
 
         <div class="grid-2">
-          <div class="card"><h4>Present Numbers</h4><p class="value">{{ loshu.present_numbers }}</p></div>
-          <div class="card"><h4>Missing Numbers</h4><p class="value">{{ loshu.missing_numbers }}</p></div>
-          <div class="card"><h4>Center 5</h4><p class="value">{{ loshu.center_presence }}</p></div>
-          <div class="card"><h4>Energy Imbalance</h4><p>{{ loshu.energy_imbalance }}</p></div>
+          <div class="card"><h4>उपस्थित अंक | Present Numbers</h4><p class="value">{{ loshu.present_numbers }}</p></div>
+          <div class="card"><h4>अनुपस्थित अंक | Missing Numbers</h4><p class="value">{{ loshu.missing_numbers }}</p></div>
+          <div class="card"><h4>केंद्र 5 | Center 5</h4><p class="value">{{ loshu.center_presence }}</p></div>
+          <div class="card"><h4>ऊर्जा असंतुलन | Energy Imbalance</h4><p>{{ loshu.energy_imbalance }}</p></div>
         </div>
 
         <div class="diagram-shell loshu" style="margin-top: 7px;">{{ diagrams.loshu_grid | safe }}</div>
@@ -566,9 +566,9 @@
         <h2 class="section-title">Orbit Intelligence</h2>
 
         <div class="grid-3">
-          <div class="card"><h4>Background Forces</h4><p>{{ planetary.background_forces }}</p></div>
-          <div class="card"><h4>Primary Intervention Planet</h4><p class="value">{{ planetary.primary_intervention_planet }}</p></div>
-          <div class="card"><h4>Calibration Cluster</h4><p>{{ planetary.calibration_cluster }}</p></div>
+          <div class="card"><h4>पृष्ठभूमि बल | Background Forces</h4><p>{{ planetary.background_forces }}</p></div>
+          <div class="card"><h4>मुख्य ग्रह हस्तक्षेप | Primary Intervention Planet</h4><p class="value">{{ planetary.primary_intervention_planet }}</p></div>
+          <div class="card"><h4>कैलिब्रेशन क्लस्टर | Calibration Cluster</h4><p>{{ planetary.calibration_cluster }}</p></div>
         </div>
 
         <div class="diagram-shell compact" style="margin-top: 8px;">{{ diagrams.planetary_orbit | safe }}</div>
@@ -587,9 +587,9 @@
         <h2 class="section-title">Deficit to Patch Flow</h2>
 
         <div class="grid-3">
-          <div class="card"><h4>Structural Deficit</h4><p>{{ deficit.deficit }}</p></div>
-          <div class="card"><h4>Behavioral Symptom</h4><p>{{ deficit.symptom }}</p></div>
-          <div class="card"><h4>Engineered Patch</h4><p>{{ deficit.patch }}</p></div>
+          <div class="card"><h4>स्ट्रक्चरल डेफिसिट | Structural Deficit</h4><p>{{ deficit.deficit }}</p></div>
+          <div class="card"><h4>व्यवहारिक लक्षण | Behavioral Symptom</h4><p>{{ deficit.symptom }}</p></div>
+          <div class="card"><h4>इंजीनियर्ड पैच | Engineered Patch</h4><p>{{ deficit.patch }}</p></div>
         </div>
 
         <div class="diagram-shell compact" style="margin-top: 8px;">{{ diagrams.structural_deficit | safe }}</div>
@@ -608,9 +608,9 @@
         <h2 class="section-title">Daily Rhythm Protocol</h2>
 
         <div class="grid-3">
-          <div class="card"><h4>Morning Routine</h4><p>{{ circadian.morning }}</p></div>
-          <div class="card"><h4>Work Alignment</h4><p>{{ circadian.work }}</p></div>
-          <div class="card"><h4>Evening Shutdown</h4><p>{{ circadian.evening }}</p></div>
+          <div class="card"><h4>मॉर्निंग रूटीन | Morning Routine</h4><p>{{ circadian.morning }}</p></div>
+          <div class="card"><h4>वर्क एलाइनमेंट | Work Alignment</h4><p>{{ circadian.work }}</p></div>
+          <div class="card"><h4>ईवनिंग शटडाउन | Evening Shutdown</h4><p>{{ circadian.evening }}</p></div>
         </div>
 
         <p class="narrative">{{ circadian.narrative }}</p>
@@ -628,10 +628,10 @@
         <h2 class="section-title">External Calibration Layer</h2>
 
         <div class="flow-col">
-          <div class="card"><h4>Physical Space</h4><p>{{ environment.physical_space }}</p></div>
-          <div class="card"><h4>Color Alignment</h4><p>{{ environment.color_alignment }}</p></div>
+          <div class="card"><h4>भौतिक स्थान | Physical Space</h4><p>{{ environment.physical_space }}</p></div>
+          <div class="card"><h4>रंग एलाइनमेंट | Color Alignment</h4><p>{{ environment.color_alignment }}</p></div>
           <div class="card"><h4>मोबाइल नंबर ऊर्जा विश्लेषण | Mobile Number Energy Analysis</h4><p>{{ environment.mobile_number_analysis }}</p></div>
-          <div class="card"><h4>Digital Behavior</h4><p>{{ environment.digital_behavior }}</p></div>
+          <div class="card"><h4>डिजिटल व्यवहार | Digital Behavior</h4><p>{{ environment.digital_behavior }}</p></div>
         </div>
 
         <p class="narrative">{{ environment.narrative }}</p>
@@ -649,17 +649,17 @@
         <h2 class="section-title">Focused Intervention</h2>
 
         <div class="grid-2">
-          <div class="card"><h4>Focus</h4><p>{{ vedic.focus }}</p></div>
-          <div class="card"><h4>Code (Mantra)</h4><p>{{ vedic.code }}</p></div>
-          <div class="card"><h4>Parameter (Practice)</h4><p>{{ vedic.parameter }}</p></div>
-          <div class="card"><h4>Output (Donation)</h4><p>{{ vedic.output }}</p></div>
+          <div class="card"><h4>फोकस | Focus</h4><p>{{ vedic.focus }}</p></div>
+          <div class="card"><h4>कोड (मंत्र) | Code (Mantra)</h4><p>{{ vedic.code }}</p></div>
+          <div class="card"><h4>पैरामीटर (प्रैक्टिस) | Parameter (Practice)</h4><p>{{ vedic.parameter }}</p></div>
+          <div class="card"><h4>आउटपुट (दान) | Output (Donation)</h4><p>{{ vedic.output }}</p></div>
         </div>
 
-        <div class="card" style="margin-top: 7px;"><h4>Purpose</h4><p>{{ vedic.purpose }}</p></div>
+        <div class="card" style="margin-top: 7px;"><h4>उद्देश्य | Purpose</h4><p>{{ vedic.purpose }}</p></div>
         {% if vedic.pronunciation %}
-        <div class="card" style="margin-top: 7px;"><h4>Pronunciation</h4><p>{{ vedic.pronunciation }}</p></div>
+        <div class="card" style="margin-top: 7px;"><h4>उच्चारण | Pronunciation</h4><p>{{ vedic.pronunciation }}</p></div>
         {% endif %}
-        <div class="card" style="margin-top: 7px;"><h4>Planetary Alignment</h4><p>{{ vedic.planetary_alignment }}</p></div>
+        <div class="card" style="margin-top: 7px;"><h4>ग्रह एलाइनमेंट | Planetary Alignment</h4><p>{{ vedic.planetary_alignment }}</p></div>
       </div>
     </section>
 
@@ -674,14 +674,14 @@
         <h2 class="section-title">Action Architecture</h2>
 
         <div class="grid-3">
-          <div class="card"><h4>Install Rhythm</h4><p>{{ execution.install_rhythm }}</p></div>
-          <div class="card"><h4>Deploy Anchor</h4><p>{{ execution.deploy_anchor }}</p></div>
-          <div class="card"><h4>Run Protocol</h4><p>{{ execution.run_protocol }}</p></div>
+          <div class="card"><h4>रिद्म इंस्टॉल | Install Rhythm</h4><p>{{ execution.install_rhythm }}</p></div>
+          <div class="card"><h4>एंकर डिप्लॉय | Deploy Anchor</h4><p>{{ execution.deploy_anchor }}</p></div>
+          <div class="card"><h4>प्रोटोकॉल रन | Run Protocol</h4><p>{{ execution.run_protocol }}</p></div>
         </div>
 
         {% if execution.checkpoints %}
         <div class="card" style="margin-top: 8px;">
-          <h4>Checkpoints</h4>
+          <h4>चेकपॉइंट्स | Checkpoints</h4>
           <ul class="tag-list">
             {% for item in execution.checkpoints %}
             <li>{{ item }}</li>
@@ -723,11 +723,11 @@
               label: "Intelligence Metrics",
               data: values,
               fill: true,
-              backgroundColor: "rgba(211, 173, 103, 0.22)",
-              borderColor: "rgba(243, 213, 154, 0.95)",
+              backgroundColor: "rgba(178, 138, 67, 0.22)",
+              borderColor: "rgba(178, 138, 67, 0.95)",
               borderWidth: 2,
-              pointBackgroundColor: "#f3d59a",
-              pointBorderColor: "#082245",
+              pointBackgroundColor: "#7f5d27",
+              pointBorderColor: "#eef5ff",
               pointRadius: 2.8
             }]
           },
@@ -745,13 +745,13 @@
                 ticks: {
                   stepSize: 20,
                   backdropColor: "transparent",
-                  color: "#a8bddf",
+                  color: "#4f688a",
                   z: 1
                 },
-                angleLines: { color: "rgba(160, 185, 223, 0.24)" },
-                grid: { color: "rgba(160, 185, 223, 0.2)" },
+                angleLines: { color: "rgba(79, 104, 138, 0.24)" },
+                grid: { color: "rgba(79, 104, 138, 0.2)" },
                 pointLabels: {
-                  color: "#e8f0ff",
+                  color: "#1f3b61",
                   font: {
                     size: 10.5,
                     family: "Inter, Noto Sans Devanagari, sans-serif"
@@ -762,7 +762,7 @@
             plugins: {
               legend: {
                 labels: {
-                  color: "#e8f0ff",
+                  color: "#1f3b61",
                   font: {
                     family: "Inter, Noto Sans Devanagari, sans-serif",
                     size: 11
@@ -776,9 +776,9 @@
         const ctx = canvas.getContext("2d");
         const width = canvas.width;
         const height = canvas.height;
-        ctx.fillStyle = "#072243";
+        ctx.fillStyle = "#eef5ff";
         ctx.fillRect(0, 0, width, height);
-        ctx.fillStyle = "#f3d59a";
+        ctx.fillStyle = "#7f5d27";
         ctx.font = "14px Inter";
         ctx.fillText("Chart.js unavailable - fallback view", 16, 26);
         markReady();

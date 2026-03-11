@@ -55,14 +55,9 @@ export default function GenerateReportPage() {
     { key: "identity", component: StepIdentity },
     { key: "birth_details", component: StepBirthDetails },
     { key: "focus", component: StepFocus },
+    { key: "financial", component: StepFinancial },
+    { key: "emotional", component: StepEmotional },
   ];
-
-  if (plan !== "basic") {
-    steps.push(
-      { key: "financial", component: StepFinancial },
-      { key: "emotional", component: StepEmotional }
-    );
-  }
 
   if (plan !== "basic") {
     steps.push({ key: "business_context", component: StepBusiness });
