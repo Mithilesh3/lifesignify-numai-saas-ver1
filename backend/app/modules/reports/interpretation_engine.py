@@ -848,6 +848,664 @@ def _personalize_basic_payloads(
     return basic_payloads
 
 
+def _enrich_basic_payloads(
+    basic_payloads: Dict[str, Any],
+    *,
+    full_name: str,
+    first_name: str,
+    city_hint: str,
+    focus_text: str,
+    current_problem: str,
+    mulank: int,
+    bhagyank: int,
+    life_path: int,
+    destiny: int,
+    expression: int,
+    name_number: int,
+    name_compound: int,
+    loshu_present: Sequence[int],
+    loshu_missing: Sequence[int],
+    repeating_numbers: Sequence[int],
+    mobile_vibration: int,
+    mobile_classification: str,
+    mobile_value: str,
+    email_value: str,
+    email_vibration: int,
+    compatibility_summary: str,
+    compatibility_level: str,
+    personal_year: int,
+    strongest_metric: str,
+    weakest_metric: str,
+    risk_band: str,
+    lucky_dates: Sequence[int],
+    target_numbers: Sequence[int],
+    favorable_colors: str,
+    caution_colors: str,
+    dominant_planet: str,
+    vedic_code: str,
+    vedic_parameter: str,
+    lifestyle_protocol: str,
+) -> Dict[str, Any]:
+    seed = _stable_seed(
+        full_name,
+        focus_text,
+        current_problem,
+        mulank,
+        bhagyank,
+        life_path,
+        destiny,
+        expression,
+        name_number,
+        personal_year,
+        ",".join(str(v) for v in loshu_missing),
+    )
+
+    mulank_signal = BASIC_NUMBER_MEANINGS.get(mulank or 5, BASIC_NUMBER_MEANINGS[5])["signal"]
+    bhagyank_signal = BASIC_NUMBER_MEANINGS.get(bhagyank or 5, BASIC_NUMBER_MEANINGS[5])["signal"]
+    name_signal = BASIC_NUMBER_MEANINGS.get(name_number or bhagyank or mulank or 5, BASIC_NUMBER_MEANINGS[5])["signal"]
+    risk_primary = _safe_text(risk_band).split("|")[0].strip()
+    risk_protocol = _safe_text(risk_band).split("|")[1].strip() if "|" in _safe_text(risk_band) else "नियमित सुधार प्रक्रिया जारी रखें"
+
+    present_text = ", ".join(str(v) for v in loshu_present) if loshu_present else "none"
+    missing_text = ", ".join(str(v) for v in loshu_missing) if loshu_missing else "none"
+    repeating_text = ", ".join(str(v) for v in repeating_numbers) if repeating_numbers else "none"
+    lucky_text = ", ".join(str(v) for v in lucky_dates) if lucky_dates else "3, 5, 9"
+    target_text = ", ".join(str(v) for v in target_numbers[:4]) if target_numbers else "3, 5, 9"
+    focus_hint = _safe_text(focus_text, "जीवन संतुलन")
+    concern_hint = _safe_text(current_problem, "वर्तमान जीवन चुनौती")
+    city_display = _safe_text(city_hint, "वर्तमान शहर")
+    mobile_state = _safe_text(mobile_classification, "neutral")
+    name_number_text = str(name_number) if name_number else "0"
+
+    missing_descriptions = []
+    for number in list(loshu_missing)[:4]:
+        meta = BASIC_MISSING_EFFECTS.get(number, {"gap": "व्यवहारिक रिक्ति", "fix": "दैनिक सुधार आदत"})
+        missing_descriptions.append(f"{number} में {meta['gap']}")
+    missing_line = " | ".join(missing_descriptions) if missing_descriptions else "मुख्य missing digits सीमित हैं"
+
+    repeat_descriptions = []
+    for number in list(repeating_numbers)[:3]:
+        repeat_descriptions.append(f"{number} के दोहराव से {BASIC_REPEAT_EFFECTS.get(number, 'एक trait का volume बढ़ता है')}")
+    repeating_line = " | ".join(repeat_descriptions) if repeat_descriptions else "कोई बड़ा दोहराव नहीं है"
+
+    def _sent(text: str) -> str:
+        clean = _safe_text(text)
+        if not clean:
+            return ""
+        if clean.endswith(("।", ".")):
+            return clean
+        return f"{clean}।"
+
+    def _fit_rich(value: str, max_chars: int = 520) -> str:
+        text = _safe_text(value)
+        if len(text) <= max_chars:
+            return text
+        window = text[:max_chars]
+        end = max(window.rfind("।"), window.rfind("."))
+        if end >= int(max_chars * 0.65):
+            return window[: end + 1].strip()
+        trimmed = window.rsplit(" ", 1)[0].strip()
+        return trimmed if trimmed.endswith(("।", ".", "…")) else f"{trimmed}…"
+
+    global_fillers: Dict[str, List[str]] = {
+        "what": [
+            f"यह संकेत {first_name} के रोज़मर्रा के व्यवहार, communication tone और execution pace में व्यावहारिक रूप से दिखता है",
+            f"फोकस '{focus_hint}' और concern '{concern_hint}' के संदर्भ में यह pattern अभी सक्रिय है",
+            f"{city_display} जैसे वर्तमान वातावरण में भी यही tendency बार-बार उभरती है",
+        ],
+        "why": [
+            f"कारण एकल नहीं है; Mulank {mulank}, Bhagyank {bhagyank}, Name {name_number_text}, Personal Year {personal_year} और Lo Shu pattern का संयुक्त प्रभाव बन रहा है",
+            f"core stack और missing digits की interaction intensity से behavior friction का root स्पष्ट होता है",
+            f"इसी वजह से pattern situational नहीं बल्कि repeatable numerology architecture जैसा दिखता है",
+        ],
+        "impact": [
+            f"इसका असर {weakest_metric}, confidence rhythm और decision consistency पर compound तरीके से आता है",
+            f"अगर corrective action न हो तो {risk_primary} band के संकेत और गहरे हो सकते हैं",
+            f"सही handling होने पर {strongest_metric} leverage होकर overall stability बढ़ती है",
+        ],
+        "action": [
+            "उपायों को 21-day discipline cycle, weekly review और measurable tracking के साथ लागू करना जरूरी है",
+            f"correction को concern '{concern_hint}' से जोड़कर करें ताकि बदलाव practical output में दिखे",
+            f"छोटे लेकिन लगातार कदम रखें, ताकि {weakest_metric} में स्थिर सुधार बने",
+        ],
+    }
+
+    dynamic_fillers: Dict[str, List[str]] = {
+        "what": [
+            f"Core stack {mulank}/{bhagyank}/{name_number_text} और personal year {personal_year} का संयुक्त पैटर्न अभी मुख्य संचालन संकेत दे रहा है",
+            f"Lo Shu present ({present_text}) बनाम missing ({missing_text}) की वजह से behavior architecture uneven दिखाई दे रहा है",
+            f"mobile vibration {mobile_vibration} और email vibration {email_vibration or 0} की combined frequency भी daily response style बदल रही है",
+        ],
+        "why": [
+            f"current root कारण में missing cluster ({missing_line}) और repeating cluster ({repeating_line}) दोनों का परस्पर दबाव शामिल है",
+            f"risk context '{risk_primary}' होने से वही कारण सामान्य दिनों की तुलना में अधिक स्पष्ट दिखाई दे रहे हैं",
+            f"focus '{focus_hint}' और concern '{concern_hint}' पर बार-बार लौटना बताता है कि कारण depth-level पर है, surface-level पर नहीं",
+        ],
+        "impact": [
+            f"असर की रेंज decision clarity से लेकर relationship pacing और money discipline तक जाती है, इसलिए इसे एक single-issue न समझें",
+            f"यदि unchecked रहा तो weekly output quality घट सकती है और long-term confidence curve flatter हो सकती है",
+            f"positive correction की स्थिति में {strongest_metric} की ऊर्जा recovery accelerator का काम कर सकती है",
+        ],
+        "action": [
+            f"{city_display} जैसे context में भी routine discipline लागू किया जा सकता है यदि steps measurable हों और review calendar-locked हो",
+            f"daily correction को identity consistency, communication drill और timing alignment के साथ जोड़ें ताकि परिणाम टिकाऊ बनें",
+            f"हर सप्ताह एक improvement proof लिखें, ताकि progress visible रहे और motivation volatile न बने",
+        ],
+    }
+
+    def _style_sentence(section_key: str, slot: str, sentence: str, idx: int) -> str:
+        styled = _safe_text(sentence)
+        prefix_options = [
+            "",
+            "व्यावहारिक रूप से",
+            "गहराई से देखें तो,",
+            "इस प्रोफ़ाइल में,",
+        ]
+        prefix_index = (_stable_seed(seed, section_key, slot) + idx) % len(prefix_options)
+        prefix = _safe_text(prefix_options[prefix_index])
+        if prefix:
+            return _safe_text(f"{prefix} {styled}")
+        return styled
+
+    section_lines: Dict[str, Dict[str, List[str]]] = {
+        "executive_numerology_summary": {
+            "what": [
+                f"आपकी प्रोफ़ाइल में Mulank {mulank}, Bhagyank {bhagyank}, Name Number {name_number_text} और Personal Year {personal_year} एक साथ सक्रिय हैं",
+                f"इस संयोजन से {mulank_signal} और {bhagyank_signal} की dual rhythm बनती है, जिसमें गति और गहराई दोनों साथ चलते हैं",
+            ],
+            "why": [
+                f"जब identity signal ({name_signal}) और life direction ({bhagyank_signal}) अलग गति से काम करते हैं, तो अंदर-बाहर के अनुभव में अंतर बनता है",
+                f"Lo Shu missing pattern ({missing_text}) इस अंतर को और स्पष्ट करता है क्योंकि कुछ behavioral supports प्राकृतिक रूप से उपलब्ध नहीं रहते",
+            ],
+            "impact": [
+                f"प्रभाव रूप में कभी high clarity और कभी hesitation दिख सकती है, जिससे {weakest_metric} में fluctuation आता है",
+                f"यह उतार-चढ़ाव long-term confidence और trust consistency दोनों को प्रभावित कर सकता है",
+            ],
+            "action": [
+                "पहला कदम profile simplification है: एक समय में कम goals लेकर उन्हें rigorously पूरा करें",
+                f"दूसरा कदम weekly reflection है जिसमें आप देखें कि कौन-सा व्यवहार आपके मुख्य focus '{focus_hint}' को support कर रहा है",
+            ],
+        },
+        "core_numbers_analysis": {
+            "what": [
+                f"Core stack में Mulank {mulank} instinct, Bhagyank {bhagyank} direction, Destiny {destiny} execution frame और Expression {expression} communication style को define करता है",
+                f"Name Number {name_number_text} इस architecture में public perception layer जोड़ता है, जिससे capability की social readability तय होती है",
+            ],
+            "why": [
+                "ये सभी numbers अलग-अलग behavior layers को नियंत्रित करते हैं, इसलिए इन्हें अलग-अलग पढ़ने के बजाय integrated रूप में देखना जरूरी होता है",
+                f"जब इन layers में alignment होता है तो flow smooth रहता है, और mismatch होने पर start और finish के बीच gap बनता है",
+            ],
+            "impact": [
+                "इस संरचना का असर निर्णय की गति, संचार की स्पष्टता, accountability और परिणाम की स्थिरता पर सीधे दिखता है",
+                "व्यक्ति सक्षम होने के बावजूद inconsistent दिख सकता है यदि core layers एक ही दिशा में synchronized न हों",
+            ],
+            "action": [
+                "हर सप्ताह top-3 priorities को core numbers के हिसाब से map करें: कौन-सा काम instinct fit है और कौन-सा direction fit",
+                "decision के बाद review loop रखें ताकि architecture-driven सुधार व्यवहार में उतर सके",
+            ],
+        },
+        "mulank_description": {
+            "what": [
+                f"Mulank {mulank} आपके reflex behavior का मुख्य ट्रिगर है और पहली प्रतिक्रिया के टोन में स्पष्ट दिखता है",
+                f"इस अंक की वजह से आपकी natural style में {mulank_signal} प्रमुख रहती है, खासकर जब स्थिति नई या urgent हो",
+            ],
+            "why": [
+                "Mulank जन्मदिन की मूल आवृत्ति से निकलता है, इसलिए यह subconscious response pattern पर सीधा प्रभाव डालता है",
+                f"यदि Mulank ऊर्जा और Name Number {name_number_text} की अभिव्यक्ति में अंतर हो तो व्यक्ति की intent और expression अलग दिखाई देते हैं",
+            ],
+            "impact": [
+                "इससे impulsive jumps, delayed closure या mixed social signals जैसे पैटर्न बन सकते हैं",
+                "stress phase में यही प्रवृत्ति confidence drift और communication inconsistency को बढ़ा सकती है",
+            ],
+            "action": [
+                "response-pause drill अपनाएं: तुरंत निर्णय वाले क्षणों में छोटा विराम, फिर लिखित निर्णय",
+                "daily routine में एक non-negotiable execution block रखें ताकि instinctive energy productive दिशा में जाए",
+            ],
+        },
+        "bhagyank_description": {
+            "what": [
+                f"Bhagyank {bhagyank} आपकी long-term दिशा, maturity pattern और recurring life lessons का आधार बनाता है",
+                f"इस अंक की वजह से {bhagyank_signal} theme बार-बार जीवन के अलग चरणों में उभरती है",
+            ],
+            "why": [
+                "Bhagyank date-reduction से निकलकर life-cycle pressure को दर्शाता है, इसलिए यह growth की प्राकृतिक लय बताता है",
+                f"Life Path {life_path} और Destiny {destiny} के साथ इसका मेल तय करता है कि progress steady होगी या fragmented",
+            ],
+            "impact": [
+                "alignment होने पर दिशा स्पष्ट रहती है, लेकिन mismatch में मेहनत बढ़कर भी output तुलनात्मक रूप से कम दिख सकता है",
+                "गलत समय पर बड़े commitments लेने से frustration और reset cycles बढ़ सकते हैं",
+            ],
+            "action": [
+                "annual goals को quarterly milestones में तोड़ें और हर milestone को personal-year theme से validate करें",
+                "long-term decisions में readiness checklist रखें ताकि direction drift न हो",
+            ],
+        },
+        "name_number_analysis": {
+            "what": [
+                f"Name Number {name_number_text} और compound {name_compound} आपकी public memory, trust signal और communication impression को shape करते हैं",
+                f"यह layer बताती है कि लोग आपकी presence को structured, warm, assertive या reserved कैसे पढ़ते हैं",
+            ],
+            "why": [
+                "नाम की अक्षर-आवृत्ति identity frequency बनाती है; spelling consistency और usage frequency इसके प्रभाव को बढ़ाती है",
+                f"core stack से इसका alignment कमजोर होने पर perception gap बनता है, जहां क्षमता अधिक पर projection कम दिखती है",
+            ],
+            "impact": [
+                "impact के रूप में clarity loss, social hesitation, delayed trust formation और authority dilution हो सकता है",
+                "यह gap professional और personal दोनों interactions में conversion quality को कम कर सकता है",
+            ],
+            "action": [
+                "एक standard spelling निर्धारित करें और सभी public surfaces पर वही रखें",
+                f"जहां practical हो, target numbers ({target_text}) की दिशा में identity consistency test करें",
+            ],
+        },
+        "number_interaction_analysis": {
+            "what": [
+                f"Mulank {mulank}, Bhagyank {bhagyank} और Name Number {name_number_text} के बीच interaction आपकी inner drive और outer expression का समन्वय दिखाता है",
+                "यही combination तय करता है कि आप tension में integrated दिखेंगे या fragmented",
+            ],
+            "why": [
+                "जब reflex layer, direction layer और identity layer की गति अलग हो जाती है तो internal push-pull बढ़ता है",
+                f"Lo Shu missing cluster ({missing_text}) इस tension को amplify कर सकता है क्योंकि stabilizing supports कम हो जाते हैं",
+            ],
+            "impact": [
+                "यह स्थिति decision reversals, communication mismatch और execution fatigue के रूप में दिखाई दे सकती है",
+                "व्यक्ति intent से committed होता है, पर behavior rhythm inconsistent होने पर outcome quality गिरती है",
+            ],
+            "action": [
+                "interaction correction chart बनाएं: trigger, old response, corrected response, measurable result",
+                "weekly दो घटनाएं चुनकर देखें कि आपने impulse और direction को कितना sync किया",
+            ],
+        },
+        "loshu_grid_interpretation": {
+            "what": [
+                f"Lo Shu layout में present digits ({present_text}) आपकी available strengths दिखाते हैं और missing digits ({missing_text}) conscious correction zones बताते हैं",
+                "यह grid केवल सूची नहीं बल्कि behavior wiring का practical map है",
+            ],
+            "why": [
+                "grid जन्मतिथि के digit distribution से बनता है, इसलिए यह मानसिक rhythm, routine discipline और emotional handling का आधार बताता है",
+                f"आपके pattern में {missing_line} जैसे संकेत combined व्यवहारिक gaps की ओर इशारा करते हैं",
+            ],
+            "impact": [
+                "असर यह होता है कि कुछ क्षेत्रों में तेज़ प्रगति और कुछ में repeated friction साथ-साथ चलते हैं",
+                "असंतुलित grid होने पर व्यक्ति planning तो करता है पर sustained follow-through टूट सकता है",
+            ],
+            "action": [
+                "Lo Shu behavior tracker बनाएं: communication, routine, money, recovery, closure पांच axes पर weekly score रखें",
+                "missing digits के लिए micro-habit correction रखें और 21-day cycles में परिणाम देखें",
+            ],
+        },
+        "missing_numbers_analysis": {
+            "what": [
+                f"Missing digits ({missing_text}) का मतलब है कि कुछ behavioral muscles naturally strong नहीं हैं और उन्हें consciously train करना होगा",
+                "ये gaps isolated नहीं बल्कि combined pattern बनाकर daily behavior को प्रभावित करते हैं",
+            ],
+            "why": [
+                "जब संबंधित digits जन्म pattern में नहीं होते तो उनके गुण स्वतः नहीं आते और व्यक्ति pressure में reactive mode चुनता है",
+                f"इस वजह से कुछ क्षेत्रों में repeated strain बनता है, भले core intent स्पष्ट और सकारात्मक हो",
+            ],
+            "impact": [
+                "impact में communication breaks, delayed closure, habit inconsistency और decision fatigue शामिल हो सकते हैं",
+                "दीर्घकाल में यही gaps confidence को धीमे-धीमे कमजोर कर सकते हैं",
+            ],
+            "action": [
+                "हर missing digit के लिए एक targeted corrective habit तय करें और उसे measurable outcome से जोड़ें",
+                "monthly review में देखें कौन-से gaps सुधर रहे हैं और किन्हें stronger intervention की जरूरत है",
+            ],
+        },
+        "repeating_numbers_impact": {
+            "what": [
+                f"Repeating pattern ({repeating_text}) बताता है कि आपकी कुछ traits amplified mode में चलती हैं और behavior volume सामान्य से अधिक हो जाता है",
+                f"आपके case में {repeating_line} जैसी tendencies visible हैं, जिन्हें सही channel मिले तो यह advantage बनती हैं",
+            ],
+            "why": [
+                "एक digit का बार-बार आना mind को familiar response loop में रखता है, इसलिए वही pattern अलग contexts में भी repeat होता है",
+                f"जब amplification और missing pattern साथ आते हैं, तो overuse और underdevelopment का मिश्रित imbalance बनता है",
+            ],
+            "impact": [
+                "इसका असर या तो high performance spikes के रूप में दिखता है या overthinking/rigidity के रूप में",
+                "यदि modulation न हो तो संबंधों और काम दोनों में response quality uneven हो सकती है",
+            ],
+            "action": [
+                "हर amplified trait के साथ opposite balancing habit जोड़ें ताकि behavior range नियंत्रित रहे",
+                "daily quick log रखें: आज amplification ने सहायता की या friction बनाया",
+            ],
+        },
+        "mobile_number_numerology": {
+            "what": [
+                f"Mobile vibration {mobile_vibration} ({mobile_state}) आपकी daily communication energy, response style और interaction clarity को प्रभावित करता है",
+                f"current number signal से message timing और conversational tone में subtle pattern बनता है",
+            ],
+            "why": [
+                f"digit-sum resonance core life numbers के साथ sync या mismatch बनाता है, जिससे communication fatigue का स्तर बदलता है",
+                f"जब mobile signal और name identity अलग दिशा में हों तो expression noise बढ़ सकता है",
+            ],
+            "impact": [
+                "परिणाम के रूप में delayed responses, unclear follow-ups और mental distraction बढ़ सकती है",
+                f"यह pattern {weakest_metric} और confidence consistency को भी प्रभावित कर सकता है",
+            ],
+            "action": [
+                "phone hygiene protocol अपनाएं: response windows, callback slots और notification boundaries तय करें",
+                "यदि future में number change हो तो target-compatible ending logic पर विचार करें",
+            ],
+        },
+        "mobile_life_number_compatibility": {
+            "what": [
+                f"mobile vibration {mobile_vibration} और life stack {mulank}/{bhagyank} का compatibility signal बताता है कि रोज़मर्रा का response flow कितना smooth रहेगा",
+                f"अभी का classification ({mobile_state}) communication discipline की आवश्यकता का स्तर तय करता है",
+            ],
+            "why": [
+                "mobile frequency micro-decisions पर प्रभाव डालती है; life numbers से mismatch होने पर cognitive switching load बढ़ता है",
+                "यही कारण है कि कुछ दिनों में responsiveness अच्छा रहता है और कुछ दिनों में unplanned delays आते हैं",
+            ],
+            "impact": [
+                "प्रभाव में inconsistent replies, conversation fatigue और priority confusion शामिल हो सकते हैं",
+                "long-term में यह भरोसा और relationship pacing दोनों पर असर डाल सकता है",
+            ],
+            "action": [
+                "communication rules लिखित करें: urgent, important और routine responses के लिए अलग windows रखें",
+                "सप्ताह में एक बार interaction audit करें और friction patterns को कम करने के लिए behavior tweaks लागू करें",
+            ],
+        },
+    }
+
+    section_lines.update(
+        {
+            "email_numerology": {
+                "what": [
+                    f"Email vibration {email_vibration or 0} आपकी digital identity readability, professionalism signal और trust perception को प्रभावित करता है",
+                    "email handle का tone अक्सर first response की quality और seriousness तय करता है, इसलिए यह identity का functional हिस्सा है",
+                ],
+                "why": [
+                    "email numerology अक्षर-पैटर्न, naming clarity और consistency से बनती है; यह केवल number नहीं बल्कि signal architecture है",
+                    f"Name Number {name_number_text} और email vibration में तालमेल रहने पर public identity coherent दिखती है",
+                ],
+                "impact": [
+                    "mismatch होने पर व्यक्ति सक्षम होने के बावजूद online communication में clarity loss और delayed trust का सामना कर सकता है",
+                    "career, outreach और formal संबंधों में यह gap conversion quality और credibility perception को कमजोर कर सकता है",
+                ],
+                "action": [
+                    "email naming को short, clear और identity-consistent रखें; random digits और अनावश्यक separators कम करें",
+                    "display name, signature और profile naming को एकरूप रखें ताकि trust signal stable बने",
+                ],
+            },
+            "numerology_personality_profile": {
+                "what": [
+                    f"आपकी personality profile में Mulank {mulank} की instinct, Bhagyank {bhagyank} की direction और Name {name_number_text} की projection एक साथ काम करती है",
+                    "इस संयोजन से आप context-sensitive व्यक्ति दिखते हैं, जो कभी बहुत decisive और कभी बहुत reflective हो सकता है",
+                ],
+                "why": [
+                    "core numbers अलग-अलग behavioral layers को सक्रिय करते हैं; इन्हीं layers का तालमेल आपकी social style और internal processing तय करता है",
+                    f"Lo Shu pattern ({present_text}/{missing_text}) इन layers को stabilize या disturb कर सकता है",
+                ],
+                "impact": [
+                    "इसका प्रभाव social readability, self-confidence rhythm और emotional boundary setting पर दिखता है",
+                    "जब blind spots active रहते हैं तो व्यक्ति की strengths दिखने के बावजूद consistency perception कम हो सकती है",
+                ],
+                "action": [
+                    "trigger-based self-awareness sheet बनाएं और देखें किस स्थिति में आपका कौन-सा mode activate होता है",
+                    "strength-led scheduling करें: high-focus tasks clarity windows में और high-emotion interactions regulated windows में रखें",
+                ],
+            },
+            "current_life_phase_insight": {
+                "what": [
+                    f"वर्तमान चरण Personal Year {personal_year} से संचालित है और यह phase correction-led progress, structured reset और priority refinement मांगता है",
+                    f"अभी की स्थिति में {strongest_metric} support दे रहा है जबकि {weakest_metric} को stabilizing attention चाहिए",
+                ],
+                "why": [
+                    "personal year time-pressure map देता है, जिससे पता चलता है कि किस प्रकार के निर्णय अभी परिणामकारी होंगे",
+                    f"core stack और concern '{concern_hint}' का intersection इस phase की urgency और intervention depth तय कर रहा है",
+                ],
+                "impact": [
+                    "phase-aligned actions से progress compounding हो सकती है, जबकि scattered actions से effort leakage बढ़ सकता है",
+                    f"यदि correction delay हुआ तो {risk_primary} संकेत decision fatigue और confidence drift में बदल सकते हैं",
+                ],
+                "action": [
+                    "90-day phase board बनाएं: 3 focus outcomes, 3 weekly metrics और 1 non-negotiable routine block",
+                    "हर सप्ताह phase-fit review करें और low-value commitments हटाकर execution bandwidth बचाएं",
+                ],
+            },
+            "career_financial_tendencies": {
+                "what": [
+                    "career layer में आपकी tendency depth, accountability और structured execution की तरफ है, जहां role clarity होने पर output मजबूत रहता है",
+                    "financial layer में discipline और timing दोनों महत्वपूर्ण हैं; केवल income potential पर्याप्त नहीं होता",
+                ],
+                "why": [
+                    f"Mulank {mulank} action impulse देता है, Bhagyank {bhagyank} direction देता है और Name {name_number_text} opportunity conversion signal देता है",
+                    f"missing digits ({missing_text}) होने पर money routine में inconsistency और delayed follow-through का जोखिम बढ़ता है",
+                ],
+                "impact": [
+                    "career side पर role mismatch होने से motivation drop और decision confusion बढ़ती है",
+                    "finance side पर reactive choices savings continuity और long-term stability को कमजोर कर सकती हैं",
+                ],
+                "action": [
+                    "monthly career review रखें: role-fit, output quality, communication value और growth direction का लेखा बनाएं",
+                    "money checkpoint protocol लागू करें: essentials, reserves, growth allocation और impulse guardrails चारों तय करें",
+                ],
+            },
+            "relationship_compatibility_patterns": {
+                "what": [
+                    "रिश्तों में आपका pattern अक्सर emotional pace और communication pace के तालमेल पर निर्भर करता है, न कि केवल intent पर",
+                    "जब response timing सही रहती है तो संबंध जल्दी स्थिर होते हैं; timing टूटे तो misunderstanding का loop बनता है",
+                ],
+                "why": [
+                    f"Mulank {mulank} त्वरित प्रतिक्रिया देता है जबकि Bhagyank {bhagyank} गहराई से समझ चाहता है; यही अंतर relational friction का स्रोत बन सकता है",
+                    f"compatibility level ({_safe_text(compatibility_level, 'medium')}) और summary ({_safe_text(compatibility_summary, 'balanced signal')}) इस प्रवृत्ति का वर्तमान संदर्भ देते हैं",
+                ],
+                "impact": [
+                    "प्रभाव के रूप में over-explaining, silence blocks, delayed repair या expectation mismatch दिख सकता है",
+                    "यदि clarity protocols न हों तो trust building की गति धीमी होती है और emotional fatigue बढ़ती है",
+                ],
+                "action": [
+                    "conflict protocol तय करें: pause, clear statement, listening window, repair action और closure check",
+                    "साप्ताहिक relationship review रखें जिसमें unresolved points और appreciation दोनों संतुलित रूप से दर्ज हों",
+                ],
+            },
+            "health_tendencies_from_numbers": {
+                "what": [
+                    "यह health section non-medical wellness trend बताता है: stress rhythm, sleep discipline, recovery quality और emotional overload risk",
+                    f"current profile में {weakest_metric} axis संवेदनशील दिख रहा है, इसलिए recovery planning की जरूरत बढ़ती है",
+                ],
+                "why": [
+                    f"Lo Shu gaps ({missing_text}) और repeating traits ({repeating_text}) stress-processing को uneven बना सकते हैं",
+                    "जब decision pressure और emotional load साथ बढ़ते हैं तो nervous system में reset time लंबा हो सकता है",
+                ],
+                "impact": [
+                    "इसका असर fatigue build-up, attention drift, irritability spikes और motivation inconsistency के रूप में दिख सकता है",
+                    "routine टूटने पर performance और emotional steadiness दोनों प्रभावित होते हैं",
+                ],
+                "action": [
+                    "daily recovery protocol रखें: breathing reset, movement block, digital shutdown और fixed sleep window",
+                    "peak-stress दिनों के लिए backup plan बनाएं ताकि overload को तुरंत stabilize किया जा सके",
+                ],
+            },
+            "personal_year_forecast": {
+                "what": [
+                    f"Personal Year {personal_year} इस वर्ष की growth theme, decision timing और correction priority को स्पष्ट कर रहा है",
+                    "यह वर्ष random expansion की जगह disciplined progress और structure-led gains के लिए उपयुक्त है",
+                ],
+                "why": [
+                    "year vibration जन्मतिथि और वर्तमान वर्ष के गणित से बनती है, इसलिए यह समय-आधारित behavioral pressure को विश्वसनीय रूप से दर्शाती है",
+                    "जब actions year-theme aligned होते हैं तो effort-to-result ratio बेहतर रहता है",
+                ],
+                "impact": [
+                    "aligned timing में launches और commitments smoother रहते हैं, misaligned timing में same effort भारी लग सकता है",
+                    "year awareness होने से uncertainty कम होती है और decision confidence स्थिर रहता है",
+                ],
+                "action": [
+                    f"महत्वपूर्ण निर्णयों को favorable dates ({lucky_text}) पर schedule करें और पहले readiness checklist पूरी करें",
+                    "हर महीने phase review करके non-aligned tasks हटाएं और aligned tasks की intensity बढ़ाएं",
+                ],
+            },
+            "lucky_numbers_favorable_dates": {
+                "what": [
+                    f"Supportive numbers ({target_text}) और favorable dates ({lucky_text}) आपकी profile के लिए timing accelerators की तरह काम करते हैं",
+                    "इनका उपयोग blind belief नहीं बल्कि structured planning utility के रूप में करना चाहिए",
+                ],
+                "why": [
+                    "timing windows core stack और year vibration के resonance से निकाले जाते हैं, इसलिए ये contextual support देते हैं",
+                    "aligned dates पर cognitive friction कम होने से focus और completion rate बेहतर होती है",
+                ],
+                "impact": [
+                    "प्रभाव के रूप में key actions में momentum, clarity और stakeholder response quality बढ़ सकती है",
+                    "गलत timing में वही कार्य अधिक rework और delay पैदा कर सकता है",
+                ],
+                "action": [
+                    "हर महीने top supportive dates पहले मार्क करें और high-impact tasks उन्हीं windows में रखें",
+                    "date alignment के साथ preparation discipline जोड़ें ताकि timing का लाभ वास्तविक परिणाम में बदले",
+                ],
+            },
+            "color_alignment": {
+                "what": [
+                    "रंग केवल aesthetics नहीं बल्कि mood regulation, focus stability और public projection को प्रभावित करने वाला subtle behavioral lever हैं",
+                    f"favorable palette ({_safe_text(favorable_colors, 'neutral supportive tones')}) आपकी profile के लिए balanced signal दे सकती है",
+                ],
+                "why": [
+                    f"core number resonance और dominant planet ({dominant_planet}) color sensitivity पर असर डालते हैं",
+                    f"caution palette ({_safe_text(caution_colors, 'high-intensity tones')}) का overuse emotional tone को reactive बना सकता है",
+                ],
+                "impact": [
+                    "सही रंग choices से communication presence और confidence projection सुधरती है",
+                    "गलत color environment में fatigue, irritability या distracted mood के संकेत बढ़ सकते हैं",
+                ],
+                "action": [
+                    "workspace, wardrobe और digital profile में consistent color strategy रखें ताकि identity tone coherent रहे",
+                    "high-pressure दिनों में calming-supportive palette को प्राथमिकता दें और extreme contrasts सीमित रखें",
+                ],
+            },
+            "remedies_lifestyle_adjustments": {
+                "what": [
+                    "यह section practical correction protocol देता है जिसमें mantra, habit discipline और lifestyle calibration को एक integrated system की तरह लागू किया जाता है",
+                    f"मुख्य उद्देश्य {weakest_metric} stabilization और behavior consistency बनाना है, ताकि long-term drift रुके",
+                ],
+                "why": [
+                    "Remedies तभी प्रभावी होती हैं जब repetition, timing और routine integration के साथ की जाएं",
+                    f"आपके pattern में missing cluster और concern '{concern_hint}' दोनों sustained correction मांगते हैं",
+                ],
+                "impact": [
+                    "consistent practice होने पर clarity, emotional regulation और decision steadiness धीरे-धीरे स्थिर होती है",
+                    "अनियमित अभ्यास में शुरुआती लाभ टिकते नहीं और पुराना behavior loop लौट सकता है",
+                ],
+                "action": [
+                    f"Mantra routine: {vedic_code}; इसे fixed time पर short but daily discipline के साथ करें",
+                    f"Practice stack: {vedic_parameter}; lifestyle anchor: {lifestyle_protocol}; weekly compliance review अनिवार्य रखें",
+                ],
+            },
+            "closing_numerology_guidance": {
+                "what": [
+                    f"{full_name} की profile correction-ready है; core potential मौजूद है और growth path usable है",
+                    f"मुख्य balance point {weakest_metric} stabilization और {strongest_metric} leverage के बीच disciplined coordination है",
+                ],
+                "why": [
+                    "समग्र पैटर्न बताता है कि issue क्षमता की कमी नहीं बल्कि rhythm, timing और consistency misalignment का है",
+                    f"core stack, Lo Shu gaps और yearly pressure मिलकर repeat cycles बनाते हैं, जिन्हें process-driven correction से तोड़ा जा सकता है",
+                ],
+                "impact": [
+                    "सही implementation होने पर decision quality, communication trust और execution continuity तीनों में compound सुधार आता है",
+                    "यदि correction postpone किया जाए तो वही patterns बार-बार लौटते हैं और effort efficiency गिरती है",
+                ],
+                "action": [
+                    "अगले 30 दिनों के लिए compact execution plan लागू करें: daily anchors, weekly review और monthly consolidation",
+                    f"final focus: concern '{concern_hint}' को measurable goals में तोड़ें और हर सप्ताह evidence-based progress validate करें",
+                ],
+            },
+        }
+    )
+
+    def _compose_box(section_key: str, slot: str, seeds: Sequence[str]) -> str:
+        seed_pool: List[str] = []
+        for item in seeds:
+            clean = _safe_text(item)
+            if clean and clean not in seed_pool:
+                seed_pool.append(clean)
+        dynamic_pool: List[str] = []
+        for item in global_fillers.get(slot, []) + dynamic_fillers.get(slot, []):
+            clean = _safe_text(item)
+            if clean and clean not in dynamic_pool:
+                dynamic_pool.append(clean)
+        sentences: List[str] = []
+        used = set()
+
+        ordered_seeds = sorted(seed_pool, key=lambda text: _stable_seed(seed, section_key, slot, "seed", text))
+        for idx, base in enumerate(ordered_seeds):
+            if len(sentences) >= 3:
+                break
+            pick = _sent(_style_sentence(section_key, slot, base, idx))
+            if pick and pick not in used:
+                sentences.append(pick)
+                used.add(pick)
+
+        ordered_fillers = sorted(dynamic_pool, key=lambda text: _stable_seed(seed, section_key, slot, "fill", text))
+        for idx, filler in enumerate(ordered_fillers):
+            if not ((len(sentences) < 4 or len(" ".join(sentences)) < 260) and len(sentences) < 5):
+                break
+            pick = _sent(_style_sentence(section_key, slot, filler, idx + 10))
+            if pick and pick not in used:
+                sentences.append(pick)
+                used.add(pick)
+
+        text = " ".join(sentences)
+        return _fit_rich(text, max_chars=520)
+
+    for section_key, slots in section_lines.items():
+        section = basic_payloads.get(section_key)
+        if not isinstance(section, dict):
+            continue
+        summary = (
+            f"{first_name}: {section_key.replace('_', ' ')} | Mulank {mulank}, Bhagyank {bhagyank}, Name {name_number_text}, Personal Year {personal_year}, Risk {risk_primary}"
+        )
+        section["narrative"] = _fit_rich(summary, max_chars=420)
+        cards = section.get("cards") or []
+        if len(cards) < 4:
+            continue
+        cards[0]["value"] = _compose_box(section_key, "what", slots.get("what", []))
+        cards[1]["value"] = _compose_box(section_key, "why", slots.get("why", []))
+        cards[2]["value"] = _compose_box(section_key, "impact", slots.get("impact", []))
+        cards[3]["value"] = _compose_box(section_key, "action", slots.get("action", []))
+
+    if isinstance(basic_payloads.get("missing_numbers_analysis"), dict):
+        basic_payloads["missing_numbers_analysis"]["bullets"] = [
+            f"{number}: {BASIC_MISSING_EFFECTS.get(number, {'fix': 'दैनिक correction discipline'})['fix']}"
+            for number in list(loshu_missing)[:5]
+        ]
+
+    if isinstance(basic_payloads.get("mobile_number_numerology"), dict):
+        cards = basic_payloads["mobile_number_numerology"].get("cards") or []
+        if len(cards) >= 5:
+            cards[4]["value"] = mobile_value or "इनपुट उपलब्ध नहीं"
+
+    if isinstance(basic_payloads.get("email_numerology"), dict):
+        cards = basic_payloads["email_numerology"].get("cards") or []
+        if len(cards) >= 5:
+            cards[4]["value"] = email_value or "इनपुट उपलब्ध नहीं"
+
+    if isinstance(basic_payloads.get("personal_year_forecast"), dict):
+        cards = basic_payloads["personal_year_forecast"].get("cards") or []
+        if len(cards) >= 6:
+            cards[4]["value"] = str(personal_year)
+            cards[5]["value"] = lucky_text
+
+    if isinstance(basic_payloads.get("lucky_numbers_favorable_dates"), dict):
+        cards = basic_payloads["lucky_numbers_favorable_dates"].get("cards") or []
+        if len(cards) >= 6:
+            cards[4]["value"] = target_text
+            cards[5]["value"] = lucky_text
+
+    if isinstance(basic_payloads.get("remedies_lifestyle_adjustments"), dict):
+        basic_payloads["remedies_lifestyle_adjustments"]["bullets"] = [
+            f"Mantra: {vedic_code}",
+            f"Practice: {vedic_parameter}",
+            f"Lifestyle: {lifestyle_protocol}",
+        ]
+
+    if isinstance(basic_payloads.get("name_number_analysis"), dict):
+        cards = basic_payloads["name_number_analysis"].get("cards") or []
+        if len(cards) >= 6:
+            cards[4]["value"] = name_number_text
+            cards[5]["value"] = target_text
+
+    return basic_payloads
+
+
 def build_interpretation_report(
     intake_context: Dict[str, Any],
     numerology_core: Dict[str, Any],
@@ -1356,6 +2014,44 @@ def build_interpretation_report(
             vedic_parameter=vedic_parameter,
             lifestyle_protocol=lifestyle_protocol,
             name_options=name_options,
+        )
+
+        basic_payloads = _enrich_basic_payloads(
+            basic_payloads,
+            full_name=full_name,
+            first_name=first_name,
+            city_hint=city_hint,
+            focus_text=focus_text,
+            current_problem=current_problem,
+            mulank=mulank,
+            bhagyank=bhagyank,
+            life_path=life_path,
+            destiny=destiny,
+            expression=expression,
+            name_number=name_number,
+            name_compound=name_compound,
+            loshu_present=loshu_present,
+            loshu_missing=loshu_missing,
+            repeating_numbers=repeating_numbers,
+            mobile_vibration=mobile_vibration,
+            mobile_classification=mobile_classification,
+            mobile_value=mobile_value,
+            email_value=email_value,
+            email_vibration=email_vibration,
+            compatibility_summary=compatibility_summary,
+            compatibility_level=compatibility_level,
+            personal_year=personal_year,
+            strongest_metric=strongest_metric,
+            weakest_metric=weakest_metric,
+            risk_band=risk_band,
+            lucky_dates=lucky_dates,
+            target_numbers=name_targets,
+            favorable_colors=favorable_colors,
+            caution_colors=caution_colors,
+            dominant_planet=dominant_planet,
+            vedic_code=vedic_code,
+            vedic_parameter=vedic_parameter,
+            lifestyle_protocol=lifestyle_protocol,
         )
 
         payloads.update(basic_payloads)
