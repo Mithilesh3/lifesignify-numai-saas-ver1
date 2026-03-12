@@ -251,28 +251,6 @@
       width: 66px;
       opacity: 0.9;
     }
-    .cover-lower-art {
-      position: absolute;
-      left: 50%;
-      bottom: 14mm;
-      transform: translateX(-50%);
-      width: min(148mm, 78%);
-      max-height: 116mm;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      z-index: 1;
-    }
-    .cover-lower-art img {
-      width: 100%;
-      height: auto;
-      max-height: 116mm;
-      object-fit: contain;
-      display: block;
-      filter: drop-shadow(0 3px 8px rgba(125, 88, 28, 0.26));
-      opacity: 0.98;
-    }
 
     .header {
       display: flex;
@@ -385,6 +363,17 @@
     }
     .cards--four .mini--dense p {
       margin-top: 1.35em;
+    }
+    .cards--core-align {
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+      align-content: stretch;
+      align-items: stretch;
+      gap: 9px;
+    }
+    .cards--core-align .mini {
+      height: 100%;
+      min-height: 0;
+      box-sizing: border-box;
     }
     .mini--tight,
     .mini--dense {
@@ -579,16 +568,6 @@
           </div>
         </div>
 
-        <div class="cover-lower-art" aria-hidden="true">
-          {% if assets.lotus_chart_uri %}
-          <img
-            src="{{ assets.lotus_chart_uri }}"
-            alt="Lotus numerology chart"
-            loading="eager"
-            onerror="window.__numaiImageFallback(this)"
-          />
-          {% endif %}
-        </div>
       </div>
       {% if watermark %}<div class="watermark">Preview</div>{% endif %}
     </section>
@@ -662,7 +641,7 @@
           {% endif %}
 
           {% if section.cards %}
-          <div class="cards{% if section.cards|length == 4 %} cards--four{% endif %}">
+          <div class="cards{% if section.cards|length == 4 %} cards--four{% endif %}{% if section.key == 'core_numbers_analysis' %} cards--core-align{% endif %}">
             {% for card in section.cards %}
             {% set card_text_len = (card.value | default('') | length) %}
             {% set mini_class = "mini" %}
