@@ -295,6 +295,20 @@
       flex-direction: column;
       gap: 10px;
     }
+    .section-shell--executive {
+      min-height: 238mm;
+    }
+    .section-shell--executive .metrics-wrap {
+      gap: 7px;
+    }
+    .section-shell--executive .spine {
+      font-size: 10px;
+      padding: 6px 7px;
+    }
+    .section-shell--executive .spine p {
+      margin-bottom: 2px;
+      line-height: 1.3;
+    }
     .section-top {
       display: grid;
       grid-template-columns: auto 1fr;
@@ -433,6 +447,9 @@
     .metrics-left canvas {
       width: 100% !important;
       height: 205px !important;
+    }
+    .section-shell--executive .metrics-left canvas {
+      height: 182px !important;
     }
     .metric-grid {
       display: grid;
@@ -597,7 +614,7 @@
           </div>
         </header>
 
-        <article class="section-shell">
+        <article class="section-shell{% if section.key == 'executive_numerology_summary' %} section-shell--executive{% endif %}">
           <div class="section-top">
             <span class="image-shell image-shell--icon" aria-hidden="true">
               {% if section.icon_uri %}
@@ -641,7 +658,7 @@
           {% endif %}
 
           {% if section.cards %}
-          <div class="cards{% if section.cards|length == 4 %} cards--four{% endif %}{% if section.key == 'core_numbers_analysis' %} cards--core-align{% endif %}">
+          <div class="cards{% if section.cards|length == 4 and section.key != 'executive_numerology_summary' %} cards--four{% endif %}{% if section.key == 'core_numbers_analysis' %} cards--core-align{% endif %}">
             {% for card in section.cards %}
             {% set card_text_len = (card.value | default('') | length) %}
             {% set mini_class = "mini" %}
