@@ -36,12 +36,13 @@
       --panel-2: rgba(255, 255, 255, 0.58);
       --radius: 13px;
       --box-label-size: 16.8px;
-      --box-body-size: 16px;
-      --box-body-line-height: 1.34;
+      --box-body-size: 16.8px;
+      --box-body-line-height: 1.36;
       --box-pad-x: 10px;
       --box-pad-top: 8px;
-      --box-pad-bottom: 5px;
+      --box-pad-bottom: 6px;
       --box-label-gap: 5px;
+      --box-four-gap: 2.2em;
     }
 
     * { box-sizing: border-box; }
@@ -350,6 +351,19 @@
       line-height: var(--box-body-line-height);
       text-wrap: pretty;
     }
+    .cards--four .mini {
+      padding-top: 9px;
+      padding-bottom: 8px;
+    }
+    .cards--four .mini p {
+      margin-top: var(--box-four-gap);
+    }
+    .cards--four .mini--tight p {
+      margin-top: 1.55em;
+    }
+    .cards--four .mini--dense p {
+      margin-top: 1.35em;
+    }
     .mini--tight,
     .mini--dense {
       justify-content: flex-start;
@@ -360,15 +374,15 @@
       font-size: 16px;
     }
     .mini--tight p {
-      font-size: 15.1px;
-      line-height: 1.32;
+      font-size: 15.8px;
+      line-height: 1.33;
     }
     .mini--dense h5 {
       font-size: 15.4px;
     }
     .mini--dense p {
-      font-size: 14.5px;
-      line-height: 1.3;
+      font-size: 15.2px;
+      line-height: 1.31;
     }
     .bullets {
       margin: 0;
@@ -615,7 +629,7 @@
           {% endif %}
 
           {% if section.cards %}
-          <div class="cards">
+          <div class="cards{% if section.cards|length == 4 %} cards--four{% endif %}">
             {% for card in section.cards %}
             {% set card_text_len = (card.value | default('') | length) %}
             {% set mini_class = "mini" %}
