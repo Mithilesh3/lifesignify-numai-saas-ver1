@@ -251,6 +251,28 @@
       width: 66px;
       opacity: 0.9;
     }
+    .cover-lower-art {
+      position: absolute;
+      left: 50%;
+      bottom: 14mm;
+      transform: translateX(-50%);
+      width: min(148mm, 78%);
+      max-height: 116mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .cover-lower-art img {
+      width: 100%;
+      height: auto;
+      max-height: 116mm;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 3px 8px rgba(125, 88, 28, 0.26));
+      opacity: 0.98;
+    }
 
     .header {
       display: flex;
@@ -555,6 +577,17 @@
               <span class="image-fallback{% if assets.lotus_gold_uri %} hidden{% endif %}">❋</span>
             </span>
           </div>
+        </div>
+
+        <div class="cover-lower-art" aria-hidden="true">
+          {% if assets.lotus_chart_uri %}
+          <img
+            src="{{ assets.lotus_chart_uri }}"
+            alt="Lotus numerology chart"
+            loading="eager"
+            onerror="window.__numaiImageFallback(this)"
+          />
+          {% endif %}
         </div>
       </div>
       {% if watermark %}<div class="watermark">Preview</div>{% endif %}

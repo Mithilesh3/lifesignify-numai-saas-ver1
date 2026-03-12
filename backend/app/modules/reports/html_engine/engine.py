@@ -379,6 +379,11 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
     cover_ganesha_uri = _as_image_src(ASSETS_ROOT / "cover" / "ganesha.png")
     cover_krishna_uri = _as_image_src(ASSETS_ROOT / "cover" / "krishna.png")
     lotus_gold_uri = _as_image_src(ASSETS_ROOT / "lotus" / "lotus_gold.png")
+    lotus_chart_uri = (
+        _as_image_src(ASSETS_ROOT / "lotus" / "lotus_numerology_chart.svg")
+        or _as_image_src(ASSETS_ROOT / "lotus" / "lotus_numerology_chart.png")
+        or lotus_gold_uri
+    )
     mandala_bg_uri = _as_background_src(ASSETS_ROOT / "sacred" / "mandala_bg.png")
     om_gold_uri = _as_image_src(ASSETS_ROOT / "sacred" / "om_gold.png")
     chakra_icon_uri = _as_image_src(ASSETS_ROOT / "icons" / "chakra.png")
@@ -813,6 +818,7 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
             "cover_ganesha_uri": cover_ganesha_uri,
             "cover_krishna_uri": cover_krishna_uri,
             "lotus_gold_uri": lotus_gold_uri,
+            "lotus_chart_uri": lotus_chart_uri,
             "mandala_bg_uri": mandala_bg_uri,
             "om_gold_uri": om_gold_uri,
             "chakra_icon_uri": chakra_icon_uri,
