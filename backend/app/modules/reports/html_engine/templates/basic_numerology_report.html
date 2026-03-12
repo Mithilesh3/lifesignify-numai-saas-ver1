@@ -25,15 +25,15 @@
     {% endif %}
 
     :root {
-      --paper: #fbf6ea;
-      --paper-2: #f7efdf;
-      --ink: #3a2f1a;
-      --ink-soft: #5d4a23;
-      --gold: #b88a2d;
-      --gold-soft: rgba(184, 138, 45, 0.14);
-      --line: rgba(184, 138, 45, 0.35);
-      --panel: rgba(255, 255, 255, 0.74);
-      --panel-2: rgba(255, 255, 255, 0.58);
+      --paper: #F6F1E7;
+      --paper-2: #F6F1E7;
+      --ink: #3B2B1A;
+      --ink-soft: #A87C2A;
+      --gold: #C79A3B;
+      --gold-soft: rgba(199, 154, 59, 0.14);
+      --line: #D6B36A;
+      --panel: #FFFDF8;
+      --panel-2: #FFFDF8;
       --radius: 13px;
       --box-label-size: 16.8px;
       --box-body-size: 16.8px;
@@ -51,7 +51,7 @@
       padding: 0;
       font-family: "Noto Sans Devanagari", "Inter", sans-serif;
       color: var(--ink);
-      background: #efe6d3;
+      background: var(--paper);
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
       line-height: 1.55;
@@ -82,11 +82,11 @@
       inset: 0;
       background-image:
         {% if assets.mandala_bg_uri %}url("{{ assets.mandala_bg_uri }}"),{% endif %}
-        radial-gradient(circle at 50% 42%, rgba(184, 138, 45, 0.08), transparent 60%);
+        radial-gradient(circle at 50% 42%, rgba(199, 154, 59, 0.12), transparent 60%);
       background-repeat: no-repeat;
       background-position: center center, center center;
       background-size: 100% auto, cover;
-      opacity: 0.36;
+      opacity: 0.05;
       pointer-events: none;
       z-index: 0;
     }
@@ -104,6 +104,17 @@
     .layer {
       position: relative;
       z-index: 2;
+    }
+    .page > .layer::before {
+      content: "";
+      position: absolute;
+      top: -6mm;
+      left: 0;
+      right: 0;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(199, 154, 59, 0.18) 0%, var(--gold) 50%, rgba(199, 154, 59, 0.18) 100%);
+      pointer-events: none;
     }
 
     .watermark {
@@ -211,9 +222,10 @@
     .identity .card {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: 12px;
       padding: 9px 10px;
       min-height: 60px;
+      box-shadow: 0 6px 14px rgba(168, 124, 42, 0.08);
     }
     .identity .card h4 {
       margin: 0 0 5px;
@@ -272,6 +284,8 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
     }
     .kicker {
       margin: 0;
@@ -283,7 +297,8 @@
     .title {
       margin: 3px 0 0;
       font-size: 24px;
-      color: #4a3512;
+      color: var(--ink);
+      font-weight: 800;
       line-height: 1.2;
     }
     .page-meta {
@@ -302,13 +317,14 @@
     .section-shell {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 12px;
       padding: 12px;
       margin-top: 8px;
       min-height: 252mm;
       display: flex;
       flex-direction: column;
       gap: 10px;
+      box-shadow: 0 7px 16px rgba(168, 124, 42, 0.07);
     }
     .section-shell--executive {
       min-height: 238mm;
@@ -332,8 +348,9 @@
     }
     .section-title {
       margin: 0;
-      color: #4c3614;
+      color: var(--ink);
       font-size: 20px;
+      font-weight: 800;
       line-height: 1.3;
     }
     .narrative {
@@ -355,13 +372,14 @@
     }
     .mini {
       background: var(--panel-2);
-      border: 1px solid rgba(184, 138, 45, 0.27);
-      border-radius: 11px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
       padding: var(--box-pad-top) var(--box-pad-x) var(--box-pad-bottom);
       min-height: 72px;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
+      box-shadow: 0 5px 12px rgba(168, 124, 42, 0.07);
     }
     .mini h5 {
       margin: 0 0 var(--box-label-gap);
@@ -433,13 +451,14 @@
     .bullets li { margin-bottom: 3px; }
 
     .diagram {
-      border: 1px solid rgba(184, 138, 45, 0.28);
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
       padding: 7px;
       max-height: 170px;
       overflow: hidden;
       margin-top: auto;
+      box-shadow: 0 5px 12px rgba(168, 124, 42, 0.07);
     }
     .diagram svg {
       width: 100%;
@@ -454,10 +473,11 @@
       gap: 9px;
     }
     .metrics-left, .metrics-right {
-      border: 1px solid rgba(184, 138, 45, 0.3);
-      border-radius: 11px;
-      background: rgba(255, 255, 255, 0.54);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
       padding: 8px;
+      box-shadow: 0 5px 12px rgba(168, 124, 42, 0.07);
     }
     .metrics-left canvas {
       width: 100% !important;
@@ -472,10 +492,11 @@
       gap: 7px;
     }
     .metric-item {
-      border: 1px solid rgba(184, 138, 45, 0.22);
-      border-radius: 9px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
       padding: 6px;
-      background: rgba(255, 255, 255, 0.55);
+      background: var(--panel);
+      box-shadow: 0 4px 10px rgba(168, 124, 42, 0.06);
     }
     .metric-item h5 {
       margin: 0;
@@ -490,12 +511,13 @@
     }
     .spine {
       margin-top: 8px;
-      border: 1px solid rgba(184, 138, 45, 0.28);
-      border-radius: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
       padding: 7px;
-      background: rgba(184, 138, 45, 0.11);
+      background: rgba(199, 154, 59, 0.12);
       font-size: 11px;
-      color: #4a3718;
+      color: var(--ink);
+      box-shadow: 0 4px 10px rgba(168, 124, 42, 0.06);
     }
     .spine p { margin: 0 0 4px; }
     .spine p:last-child { margin-bottom: 0; }
