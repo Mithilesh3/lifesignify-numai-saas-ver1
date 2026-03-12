@@ -247,8 +247,23 @@
       object-fit: contain;
       opacity: 0.86;
     }
-    .cover-art img.lotus {
-      width: 66px;
+    .cover-bottom-art {
+      position: absolute;
+      left: 50%;
+      bottom: 12mm;
+      transform: translateX(-50%);
+      width: 158mm;
+      height: 112mm;
+      z-index: 1;
+      pointer-events: none;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .cover-bottom-art img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
       opacity: 0.9;
     }
 
@@ -570,22 +585,20 @@
               {% endif %}
               <span class="image-fallback{% if assets.cover_krishna_uri %} hidden{% endif %}">✶</span>
             </span>
-            <span class="image-shell" style="width:66px;height:66px;" aria-hidden="true">
-              {% if assets.lotus_gold_uri %}
-              <img
-                class="lotus"
-                src="{{ assets.lotus_gold_uri }}"
-                alt="Lotus"
-                loading="eager"
-                onerror="window.__numaiImageFallback(this)"
-              />
-              {% endif %}
-              <span class="image-fallback{% if assets.lotus_gold_uri %} hidden{% endif %}">❋</span>
-            </span>
           </div>
         </div>
 
       </div>
+      {% if assets.cover_ganesh_yantra_uri %}
+      <div class="cover-bottom-art" aria-hidden="true">
+        <img
+          src="{{ assets.cover_ganesh_yantra_uri }}"
+          alt="Ganesh Yantra"
+          loading="eager"
+          onerror="window.__numaiImageFallback(this)"
+        />
+      </div>
+      {% endif %}
       {% if watermark %}<div class="watermark">Preview</div>{% endif %}
     </section>
 
