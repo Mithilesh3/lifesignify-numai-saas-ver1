@@ -451,7 +451,7 @@ def _build_profile_driven_executive_brief(
     summary_templates = [
         f"{first_name} की executive profile में {year_theme['theme']} phase के साथ {harmony_brief}। इसलिए focus '{focus_hint}' पर disciplined sequencing इस समय high-impact रहेगा।",
         f"Core stack {mulank}/{bhagyank}/{name_number_text} और personal year {personal_year} मिलकर यह संकेत देते हैं कि growth संभव है, लेकिन {weakest_metric.lower()} को stabilize किए बिना scale uneven रहेगा।",
-        f"Risk context '{risk_primary}' के भीतर {strongest_metric.lower()} आपका leverage point है, जबकि {weakest_metric.lower()} वह axis है जहाँ drift सबसे तेज़ बनता है।",
+        f"For {first_name}, risk context '{risk_primary}' means {strongest_metric.lower()} is the leverage point while {weakest_metric.lower()} is where drift accelerates first. In {city_display}, concern '{concern_hint}' should be converted into measurable weekly actions.",
         f"{city_display} जैसे real-world context में profile की सफलता इस बात पर निर्भर करेगी कि आप {year_theme['pressure']} को कितनी जल्दी control कर पाते हैं।",
     ]
     summary_tail = [

@@ -11,7 +11,7 @@ email-validator
 # DATABASE
 # =====================================================
 
-sqlalchemy==2.0.30
+sqlalchemy>=2.0.37,<2.1
 psycopg2-binary
 alembic
 
@@ -63,3 +63,5 @@ numpy
 
 python-dateutil
 pypdf
+# Razorpay depends on pkg_resources, removed in Setuptools >=81.
+setuptools<81

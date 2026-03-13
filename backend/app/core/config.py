@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     AZURE_OPENAI_DEPLOYMENT: str
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "../.env"),
         extra="ignore",
     )
 
