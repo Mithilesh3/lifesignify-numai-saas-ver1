@@ -1,8 +1,9 @@
-import React from "react";
+import type { Dispatch, SetStateAction } from "react";
+import type { ReportFormData } from "../../../types/report";
 
 interface Props {
-  formData: any;
-  setFormData: any;
+  formData: ReportFormData;
+  setFormData: Dispatch<SetStateAction<ReportFormData>>;
   next: () => void;
   prev: () => void;
 }
@@ -13,7 +14,7 @@ export default function StepBirthDetails({
   next,
   prev,
 }: Props) {
-  const update = (field: string, value: string) => {
+  const update = (field: keyof ReportFormData["birth_details"], value: string) => {
     setFormData({
       ...formData,
       birth_details: {
@@ -30,26 +31,42 @@ export default function StepBirthDetails({
       <input
         type="date"
         className="input"
+        value={formData.birth_details?.date_of_birth || ""}
         onChange={(e) => update("date_of_birth", e.target.value)}
       />
 
       <input
-        placeholder="Time of Birth"
+        placeholder="Birth Place"
         className="input"
-        onChange={(e) => update("time_of_birth", e.target.value)}
+        value={formData.birth_details?.birthplace_city || ""}
+        onChange={(e) => update("birthplace_city", e.target.value)}
       />
 
-      <input
-        placeholder="Birth City"
-        className="input"
-        onChange={(e) => update("birthplace_city", e.target.value)}
+      <textarea
+        placeholder="Current Problem / Main Concern"
+        className="input min-h-28"
+        value={formData.current_problem || ""}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            current_problem: e.target.value,
+          })
+        }
       />
 
       <div className="flex justify-between">
         <button onClick={prev} className="btn-secondary">
           Back
         </button>
-        <button onClick={next} className="btn-primary">
+        <button
+          onClick={next}
+          className="btn-primary"
+          disabled={
+            !formData.birth_details?.date_of_birth ||
+            !formData.birth_details?.birthplace_city ||
+            !formData.current_problem?.trim()
+          }
+        >
           Continue
         </button>
       </div>

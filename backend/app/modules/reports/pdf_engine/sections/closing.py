@@ -2,7 +2,7 @@ from reportlab.platypus import Spacer
 
 
 def build_closing(elements, renderer, styles, data):
-    elements.append(renderer.section_banner("Closing Synthesis"))
+    elements.append(renderer.section_banner("समापन सार | Closing Synthesis"))
     elements.append(Spacer(1, 10))
 
     closing_text = (

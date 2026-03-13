@@ -1,6 +1,6 @@
-﻿import re
+import re
 
-from reportlab.platypus import Image, PageBreak, Spacer
+from reportlab.platypus import Image, PageBreak, Spacer, Table, TableStyle
 
 from ..assets import DEITIES
 
@@ -27,7 +27,7 @@ DEITY_MAP = {
 
 def _deity_key(raw_name):
     cleaned = re.sub(r"[^a-zA-Z ]", " ", (raw_name or "").lower())
-    parts = [p for p in cleaned.split() if p]
+    parts = [part for part in cleaned.split() if part]
     for part in parts:
         if part in DEITY_MAP:
             return DEITY_MAP[part]
@@ -35,42 +35,48 @@ def _deity_key(raw_name):
 
 
 def build_vedic(elements, renderer, styles, data):
-    remedy = data.get("vedic_remedies")
-
-    if not remedy:
+    section = data.get("vedic_remedy_protocol", {})
+    if not section:
         return
 
-    elements.append(renderer.section_banner("Vedic Remedy Intelligence"))
+    elements.append(renderer.section_banner("वैदिक प्रोटोकॉल | Vedic Remedy Protocol"))
 
-    deity_name = remedy.get("deity", "Budh (Mercury)")
-    key = _deity_key(deity_name)
+    key = _deity_key(section.get("planetary_alignment", "") + " " + section.get("focus", ""))
     deity_path = DEITIES / f"{key}.png"
-
     if deity_path.exists():
         img = Image(str(deity_path), width=96, height=96)
         img.hAlign = "CENTER"
         elements.append(img)
         elements.append(Spacer(1, 8))
 
-    elements.append(renderer.insight_box("Deity", deity_name, tone="neutral"))
-    elements.append(Spacer(1, 8))
-
-    mantra = remedy.get("mantra_sanskrit", "")
-    pronunciation = remedy.get("mantra_pronunciation", "")
-    practice = remedy.get("practice_guideline", "")
-    donation = remedy.get("recommended_donation", "")
-
-    elements.append(renderer.insight_box("Mantra", f"<b>{mantra}</b><br/>{pronunciation}", tone="info"))
-    elements.append(Spacer(1, 8))
-    elements.append(renderer.insight_box("Practice", practice, tone="neutral"))
-    elements.append(Spacer(1, 8))
-    elements.append(renderer.insight_box("Donation", donation, tone="success"))
-    elements.append(Spacer(1, 8))
-
-    energy = (
-        "This remedy aligns discipline, clarity, and spiritual grounding. "
-        "Consistency matters more than intensity."
+    table = Table(
+        [
+            [
+                renderer.insight_box("Focus", section.get("focus", ""), tone="neutral", width=renderer.two_col_inner_width),
+                renderer.insight_box("Code | Mantra", f"{section.get('code', '')}<br/>{section.get('pronunciation', '')}", tone="info", width=renderer.two_col_inner_width),
+            ],
+            [
+                renderer.insight_box("Parameter | Practice", section.get("parameter", ""), tone="success", width=renderer.two_col_inner_width),
+                renderer.insight_box("Output | Donation", section.get("output", ""), tone="neutral", width=renderer.two_col_inner_width),
+            ],
+        ],
+        colWidths=renderer.two_col_widths,
     )
-    elements.append(renderer.insight_box("Energy Explanation", energy, tone="neutral"))
+    table.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 2),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ]
+        )
+    )
+    elements.append(table)
+    elements.append(Spacer(1, 8))
+    elements.append(renderer.insight_box("Planetary Alignment", section.get("planetary_alignment", ""), tone="neutral"))
+    elements.append(Spacer(1, 8))
+    elements.append(renderer.insight_box("Purpose", section.get("purpose", ""), tone="info"))
 
     elements.append(PageBreak())

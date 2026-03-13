@@ -57,42 +57,52 @@ def _build_styles():
     gold = colors.HexColor("#c6a15b")
 
     styles["Normal"].fontName = regular_font
-    styles["Normal"].fontSize = 10
-    styles["Normal"].leading = 14
+    styles["Normal"].fontSize = 10.5
+    styles["Normal"].leading = 15
     styles["Normal"].textColor = slate
-    styles["Normal"].alignment = TA_CENTER
+    styles["Normal"].alignment = TA_LEFT
 
     styles["BodyText"].fontName = regular_font
-    styles["BodyText"].fontSize = 10
-    styles["BodyText"].leading = 14
+    styles["BodyText"].fontSize = 10.5
+    styles["BodyText"].leading = 15.5
     styles["BodyText"].textColor = slate
     styles["BodyText"].alignment = TA_JUSTIFY
     styles["BodyText"].spaceAfter = 6
 
     styles["Title"].fontName = bold_font
     styles["Title"].fontSize = 30
+    styles["Title"].leading = 34
     styles["Title"].textColor = deep_indigo
     styles["Title"].alignment = TA_CENTER
 
     styles["Heading1"].fontName = bold_font
     styles["Heading1"].fontSize = 24
+    styles["Heading1"].leading = 28
     styles["Heading1"].textColor = deep_indigo
     styles["Heading1"].alignment = TA_LEFT
 
     styles["Heading2"].fontName = bold_font
     styles["Heading2"].fontSize = 17
+    styles["Heading2"].leading = 21
     styles["Heading2"].textColor = royal_purple
     styles["Heading2"].alignment = TA_LEFT
 
     styles["Heading3"].fontName = bold_font
     styles["Heading3"].fontSize = 13
+    styles["Heading3"].leading = 17
     styles["Heading3"].textColor = deep_indigo
     styles["Heading3"].alignment = TA_LEFT
 
     styles["Heading4"].fontName = bold_font
     styles["Heading4"].fontSize = 11
+    styles["Heading4"].leading = 14
     styles["Heading4"].textColor = royal_purple
     styles["Heading4"].alignment = TA_LEFT
+
+    for style_name in ("Normal", "BodyText", "Title", "Heading1", "Heading2", "Heading3", "Heading4"):
+        styles[style_name].wordWrap = "CJK"
+        styles[style_name].encoding = "UTF-8"
+        styles[style_name].splitLongWords = 1
 
     if "SectionBanner" not in styles:
         styles.add(
@@ -101,8 +111,12 @@ def _build_styles():
                 parent=styles["Heading2"],
                 fontName=bold_font,
                 fontSize=14,
+                leading=18,
                 textColor=colors.white,
                 alignment=TA_LEFT,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
             )
         )
 
@@ -112,8 +126,8 @@ def _build_styles():
                 name="CoverTitle",
                 parent=styles["Title"],
                 fontName=bold_font,
-                fontSize=52,
-                leading=56,
+                fontSize=40,
+                leading=44,
                 textColor=deep_indigo,
                 alignment=TA_CENTER,
             )
@@ -125,10 +139,13 @@ def _build_styles():
                 name="CoverSubtitle",
                 parent=styles["Heading2"],
                 fontName=regular_font,
-                fontSize=26,
-                leading=30,
+                fontSize=18,
+                leading=22,
                 textColor=deep_indigo,
                 alignment=TA_CENTER,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
             )
         )
 
@@ -138,10 +155,13 @@ def _build_styles():
                 name="CoverPlan",
                 parent=styles["Heading2"],
                 fontName=regular_font,
-                fontSize=23,
-                leading=27,
+                fontSize=16,
+                leading=20,
                 textColor=deep_indigo,
                 alignment=TA_CENTER,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
             )
         )
 
@@ -155,6 +175,9 @@ def _build_styles():
                 leading=28,
                 textColor=deep_indigo,
                 alignment=TA_CENTER,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
             )
         )
 
@@ -168,6 +191,38 @@ def _build_styles():
                 fontSize=12,
                 textColor=gold,
                 alignment=TA_CENTER,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
+            )
+        )
+
+    if "TableHeader" not in styles:
+        styles.add(
+            ParagraphStyle(
+                name="TableHeader",
+                parent=styles["BodyText"],
+                fontName=bold_font,
+                fontSize=9.5,
+                leading=12.5,
+                textColor=colors.white,
+                alignment=TA_LEFT,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
+            )
+        )
+
+    if "SmallText" not in styles:
+        styles.add(
+            ParagraphStyle(
+                name="SmallText",
+                parent=styles["BodyText"],
+                fontSize=8.5,
+                leading=11,
+                wordWrap="CJK",
+                encoding="UTF-8",
+                splitLongWords=1,
             )
         )
 
@@ -239,41 +294,17 @@ def generate_report_pdf(data, watermark: bool = False):
     safe_section(build_cover, elements, styles, name, plan, data)
 
     section_pipeline = [
-        (build_executive, (elements, renderer, styles, data), ("executive_summary", "current_problem_analysis")),
-        (build_strengths_risks, (elements, renderer, data), tuple()),
-        (build_metrics, (elements, renderer, styles, data), ("core_numbers_analysis", "personality_intelligence")),
-        (build_radar, (elements, renderer, styles, data), tuple()),
-        (build_archetype, (elements, renderer, styles, data), ("personality_intelligence",)),
-        (build_career, (elements, renderer, styles, data), ("career_wealth_strategy",)),
-        (build_decision, (elements, renderer, styles, data), ("current_problem_analysis",)),
-        (build_emotional, (elements, renderer, styles, data), ("health_signals", "current_problem_analysis")),
-        (build_financial, (elements, renderer, styles, data), ("career_wealth_strategy",)),
-        (build_business, (elements, renderer, styles, data), ("career_wealth_strategy",)),
-        (
-            build_numerology,
-            (elements, renderer, styles, data),
-            (
-                "core_numbers_analysis",
-                "mulank_description",
-                "bhagyank_description",
-                "name_number_analysis",
-                "number_interaction_analysis",
-            ),
-        ),
-        (build_planetary, (elements, renderer, styles, data), ("remedies_lifestyle_adjustments",)),
-        (
-            build_loshu,
-            (elements, renderer, data),
-            ("loshu_grid_interpretation", "missing_numbers_analysis", "repeating_numbers_impact"),
-        ),
-        (build_compatibility, (elements, renderer, styles, data), ("relationship_patterns",)),
-        (build_personal_year, (elements, renderer, styles, data), ("personal_year_forecast",)),
-        (build_strategy, (elements, renderer, styles, data), ("strategic_growth_blueprint",)),
-        (build_growth, (elements, renderer, styles, data), ("strategic_growth_blueprint",)),
-        (build_lifestyle, (elements, renderer, styles, data), ("color_alignment", "remedies_lifestyle_adjustments", "lucky_numbers")),
-        (build_mobile, (elements, renderer, styles, data), ("mobile_number_numerology", "mobile_life_number_compatibility")),
-        (build_vedic, (elements, renderer, styles, data), ("remedies_lifestyle_adjustments",)),
-        (build_closing, (elements, renderer, styles, data), ("strategic_growth_blueprint",)),
+        (build_executive, (elements, renderer, styles, data), ("primary_insight",)),
+        (build_metrics, (elements, renderer, styles, data), ("intelligence_metrics",)),
+        (build_numerology, (elements, renderer, styles, data), ("numerology_architecture",)),
+        (build_archetype, (elements, renderer, styles, data), ("archetype_intelligence",)),
+        (build_loshu, (elements, renderer, data), ("loshu_diagnostic",)),
+        (build_planetary, (elements, renderer, styles, data), ("planetary_mapping",)),
+        (build_strategy, (elements, renderer, styles, data), ("structural_deficit_model",)),
+        (build_lifestyle, (elements, renderer, styles, data), ("circadian_alignment",)),
+        (build_mobile, (elements, renderer, styles, data), ("environment_alignment",)),
+        (build_vedic, (elements, renderer, styles, data), ("vedic_remedy_protocol",)),
+        (build_growth, (elements, renderer, styles, data), ("execution_plan",)),
     ]
 
     for func, args, required_keys in section_pipeline:

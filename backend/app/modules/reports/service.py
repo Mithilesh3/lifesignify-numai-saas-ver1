@@ -61,9 +61,12 @@ def get_report_blueprint(plan_name: Optional[str] = None) -> Dict[str, Any]:
         normalized = _normalize_plan_name(plan_name)
         return get_tier_section_blueprint(normalized)
 
+    blueprints = get_all_tier_section_blueprints()
     return {
-        "tiers": get_all_tier_section_blueprints(),
-        "total_defined_sections": 21,
+        "tiers": blueprints,
+        "total_defined_sections": max(
+            blueprint.get("section_count", 0) for blueprint in blueprints.values()
+        ),
     }
 
 # =====================================================
@@ -84,23 +87,23 @@ def enrich_report_content(report_content: dict, plan_name: str = "basic") -> dic
             "plan_tier": plan_name,
             "generated_at": datetime.utcnow().isoformat(),
             "engine_version": settings.ENGINE_VERSION,
-            "report_version": "5.3"
+            "report_version": "6.0"
         }
 
     # Attach section blueprint so frontend/export layers can inspect tier coverage.
     report_content["report_blueprint"] = get_tier_section_blueprint(plan_name)
     report_content["meta"]["section_count"] = report_content["report_blueprint"]["section_count"]
-    report_content["meta"]["blueprint_version"] = "2026-03-v1"
+    report_content["meta"]["blueprint_version"] = "2026-03-v2"
 
     
     # Executive Brief - Core summary
     report_content.setdefault(
         "executive_brief",
         {
-            "summary": "Your numerology indicators suggest an adaptive personality with leadership potential. Current patterns indicate opportunities for growth in financial discipline and emotional regulation.",
-            "key_strength": "Strategic thinking and adaptability with strong visionary capacity.",
-            "key_risk": "Financial discipline fluctuations and emotional regulation under stress.",
-            "strategic_focus": "Build structured financial planning while leveraging leadership ability for sustainable scaling."
+            "summary": "आपके numerology indicators adaptive personality और leadership potential दिखाते हैं। वर्तमान pattern वित्तीय अनुशासन और emotional regulation में सुधार की दिशा बताता है।",
+            "key_strength": "रणनीतिक सोच, adaptability, और vision-driven execution.",
+            "key_risk": "Stress phase में financial discipline और emotional consistency में उतार-चढ़ाव।",
+            "strategic_focus": "Structured planning और disciplined execution के साथ sustainable scaling पर फोकस रखें।"
         },
     )
     
@@ -110,6 +113,7 @@ def enrich_report_content(report_content: dict, plan_name: str = "basic") -> dic
         {
             "risk_band": "Correctable",
             "confidence_score": 75,
+            "data_completeness_score": 70,
             "karma_pressure_index": 50,
             "life_stability_index": 50,
             "dharma_alignment_score": 50,
@@ -122,10 +126,10 @@ def enrich_report_content(report_content: dict, plan_name: str = "basic") -> dic
     report_content.setdefault(
         "analysis_sections",
         {
-            "career_analysis": "Your numerology pattern supports leadership and entrepreneurial environments. Life Path energy drives adaptability and innovation.",
-            "decision_profile": "Moderate decision clarity with room for structured frameworks under pressure.",
-            "emotional_analysis": "Moderate emotional regulation with occasional impulsive decisions during stress.",
-            "financial_analysis": "Financial discipline indicators suggest strengthening structured savings and investment habits."
+            "career_analysis": "आपका numerology pattern leadership और ownership-oriented environments को support करता है। Life Path energy adaptability और innovation को drive करती है।",
+            "decision_profile": "Decision clarity मध्यम है; pressure के समय structured decision framework अपनाने की आवश्यकता है।",
+            "emotional_analysis": "Emotional regulation मध्यम है; stress phase में impulsive decisions से बचने के लिए recovery protocol आवश्यक है।",
+            "financial_analysis": "Financial discipline signal बताता है कि savings, budgeting, और investment habits को अधिक structured बनाना लाभकारी रहेगा।"
         },
     )
     
@@ -144,9 +148,9 @@ def enrich_report_content(report_content: dict, plan_name: str = "basic") -> dic
     report_content.setdefault(
         "growth_blueprint",
         {
-            "phase_1": "Stabilize emotional and financial decision frameworks through structured routines.",
-            "phase_2": "Develop scalable personal or business growth strategies with measurable milestones.",
-            "phase_3": "Align long-term life strategy with leadership opportunities and global impact."
+            "phase_1": "Structured routine के माध्यम से emotional और financial decision framework stabilize करें।",
+            "phase_2": "Measurable milestones के साथ scalable growth strategy deploy करें।",
+            "phase_3": "Long-term strategy को leadership opportunities और impact roadmap से align करें।"
         },
     )
     
@@ -154,9 +158,9 @@ def enrich_report_content(report_content: dict, plan_name: str = "basic") -> dic
     report_content.setdefault(
         "strategic_guidance",
         {
-            "short_term": "Focus on immediate cash flow stabilization and emotional resilience practices.",
-            "mid_term": "Restructure operations and build scalable systems for sustainable growth.",
-            "long_term": "Scale globally into compatible industries with aligned partnerships."
+            "short_term": "Immediate cash-flow stabilization और emotional resilience practices पर फोकस करें।",
+            "mid_term": "Operations restructure करके sustainable growth के लिए scalable systems बनाएं।",
+            "long_term": "Aligned partnerships के साथ compatible industries में structured scaling करें।"
         },
     )
     
@@ -300,6 +304,7 @@ def get_radar_data(db: Session, current_user: User, report_id: int) -> Dict[str,
         "Dharma Alignment": metrics.get("dharma_alignment_score", 50),
         "Emotional Regulation": metrics.get("emotional_regulation_index", 50),
         "Financial Discipline": metrics.get("financial_discipline_index", 50),
+        "Karma Pressure": metrics.get("karma_pressure_index", 50),
     }
 
 
@@ -472,6 +477,9 @@ def restore_report(db: Session, current_user: User, report_id: int) -> Dict[str,
     if not report:
         raise HTTPException(status_code=404, detail="Deleted report not found")
 
+
+    if not current_user.is_admin and report.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only access your own reports")
     report.is_deleted = False
     db.commit()
     
@@ -522,8 +530,8 @@ def generate_ai_report_service(
         # Validate subscription and lock for update
         subscription = _validate_and_lock_subscription(db, current_user)
 
-        # Determine plan (allow override for testing)
-        plan_name = _normalize_plan_name(intake_data.get("plan_override", "") or subscription.plan_name or "basic")
+        # Determine plan from the active subscription only
+        plan_name = _normalize_plan_name(subscription.plan_name or "basic")
 
         if plan_name not in PLAN_LIMITS:
             logger.error(f"Invalid plan name: {plan_name}")
@@ -554,9 +562,10 @@ def generate_ai_report_service(
             "financial": intake_data.get("financial", {}),
             "career": intake_data.get("career", {}),
             "emotional": intake_data.get("emotional", {}),
-            "life_events": intake_data.get("life_events", []),
+            "life_events": intake_data.get("life_events", {}),
             "calibration": intake_data.get("calibration", {}),
             "contact": intake_data.get("contact", {}),
+            "preferences": intake_data.get("preferences", {}),
             "current_problem": intake_data.get("current_problem", ""),
         }
 
@@ -655,6 +664,9 @@ def get_reports(
     query = db.query(Report).filter(
         Report.tenant_id == current_user.tenant_id
     )
+
+    if not current_user.is_admin:
+        query = query.filter(Report.user_id == current_user.id)
     
     if not include_deleted:
         query = query.filter(Report.is_deleted.is_(False))
@@ -696,6 +708,12 @@ def get_report(
             detail="Report not found"
         )
 
+
+    if not current_user.is_admin and report.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only access your own reports",
+        )
     return report
 
 
@@ -842,6 +860,11 @@ def bulk_delete_reports(
         "processed_ids": found_ids,
         "not_found_ids": list(not_found)
     }
+
+
+
+
+
 
 
 

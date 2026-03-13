@@ -1,21 +1,20 @@
-﻿from reportlab.platypus import PageBreak, Spacer, Table, TableStyle
+from reportlab.platypus import PageBreak, Spacer, Table, TableStyle
 
 
 def build_growth(elements, renderer, styles, data):
-    growth = data.get("growth_blueprint", {})
-
-    if not growth:
+    section = data.get("execution_plan", {})
+    if not section:
         return
 
-    elements.append(renderer.section_banner("Growth Blueprint"))
+    elements.append(renderer.section_banner("21-दिवसीय क्रियान्वयन योजना | 21-Day Execution Plan"))
 
     cards = [
-        renderer.insight_box("Stabilization", growth.get("phase_1", "Stabilize core systems."), tone="neutral"),
-        renderer.insight_box("Alignment", growth.get("phase_2", "Align execution to strategy."), tone="info"),
-        renderer.insight_box("Expansion", growth.get("phase_3", "Scale with governance."), tone="success"),
+        renderer.insight_box("Install Rhythm", section.get("install_rhythm", ""), tone="neutral"),
+        renderer.insight_box("Deploy Anchor", section.get("deploy_anchor", ""), tone="info"),
+        renderer.insight_box("Run Protocol", section.get("run_protocol", ""), tone="success"),
     ]
 
-    grid = Table([cards], colWidths=[156, 156, 156])
+    grid = Table([cards], colWidths=renderer.three_col_widths)
     grid.setStyle(
         TableStyle(
             [
@@ -27,11 +26,13 @@ def build_growth(elements, renderer, styles, data):
             ]
         )
     )
-
     elements.append(grid)
     elements.append(Spacer(1, 8))
 
-    elements.append(renderer.insight_box("Execution Note", "Move to the next phase only when current metrics stabilize.", tone="neutral"))
+    checkpoints = "<br/>".join(f"- {item}" for item in section.get("checkpoints", []))
+    if checkpoints:
+        elements.append(renderer.insight_box("Weekly Checkpoints", checkpoints, tone="neutral"))
+        elements.append(Spacer(1, 8))
 
+    elements.append(renderer.insight_box("Execution Summary", section.get("summary", ""), tone="info"))
     elements.append(PageBreak())
-

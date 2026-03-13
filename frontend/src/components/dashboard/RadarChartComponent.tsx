@@ -20,9 +20,7 @@ interface Props {
 export default function RadarChartComponent({ data }: Props) {
   return (
     <div className="bg-gray-900 p-6 rounded-xl shadow-md">
-      <h2 className="text-xl font-semibold mb-6">
-        Life Stability Radar
-      </h2>
+      <h2 className="text-xl font-semibold mb-6">Intelligence Radar</h2>
 
       <ResponsiveContainer width="100%" height={400}>
         <RadarChart data={data}>

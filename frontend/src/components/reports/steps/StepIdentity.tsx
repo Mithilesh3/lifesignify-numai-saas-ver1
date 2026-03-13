@@ -1,18 +1,29 @@
-import React from "react";
+import type { Dispatch, SetStateAction } from "react";
+import type { ReportFormData } from "../../../types/report";
 
 interface Props {
-  formData: any;
-  setFormData: any;
+  formData: ReportFormData;
+  setFormData: Dispatch<SetStateAction<ReportFormData>>;
   next: () => void;
 }
 
 export default function StepIdentity({ formData, setFormData, next }: Props) {
-  const update = (field: string, value: string) => {
+  const updateIdentity = (field: keyof ReportFormData["identity"], value: string) => {
     setFormData({
       ...formData,
       identity: {
         ...formData.identity,
         [field]: value,
+      },
+    });
+  };
+
+  const updateContact = (mobile_number: string) => {
+    setFormData({
+      ...formData,
+      contact: {
+        ...formData.contact,
+        mobile_number,
       },
     });
   };
@@ -24,22 +35,45 @@ export default function StepIdentity({ formData, setFormData, next }: Props) {
       <input
         placeholder="Full Name"
         className="input"
-        onChange={(e) => update("full_name", e.target.value)}
+        value={formData.identity?.full_name || ""}
+        onChange={(e) => updateIdentity("full_name", e.target.value)}
       />
 
       <input
-        placeholder="Gender"
+        placeholder="Mobile Number"
         className="input"
-        onChange={(e) => update("gender", e.target.value)}
+        value={formData.contact?.mobile_number || ""}
+        onChange={(e) => updateContact(e.target.value)}
       />
 
       <input
-        placeholder="Country"
+        type="email"
+        placeholder="Email Address"
         className="input"
-        onChange={(e) => update("country_of_residence", e.target.value)}
+        value={formData.identity?.email || ""}
+        onChange={(e) => updateIdentity("email", e.target.value)}
       />
 
-      <button onClick={next} className="btn-primary">
+      <select
+        className="input"
+        value={formData.identity?.gender || ""}
+        onChange={(e) => updateIdentity("gender", e.target.value)}
+      >
+        <option value="">Select Gender</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+      </select>
+
+      <button
+        onClick={next}
+        className="btn-primary"
+        disabled={
+          !formData.identity?.full_name
+          || !formData.contact?.mobile_number
+          || !formData.identity?.gender
+        }
+      >
         Continue
       </button>
     </div>

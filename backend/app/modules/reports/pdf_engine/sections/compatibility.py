@@ -7,7 +7,7 @@ def build_compatibility(elements, renderer, styles, data):
     if not comp:
         return
 
-    elements.append(renderer.section_banner("Compatibility Intelligence"))
+    elements.append(renderer.section_banner("संबंध अनुकूलता | Compatibility Intelligence"))
 
     good = [str(n) for n in comp.get("compatible_numbers", [])]
     tough = [str(n) for n in comp.get("challenging_numbers", [])]

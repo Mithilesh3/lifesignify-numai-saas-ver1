@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 
 from reportlab.lib.colors import HexColor
 from reportlab.lib.units import mm
@@ -27,57 +27,58 @@ def _cover_deity_image():
 def build_cover(elements, styles, name, plan, data):
     identity = data.get("identity", {}) if isinstance(data, dict) else {}
     meta = data.get("meta", {}) if isinstance(data, dict) else {}
+    metrics = data.get("core_metrics", {}) if isinstance(data, dict) else {}
 
     full_name = name or identity.get("full_name") or "User"
-    dob = identity.get("date_of_birth") or identity.get("dob") or "Not Provided"
+    birth_details = data.get("birth_details", {}) if isinstance(data, dict) else {}
+    dob = identity.get("date_of_birth") or birth_details.get("date_of_birth") or "Not Provided"
     generated_at = _fmt_date(meta.get("generated_at"))
+    risk_band = metrics.get("risk_band", "Not Classified")
 
     elements.append(Spacer(1, 18))
 
     if OM_SYMBOL.exists():
-        om_img = Image(str(OM_SYMBOL), width=58, height=58)
+        om_img = Image(str(OM_SYMBOL), width=42, height=42)
         om_img.hAlign = "CENTER"
         elements.append(om_img)
-        elements.append(Spacer(1, 6))
+        elements.append(Spacer(1, 4))
 
     deity_path = _cover_deity_image()
     if deity_path is not None:
-        deity_img = Image(str(deity_path), width=88, height=88)
+        deity_img = Image(str(deity_path), width=62, height=62)
         deity_img.hAlign = "CENTER"
         elements.append(deity_img)
 
-    elements.append(Spacer(1, 10))
+    elements.append(Spacer(1, 6))
 
     top_hr = HRFlowable(width="68%", thickness=1.7, color=HexColor("#c6a15b"), spaceBefore=0, spaceAfter=0)
     top_hr.hAlign = "CENTER"
     elements.append(top_hr)
 
-    elements.append(Spacer(1, 14))
-    elements.append(Paragraph("Life Signify NumAI", styles["CoverTitle"]))
-
-    elements.append(Spacer(1, 6))
-    elements.append(Paragraph("Strategic Life Intelligence Report", styles["CoverSubtitle"]))
-
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph("NumAI Strategic Life Audit", styles["CoverTitle"]))
     elements.append(Spacer(1, 4))
-    elements.append(Paragraph(f"{plan.upper()} Intelligence Report", styles["CoverPlan"]))
+    elements.append(Paragraph("जीवन बुद्धि ऑडिट | Strategic Life Intelligence Report", styles["CoverSubtitle"]))
+    elements.append(Spacer(1, 2))
+    elements.append(Paragraph(f"{plan.upper()} Audit Edition", styles["CoverPlan"]))
+    elements.append(Spacer(1, 6))
+    elements.append(Paragraph("12-Page Deterministic + AI Intelligence Audit", styles["SmallText"]))
 
-    elements.append(Spacer(1, 8))
-    elements.append(Paragraph("22 Pages of Deep Intelligence", styles["CoverAccent"]))
-
-    elements.append(Spacer(1, 14))
+    elements.append(Spacer(1, 10))
 
     bottom_hr = HRFlowable(width="68%", thickness=1.2, color=HexColor("#c6a15b"), spaceBefore=0, spaceAfter=0)
     bottom_hr.hAlign = "CENTER"
     elements.append(bottom_hr)
 
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 8))
 
     identity_table = Table(
         [
-            [Paragraph("<b>User Identity</b>", styles["Heading3"])],
-            [Paragraph(f"<para align='left'><b>Full Name:</b> {full_name}</para>", styles["BodyText"])],
-            [Paragraph(f"<para align='left'><b>DOB:</b> {dob}</para>", styles["BodyText"])],
-            [Paragraph(f"<para align='left'><b>Report Generated:</b> {generated_at}</para>", styles["BodyText"])],
+            [Paragraph("<b>रिपोर्ट पहचान | Report Identity</b>", styles["Heading3"])],
+            [Paragraph(f"<para align='left'><b>नाम | User Name:</b> {full_name}</para>", styles["BodyText"])],
+            [Paragraph(f"<para align='left'><b>जन्म तिथि | Date of Birth:</b> {dob}</para>", styles["BodyText"])],
+            [Paragraph(f"<para align='left'><b>Risk Band:</b> {risk_band}</para>", styles["BodyText"])],
+            [Paragraph(f"<para align='left'><b>Generated On:</b> {generated_at}</para>", styles["BodyText"])],
         ],
         colWidths=[162 * mm],
     )
@@ -95,6 +96,4 @@ def build_cover(elements, styles, name, plan, data):
     )
     elements.append(identity_table)
 
-    elements.append(Spacer(1, 10))
-    elements.append(Paragraph(full_name, styles["CoverName"]))
     elements.append(PageBreak())

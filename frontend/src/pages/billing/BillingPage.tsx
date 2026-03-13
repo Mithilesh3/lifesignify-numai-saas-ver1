@@ -30,7 +30,9 @@ export default function BillingPage() {
   const [upgrading, setUpgrading] = useState(false);
 
   const currentPlan =
-    user?.subscription?.plan_name?.toLowerCase() || "basic";
+    user?.subscription?.plan_name?.toLowerCase() ||
+    user?.organization?.plan?.toLowerCase() ||
+    "basic";
 
   useEffect(() => {
     const loadBillingData = async () => {
@@ -49,11 +51,18 @@ export default function BillingPage() {
       }
     };
 
-    loadBillingData();
+    void loadBillingData();
   }, []);
 
   const handleUpgrade = async (planName: string) => {
-    if (upgrading || currentPlan === planName.toLowerCase()) return;
+    if (upgrading || currentPlan === planName.toLowerCase()) {
+      return;
+    }
+
+    if (!window.Razorpay) {
+      toast.error("Payment gateway unavailable. Please refresh and try again.");
+      return;
+    }
 
     setUpgrading(true);
 
@@ -71,7 +80,7 @@ export default function BillingPage() {
           try {
             await billingService.verifyPayment(response);
             await refreshUser();
-            toast.success("Subscription upgraded successfully 🚀");
+            toast.success("Subscription upgraded successfully");
           } catch {
             toast.error("Payment verification failed");
           } finally {
@@ -106,27 +115,21 @@ export default function BillingPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8 space-y-10">
-      {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Subscription & Billing</h1>
+        <h1 className="text-3xl font-bold">Subscription and Billing</h1>
         <p className="text-gray-400 mt-1">
           Manage your subscription and payments
         </p>
       </div>
 
-      {/* Current Plan */}
       <div className="bg-gray-900 p-6 rounded-xl shadow-md">
         <p className="text-gray-400 text-sm">Current Plan</p>
-        <p className="text-2xl font-bold mt-2">
-          {currentPlan.toUpperCase()}
-        </p>
+        <p className="text-2xl font-bold mt-2">{currentPlan.toUpperCase()}</p>
       </div>
 
-      {/* Plans */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((plan) => {
-          const isCurrent =
-            currentPlan === plan.name.toLowerCase();
+          const isCurrent = currentPlan === plan.name.toLowerCase();
 
           return (
             <div
@@ -134,21 +137,16 @@ export default function BillingPage() {
               className="bg-gray-900 p-6 rounded-xl shadow-md flex flex-col justify-between"
             >
               <div>
-                <h2 className="text-xl font-semibold">
-                  {plan.name}
-                </h2>
+                <h2 className="text-xl font-semibold">{plan.name}</h2>
 
                 <p className="text-3xl font-bold mt-2">
-                  ₹{plan.price}
-                  <span className="text-sm text-gray-400">
-                    {" "}
-                    / month
-                  </span>
+                  Rs {plan.price}
+                  <span className="text-sm text-gray-400"> / month</span>
                 </p>
 
                 <ul className="mt-4 space-y-2 text-gray-300 text-sm">
                   <li>
-                    • {plan.reports_limit} AI Report
+                    {plan.reports_limit} AI Report
                     {plan.reports_limit > 1 ? "s" : ""} per month
                   </li>
                 </ul>
@@ -172,11 +170,8 @@ export default function BillingPage() {
         })}
       </div>
 
-      {/* Payment History */}
       <div className="bg-gray-900 p-6 rounded-xl shadow-md">
-        <h2 className="text-xl font-semibold mb-4">
-          Payment History
-        </h2>
+        <h2 className="text-xl font-semibold mb-4">Payment History</h2>
 
         {payments.length === 0 ? (
           <p className="text-gray-400">No payments found.</p>
@@ -191,21 +186,14 @@ export default function BillingPage() {
             </thead>
             <tbody>
               {payments.map((payment) => (
-                <tr
-                  key={payment.id}
-                  className="border-b border-gray-800"
-                >
+                <tr key={payment.id} className="border-b border-gray-800">
                   <td className="py-2">
-                    {new Date(
-                      payment.created_at
-                    ).toLocaleDateString()}
+                    {new Date(payment.created_at).toLocaleDateString()}
                   </td>
-                  <td className="py-2">
-                    ₹{payment.amount}
-                  </td>
+                  <td className="py-2">Rs {payment.amount}</td>
                   <td
                     className={`py-2 ${
-                      payment.status === "success"
+                      payment.status === "paid"
                         ? "text-emerald-400"
                         : "text-yellow-400"
                     }`}

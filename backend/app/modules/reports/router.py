@@ -64,7 +64,6 @@ def create_new_report(
 @router.post("/generate-ai-report", response_model=ReportResponse)
 def generate_ai_report(
     request: LifeSignifyRequest,
-    plan_override: Optional[str] = Query(None, description="Override plan for testing"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -75,9 +74,6 @@ def generate_ai_report(
     - Returns complete report structure
     """
     intake_data = request.model_dump()
-    if plan_override:
-        intake_data["plan_override"] = plan_override
-    
     return generate_ai_report_service(
         db=db,
         current_user=current_user,
@@ -398,3 +394,4 @@ def empty_trash(
         report_ids=report_ids,
         permanent=True,
     )
+

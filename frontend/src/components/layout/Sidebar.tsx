@@ -12,6 +12,9 @@ const Sidebar = () => {
         : "text-gray-400 hover:text-indigo-400"
     }`;
 
+  const canManageUsers =
+    user?.role === "admin" || user?.role === "super_admin";
+
   return (
     <div className="w-64 bg-gray-900 text-white min-h-screen p-4">
       <h2 className="text-xl font-bold mb-6">LifeSignify</h2>
@@ -33,8 +36,7 @@ const Sidebar = () => {
           Settings
         </Link>
 
-        {/* 🔥 ADMIN LINK (only visible to admins) */}
-        {user?.role === "admin" && (
+        {canManageUsers && (
           <Link to="/admin/users" className={linkClass("/admin")}>
             Admin
           </Link>

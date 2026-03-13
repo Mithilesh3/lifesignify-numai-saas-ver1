@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
+import toast from "react-hot-toast";
+
 import { useAuth } from "../../context/AuthContext";
 import API from "../../services/api";
-import toast from "react-hot-toast";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -13,7 +15,6 @@ const RegisterPage = () => {
     email: "",
     password: "",
   });
-
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -28,17 +29,40 @@ const RegisterPage = () => {
     return null;
   };
 
+  const getRegisterErrorMessage = (error: unknown) => {
+    if (!axios.isAxiosError(error)) {
+      return "Registration failed";
+    }
+
+    const payload = error.response?.data as
+      | { detail?: string; message?: string }
+      | undefined;
+
+    return (
+      payload?.detail ||
+      payload?.message ||
+      (error.response
+        ? "Unable to register with provided details"
+        : "Backend is unreachable. Please check server status.")
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (loading) return;
 
-    if (!form.organization_name || !form.email || !form.password) {
+    const payload = {
+      organization_name: form.organization_name.trim(),
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+    };
+
+    if (!payload.organization_name || !payload.email || !payload.password) {
       toast.error("All fields are required");
       return;
     }
 
-    const passwordError = validatePassword(form.password);
+    const passwordError = validatePassword(payload.password);
     if (passwordError) {
       toast.error(passwordError);
       return;
@@ -48,24 +72,18 @@ const RegisterPage = () => {
     const loadingToast = toast.loading("Creating account...");
 
     try {
-      // 1️⃣ Register
-      await API.post("/users/register", form);
+      await API.post("/users/register", payload);
+      await login(payload.email, payload.password);
 
-      // 2️⃣ Auto login
-      await login(form.email, form.password);
-
-      toast.success("Welcome to Life Signify NumAI 🚀", {
+      toast.success("Welcome to Life Signify NumAI", {
         id: loadingToast,
       });
 
-      // 3️⃣ Redirect to dashboard
       navigate("/dashboard");
-
-    } catch (error: any) {
-      toast.error(
-        error?.response?.data?.detail || "Registration failed",
-        { id: loadingToast }
-      );
+    } catch (error) {
+      toast.error(getRegisterErrorMessage(error), {
+        id: loadingToast,
+      });
     } finally {
       setLoading(false);
     }
@@ -78,19 +96,12 @@ const RegisterPage = () => {
         className="bg-gray-900 p-8 rounded-2xl w-full max-w-md shadow-xl space-y-6"
       >
         <div className="text-center">
-          <h1 className="text-3xl font-bold">
-            Create Organization Account
-          </h1>
-          <p className="text-gray-400 mt-2">
-            Start your Life Intelligence journey
-          </p>
+          <h1 className="text-3xl font-bold">Create Organization Account</h1>
+          <p className="text-gray-400 mt-2">Start your Life Intelligence journey</p>
         </div>
 
-        {/* Organization */}
         <div>
-          <label className="text-sm text-gray-400">
-            Organization Name
-          </label>
+          <label className="text-sm text-gray-400">Organization Name</label>
           <input
             name="organization_name"
             value={form.organization_name}
@@ -100,7 +111,6 @@ const RegisterPage = () => {
           />
         </div>
 
-        {/* Email */}
         <div>
           <label className="text-sm text-gray-400">Email</label>
           <input
@@ -113,7 +123,6 @@ const RegisterPage = () => {
           />
         </div>
 
-        {/* Password */}
         <div>
           <label className="text-sm text-gray-400">Password</label>
           <div className="relative">
@@ -123,9 +132,8 @@ const RegisterPage = () => {
               value={form.password}
               onChange={handleChange}
               className="w-full mt-1 p-3 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-12"
-              placeholder="••••••••"
+              placeholder="........"
             />
-
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
@@ -136,7 +144,6 @@ const RegisterPage = () => {
           </div>
         </div>
 
-        {/* Submit */}
         <button
           type="submit"
           disabled={loading}
@@ -145,13 +152,9 @@ const RegisterPage = () => {
           {loading ? "Creating..." : "Register"}
         </button>
 
-        {/* Login Link */}
         <div className="text-center text-sm text-gray-400">
           Already have an account?{" "}
-          <Link
-            to="/login"
-            className="text-indigo-400 hover:underline"
-          >
+          <Link to="/login" className="text-indigo-400 hover:underline">
             Login
           </Link>
         </div>
