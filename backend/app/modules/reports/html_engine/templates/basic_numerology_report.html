@@ -80,7 +80,10 @@
       width: 210mm;
       min-height: 297mm;
       padding: 12mm 12mm 10mm;
-      background: linear-gradient(180deg, var(--paper), var(--paper-2));
+      background:
+        radial-gradient(circle at 14% 10%, rgba(207, 175, 99, 0.08), transparent 34%),
+        radial-gradient(circle at 86% 88%, rgba(168, 124, 42, 0.06), transparent 36%),
+        linear-gradient(180deg, var(--paper), var(--paper-2));
       page-break-after: always;
       overflow: hidden;
     }
@@ -221,7 +224,8 @@
     .cover-sub {
       margin: 10px 0 0;
       color: #6c562a;
-      font-size: 15px;
+      font-size: 15.8px;
+      line-height: 1.5;
     }
     .identity {
       margin-top: 16px;
@@ -240,13 +244,14 @@
     .identity .card h4 {
       margin: 0 0 5px;
       color: var(--gold);
-      font-size: 11px;
+      font-size: 11.4px;
       text-transform: uppercase;
       letter-spacing: 0.03em;
     }
     .identity .card p {
       margin: 0;
-      font-size: 14px;
+      font-size: 14.6px;
+      line-height: 1.4;
       color: #4a3512;
       font-weight: 700;
       word-break: break-word;
@@ -299,16 +304,17 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 9px;
       padding-bottom: 6px;
       border-bottom: 1px solid var(--line);
     }
     .kicker {
       margin: 0;
       color: var(--gold);
-      font-size: 11px;
+      font-size: 11.5px;
       text-transform: uppercase;
       letter-spacing: 0.03em;
+      line-height: 1.3;
     }
     .title {
       margin: 3px 0 0;
@@ -320,9 +326,10 @@
     .page-meta {
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 8px;
       color: #6f592c;
-      font-size: 11px;
+      font-size: 11.6px;
+      line-height: 1.35;
     }
     .page-meta img {
       width: 23px;
@@ -413,6 +420,8 @@
     .narrative {
       margin: 0;
       color: #4f3b1b;
+      font-size: 14.6px;
+      line-height: 1.62;
       word-break: break-word;
       overflow-wrap: anywhere;
     }
@@ -503,9 +512,10 @@
       margin: 0;
       padding-left: 16px;
       color: #4b3a1d;
-      font-size: 11px;
+      font-size: 12.3px;
+      line-height: 1.52;
     }
-    .bullets li { margin-bottom: 3px; }
+    .bullets li { margin-bottom: 4px; }
 
     .diagram {
       border: 1px solid var(--line);
@@ -557,7 +567,8 @@
     }
     .metric-item h5 {
       margin: 0;
-      font-size: 10px;
+      font-size: 11.1px;
+      line-height: 1.35;
       color: #8b651f;
     }
     .metric-item .value {
@@ -579,13 +590,14 @@
       margin-top: 8px;
       border: 1px solid var(--line);
       border-radius: 12px;
-      padding: 7px;
+      padding: 8px 9px;
       background: rgba(199, 154, 59, 0.12);
-      font-size: 11px;
+      font-size: 12.3px;
+      line-height: 1.52;
       color: var(--ink);
       box-shadow: var(--card-shadow);
     }
-    .spine p { margin: 0 0 4px; }
+    .spine p { margin: 0 0 5px; }
     .spine p:last-child { margin-bottom: 0; }
 
     @media screen and (max-width: 1200px) {
