@@ -93,15 +93,27 @@
       position: absolute;
       inset: 0;
       background-image:
-        {% if assets.mandala_bg_uri %}url("{{ assets.mandala_bg_uri }}"),{% endif %}
-        radial-gradient(circle at 50% 42%, rgba(199, 154, 59, 0.12), transparent 60%);
-      background-repeat: no-repeat;
+        radial-gradient(circle at 16% 18%, rgba(207, 175, 99, 0.07), transparent 40%),
+        radial-gradient(circle at 84% 82%, rgba(168, 124, 42, 0.05), transparent 42%);
+      background-repeat: no-repeat, no-repeat;
       background-position: center center, center center;
-      background-size: 100% auto, cover;
-      opacity: 0.05;
+      background-size: cover, cover;
+      opacity: 0.045;
       pointer-events: none;
       z-index: 0;
     }
+    {% if assets.mandala_bg_uri %}
+    .cover::before {
+      background-image:
+        url("{{ assets.mandala_bg_uri }}"),
+        radial-gradient(circle at 50% 42%, rgba(199, 154, 59, 0.13), transparent 62%),
+        radial-gradient(circle at 84% 82%, rgba(168, 124, 42, 0.05), transparent 44%);
+      background-repeat: no-repeat, no-repeat, no-repeat;
+      background-position: center center, center center, center center;
+      background-size: 100% auto, cover, cover;
+      opacity: 0.05;
+    }
+    {% endif %}
 
     .page::after {
       content: "";

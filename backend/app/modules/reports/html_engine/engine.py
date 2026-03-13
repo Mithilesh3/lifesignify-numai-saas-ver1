@@ -28,6 +28,12 @@ except Exception:  # pragma: no cover - import path depends on runtime env
     PlaywrightError = Exception
     sync_playwright = None
 
+try:
+    from pypdf import PdfReader, PdfWriter
+except Exception:  # pragma: no cover - optional runtime optimization
+    PdfReader = None
+    PdfWriter = None
+
 
 logger = logging.getLogger(__name__)
 
@@ -200,18 +206,41 @@ def _as_uri(path: Path) -> str:
     return ""
 
 
-def _as_image_src(path: Path) -> str:
+def _as_image_src(path: Path, max_dim: int = 220) -> str:
     if not path.exists():
         return ""
     try:
         from PIL import Image
 
         with Image.open(path) as image:
-            image = image.convert("RGBA")
-            max_dim = 320
+            image = image.copy()
             image.thumbnail((max_dim, max_dim))
             buffer = BytesIO()
-            image.save(buffer, format="PNG", optimize=True)
+            has_alpha = (
+                "A" in image.getbands()
+                or image.info.get("transparency") is not None
+            )
+            if has_alpha:
+                if image.mode not in ("RGBA", "LA"):
+                    image = image.convert("RGBA")
+                image.save(
+                    buffer,
+                    format="PNG",
+                    optimize=True,
+                    compress_level=9,
+                )
+                mime = "image/png"
+            else:
+                if image.mode != "RGB":
+                    image = image.convert("RGB")
+                image.save(
+                    buffer,
+                    format="JPEG",
+                    quality=74,
+                    optimize=True,
+                    progressive=True,
+                )
+                mime = "image/jpeg"
             encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
     except Exception:
         mime, _ = mimetypes.guess_type(str(path))
@@ -224,23 +253,28 @@ def _as_image_src(path: Path) -> str:
 
     if not encoded:
         return _as_uri(path)
-    return f"data:image/png;base64,{encoded}"
+    return f"data:{mime};base64,{encoded}"
 
 
-def _as_background_src(path: Path) -> str:
+def _as_background_src(path: Path, max_dim: int = 900) -> str:
     if not path.exists():
         return ""
     try:
         from PIL import Image
 
         with Image.open(path) as image:
-            image = image.convert("RGBA")
-            max_dim = 1400
+            image = image.convert("RGB")
             image.thumbnail((max_dim, max_dim))
             buffer = BytesIO()
-            image.save(buffer, format="PNG", optimize=True)
+            image.save(
+                buffer,
+                format="JPEG",
+                quality=52,
+                optimize=True,
+                progressive=True,
+            )
             encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
-            return f"data:image/png;base64,{encoded}"
+            return f"data:image/jpeg;base64,{encoded}"
     except Exception:
         return _as_uri(path)
 
@@ -356,9 +390,9 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
     deficit_svg = build_structural_deficit_svg(deficit_model)
     planetary_svg = build_planetary_orbit_svg(planetary, numerology_core)
 
-    brand_logo_uri = _as_image_src(ASSETS_ROOT / "branding" / "numai_logo.png")
+    brand_logo_uri = _as_image_src(ASSETS_ROOT / "branding" / "numai_logo.png", max_dim=72)
     if not brand_logo_uri:
-        brand_logo_uri = _as_image_src(ASSETS_ROOT / "branding" / "logo.png")
+        brand_logo_uri = _as_image_src(ASSETS_ROOT / "branding" / "logo.png", max_dim=72)
 
     deva_font_regular = _as_uri(ASSETS_ROOT / "fonts" / "NotoSansDevanagari-Regular.ttf")
     deva_font_bold = _as_uri(ASSETS_ROOT / "fonts" / "NotoSansDevanagari-Bold.ttf")
@@ -376,32 +410,32 @@ def _build_context(data: Dict[str, Any], watermark: bool) -> Dict[str, Any]:
         else "Numerology Intelligence x AI Strategy (हिंदी-प्रधान संस्करण)"
     )
 
-    cover_ganesha_uri = _as_image_src(ASSETS_ROOT / "cover" / "ganesha.png")
-    cover_krishna_uri = _as_image_src(ASSETS_ROOT / "cover" / "krishna.png")
+    cover_ganesha_uri = _as_image_src(ASSETS_ROOT / "cover" / "ganesha.png", max_dim=220)
+    cover_krishna_uri = _as_image_src(ASSETS_ROOT / "cover" / "krishna.png", max_dim=200)
     cover_ganesh_yantra_uri = (
-        _as_image_src(ASSETS_ROOT / "cover" / "ganesh_yantra.png")
-        or _as_image_src(ASSETS_ROOT / "cover" / "ganesh_yantra.png.png")
+        _as_image_src(ASSETS_ROOT / "cover" / "ganesh_yantra.png", max_dim=420)
+        or _as_image_src(ASSETS_ROOT / "cover" / "ganesh_yantra.png.png", max_dim=420)
     )
-    lotus_gold_uri = _as_image_src(ASSETS_ROOT / "lotus" / "lotus_gold.png")
+    lotus_gold_uri = _as_image_src(ASSETS_ROOT / "lotus" / "lotus_gold.png", max_dim=96)
     lotus_chart_uri = (
-        _as_image_src(ASSETS_ROOT / "lotus" / "lotus_numerology_chart.svg")
-        or _as_image_src(ASSETS_ROOT / "lotus" / "lotus_numerology_chart.png")
+        _as_image_src(ASSETS_ROOT / "lotus" / "lotus_numerology_chart.svg", max_dim=360)
+        or _as_image_src(ASSETS_ROOT / "lotus" / "lotus_numerology_chart.png", max_dim=360)
         or lotus_gold_uri
     )
-    mandala_bg_uri = _as_background_src(ASSETS_ROOT / "sacred" / "mandala_bg.png")
-    om_gold_uri = _as_image_src(ASSETS_ROOT / "sacred" / "om_gold.png")
-    chakra_icon_uri = _as_image_src(ASSETS_ROOT / "icons" / "chakra.png")
+    mandala_bg_uri = _as_background_src(ASSETS_ROOT / "sacred" / "mandala_bg.png", max_dim=900)
+    om_gold_uri = _as_image_src(ASSETS_ROOT / "sacred" / "om_gold.png", max_dim=96)
+    chakra_icon_uri = _as_image_src(ASSETS_ROOT / "icons" / "chakra.png", max_dim=96)
 
     deity_uris = {
-        "surya": _as_image_src(ASSETS_ROOT / "deities" / "surya.png"),
-        "chandra": _as_image_src(ASSETS_ROOT / "deities" / "chandra.png"),
-        "guru": _as_image_src(ASSETS_ROOT / "deities" / "guru.png"),
-        "rahu": _as_image_src(ASSETS_ROOT / "deities" / "rahu.png"),
-        "budh": _as_image_src(ASSETS_ROOT / "deities" / "budh.png"),
-        "shukra": _as_image_src(ASSETS_ROOT / "deities" / "shukra.png"),
-        "ketu": _as_image_src(ASSETS_ROOT / "deities" / "ketu.png"),
-        "shani": _as_image_src(ASSETS_ROOT / "deities" / "shani.png"),
-        "mangal": _as_image_src(ASSETS_ROOT / "deities" / "mangal.png"),
+        "surya": _as_image_src(ASSETS_ROOT / "deities" / "surya.png", max_dim=96),
+        "chandra": _as_image_src(ASSETS_ROOT / "deities" / "chandra.png", max_dim=96),
+        "guru": _as_image_src(ASSETS_ROOT / "deities" / "guru.png", max_dim=96),
+        "rahu": _as_image_src(ASSETS_ROOT / "deities" / "rahu.png", max_dim=96),
+        "budh": _as_image_src(ASSETS_ROOT / "deities" / "budh.png", max_dim=96),
+        "shukra": _as_image_src(ASSETS_ROOT / "deities" / "shukra.png", max_dim=96),
+        "ketu": _as_image_src(ASSETS_ROOT / "deities" / "ketu.png", max_dim=96),
+        "shani": _as_image_src(ASSETS_ROOT / "deities" / "shani.png", max_dim=96),
+        "mangal": _as_image_src(ASSETS_ROOT / "deities" / "mangal.png", max_dim=96),
     }
 
     blueprint_sections = report_blueprint.get("sections") if isinstance(report_blueprint, dict) else []
@@ -879,10 +913,43 @@ def _render_pdf_with_playwright(html_content: str) -> bytes:
         raise RuntimeError(f"Playwright PDF generation failed: {exc}") from exc
 
 
+def _optimize_pdf_bytes(pdf_bytes: bytes) -> bytes:
+    if PdfReader is None or PdfWriter is None:
+        return pdf_bytes
+
+    try:
+        reader = PdfReader(BytesIO(pdf_bytes))
+        writer = PdfWriter(clone_from=reader)
+
+        for page in writer.pages:
+            try:
+                page.compress_content_streams()
+            except Exception:
+                continue
+
+        writer.compress_identical_objects(remove_identicals=True, remove_orphans=True)
+
+        output = BytesIO()
+        writer.write(output)
+        optimized = output.getvalue()
+        if optimized and len(optimized) < len(pdf_bytes):
+            logger.info(
+                "Optimized PDF size from %s bytes to %s bytes",
+                len(pdf_bytes),
+                len(optimized),
+            )
+            return optimized
+        return pdf_bytes
+    except Exception:
+        logger.exception("Post-processing PDF optimization failed; using original bytes")
+        return pdf_bytes
+
+
 def generate_report_pdf(data: Dict[str, Any], watermark: bool = False) -> BytesIO:
     context = _build_context(data, watermark=watermark)
     html_content = _render_html(context)
     pdf_bytes = _render_pdf_with_playwright(html_content)
+    pdf_bytes = _optimize_pdf_bytes(pdf_bytes)
     buffer = BytesIO(pdf_bytes)
     buffer.seek(0)
     return buffer
